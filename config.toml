@@ -1,0 +1,7 @@
+
+[general]
+	party_finder = true
+	run_overview = true
+	api_key = "9bb0f5a0-b834-41ca-b794-e5f7f67fdb00"
+	party_commands = true
+

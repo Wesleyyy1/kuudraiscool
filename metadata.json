@@ -1,0 +1,10 @@
+{
+  "name": "kuudraiscool",
+  "creator": "Wesleygame",
+  "description": "lf gr aurora",
+  "entry": "index.js",
+  "requires": [
+    "requestV2",
+    "Vigilance"
+  ]
+}
