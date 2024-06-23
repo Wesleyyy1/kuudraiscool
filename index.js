@@ -13,7 +13,7 @@ let runoverview = Settings.runoverview;
 // Register chat event for party finder
 register('chat', (player) => {
     if (!partyfinder || player == Player.getName()) return;
-    showKuudraInfo(player, apiKey);
+    showKuudraInfo(player, Settings.apikey);
 }).setCriteria(/^Party Finder > (.+) joined the group! ((.+))$/);
 
 // Register chat event for party commands
@@ -23,13 +23,13 @@ register('chat', (msg) => {
         if (Settings.partycommands && message.startsWith("Party >")) {
             if (message.includes(": .runs")) {
                 const ign = message.split(".runs")[1]?.trim() || Player.getName();
-                getCommand(ign, apiKey, "runs");
+                getCommand(ign, Settings.apikey, "runs");
             } else if (message.includes(": .stats")) {
                 const ign = message.split(".stats")[1]?.trim() || Player.getName();
-                getCommand(ign, apiKey, "stats");
+                getCommand(ign, Settings.apikey, "stats");
             } else if (message.includes(": .rtca")) {
                 const ign = message.split(".rtca")[1]?.trim() || Player.getName();
-                getCommand(ign, apiKey, "rtca");
+                getCommand(ign, Settings.apikey, "rtca");
             }
 
         }
@@ -57,14 +57,14 @@ function updateApiKey(key) {
 // Register command to get Kuudra info
 register('command', (...args) => {
     const ign = args[0] || Player.getName();
-    showKuudraInfo(ign, apiKey);
+    showKuudraInfo(ign, Settings.apikey);
 }).setName('kuudra', true);
 
 // Register command to search item for a player
 register('command', (...args) => {
     if (args[0] && args[1]) {
         const query = args.slice(1).join(" ");
-        searchItem(args[0], apiKey, query);
+        searchItem(args[0], Settings.apikey, query);
     } else {
         ChatLib.chat("&cUse /lf <player> <query> to search a player for an item!");
     }
@@ -123,7 +123,7 @@ register('command', (...args) => {
             toggleRunOverview();
             break;
         case 'kuudra':
-            showKuudraInfo(args[1] || ign, apiKey);
+            showKuudraInfo(args[1] || ign, Settings.apikey);
             break;
         case 'apikey':
             updateApiKey(args[1]);
@@ -178,6 +178,6 @@ register('chat', (msg) => {
         if (!party.includes(Player.getName())) {
             party.push(Player.getName());
         }
-        getPartyData(apiKey, party);
+        getPartyData(Settings.apikey, party);
     }
 }).setCriteria("${msg}");
