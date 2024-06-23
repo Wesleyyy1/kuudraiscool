@@ -1,6 +1,8 @@
 import { request } from '../requestV2';
 import { decompress, fixNumber, getColorData } from './utils/generalUtils.js';
 
+//
+
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
     TERMINATOR: "TERMINATOR",
@@ -10,8 +12,8 @@ const ITEM_IDS = {
     REAPER_LEGGINGS: "REAPER_LEGGINGS",
     REAPER_BOOTS: "REAPER_BOOTS",
     OVERFLUX_POWER_ORB: "OVERFLUX_POWER_ORB",
-    SOS_FLARE: "SOS_FLARE",
     PLASMAFLUX_POWER_ORB: "PLASMAFLUX_POWER_ORB",
+    SOS_FLARE: "SOS_FLARE"
 };
 
 let reaperPieces, lifeline, lifelineLore, manaPool, manaPoolLore, basicComps, hotComps, burningComps, fieryComps, infernalComps, totalComps, magicalPower, selectedPower, tuningPoints, hyperion, hyperionLore, duplex, duplexLore, fatalTempo, fatalTempoLore, ragnarockAxe, ragnarockAxeLore, extraReaper, extraFerociousMana, extraStrongMana, extraManaEnchantTotal, extraLegionEnchant, extraTerminator, extraDeployable, reputation, wardenHelmet, wardenHelmetLore, terrorChestplate, terrorChestplateLore, terrorChestplatePrefix, terrorLeggings, terrorLeggingsLore, terrorLeggingsPrefix, terrorBoots, terrorBootsLore, terrorBootsPrefix, goldenDragon, goldenDragonLore, oneBilBank;
@@ -203,6 +205,8 @@ function processEquipment(data) {
         checkEquipment(id, attributes, name);
     }
 }
+
+
 
 function checkItem(id, searchLore, displayLore, attributes, name, reforge, enchants, gemstone) {
     if (ITEM_IDS.WITHER_BLADES.has(id)) {
