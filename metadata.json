@@ -3,6 +3,7 @@
   "creator": "Wesleygame",
   "description": "lf gr aurora",
   "entry": "index.js",
+  "version": "1.0.0",
   "requires": [
     "requestV2",
     "Vigilance"

@@ -4,15 +4,11 @@ import getCommand from './chatCommands.js';
 import getPartyData from './doogans.js';
 import searchItem from './searchItem.js';
 import showKuudraInfo from './kuudraInfo.js';
-
-// Load settings
-let apiKey = Settings.apikey;
-let partyfinder = Settings.partyfinder;
-let runoverview = Settings.runoverview;
+import './utils/updateChecker.js';
 
 // Register chat event for party finder
 register('chat', (player) => {
-    if (!partyfinder || player == Player.getName()) return;
+    if (!Settings.partyfinder || player == Player.getName()) return;
     showKuudraInfo(player, Settings.apikey);
 }).setCriteria(/^Party Finder > (.+) joined the group! ((.+))$/);
 
@@ -48,9 +44,8 @@ register('command', (...args) => {
 }).setName('apikey', true);
 
 function updateApiKey(key) {
-    if (key === apiKey) return ChatLib.chat("&cYou are already using this API key!");
+    if (key === Settings.apikey) return ChatLib.chat("&cYou are already using this API key!");
     Settings.apikey = key;
-    apiKey = key;
     ChatLib.chat("&aYour API key has been set!");
 }
 
@@ -81,10 +76,9 @@ register('command', () => {
 }).setName('togglerunoverview', true).setAliases('togglerun');
 
 function togglePartyFinder() {
-    partyfinder = !partyfinder;
-    Settings.partyfinder = partyfinder;
+    Settings.partyfinder = !Settings.partyfinder;
     
-    if (partyfinder) {
+    if (Settings.partyfinder) {
         ChatLib.chat("&aParty Finder stats is now enabled!");
     } else {
         ChatLib.chat("&cParty Finder stats is now disabled!");
@@ -92,10 +86,9 @@ function togglePartyFinder() {
 }
 
 function toggleRunOverview() {
-    runoverview = !runoverview;
-    Settings.runoverview = runoverview;
+    Settings.runoverview = !Settings.runoverview;
 
-    if (runoverview) {
+    if (Settings.runoverview) {
         ChatLib.chat("&aRun overview is now enabled!");
     } else {
         ChatLib.chat("&cRun overview is now disabled!");
