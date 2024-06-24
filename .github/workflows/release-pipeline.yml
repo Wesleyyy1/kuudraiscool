@@ -21,12 +21,9 @@ jobs:
         echo "REPO_NAME=$repo_name" >> $GITHUB_ENV
         echo "VERSION=$version" >> $GITHUB_ENV
 
-    - name: Create directory structure and zip
+    - name: Create zip file excluding .gitignore and .github
       run: |
-        mkdir ${{ env.REPO_NAME }}
-        cp -r * ${{ env.REPO_NAME }}
-        rm -rf ${{ env.REPO_NAME }}/.gitignore ${{ env.REPO_NAME }}/.github
-        zip -r ${{ env.REPO_NAME }}.zip ${{ env.REPO_NAME }}
+        zip -r ${{ env.REPO_NAME }}.zip . -x ".gitignore" -x ".github/*"
 
     - name: Create GitHub Release
       id: create_release
