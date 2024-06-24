@@ -1,0 +1,52 @@
+name: Create Release with Zip File
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract repository name and version
+      id: extract_info
+      run: |
+        repo_name=$(basename `git rev-parse --show-toplevel`)
+        version=$(jq -r '.version' metadata.json)
+        echo "REPO_NAME=$repo_name" >> $GITHUB_ENV
+        echo "VERSION=$version" >> $GITHUB_ENV
+
+    - name: Create directory structure and zip
+      run: |
+        mkdir ${{ env.REPO_NAME }}
+        cp -r * ${{ env.REPO_NAME }}
+        rm -rf ${{ env.REPO_NAME }}/.gitignore ${{ env.REPO_NAME }}/.github
+        zip -r ${{ env.REPO_NAME }}.zip ${{ env.REPO_NAME }}
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.sha }}
+        release_name: Release v${{ env.VERSION }}
+        body: |
+          Release created for commit ${{ github.sha }}.
+        draft: false
+        prerelease: false
+
+    - name: Upload zip to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./${{ env.REPO_NAME }}.zip
+        asset_name: ${{ env.REPO_NAME }}.zip
+        asset_content_type: application/zip
