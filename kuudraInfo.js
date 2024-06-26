@@ -350,7 +350,7 @@ function processMagicalPower(memberData, netherData) {
         tuningPoints = getColorData("gettunings", checkTuning);
     }
 
-    const talismanBag = memberData.inventory.bag_contents.talisman_bag;
+    const talismanBag = memberData.inventory?.bag_contents?.talisman_bag;
     const hasConsumedPrism = memberData.rift?.access?.consumed_prism;
     let hasAbicase = false;
     const talismanIds = new Set();
