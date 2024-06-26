@@ -1,8 +1,6 @@
 import { request } from '../requestV2';
 import { decompress, fixNumber, getColorData } from './utils/generalUtils.js';
 
-//
-
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
     TERMINATOR: "TERMINATOR",
@@ -19,10 +17,10 @@ const ITEM_IDS = {
     DIVAN_DRILL: "DIVAN_DRILL"
 };
 
-let extraDrill, extraFireveil, reaperPieces, lifeline, lifelineLore, manaPool, manaPoolLore, basicComps, hotComps, burningComps, fieryComps, infernalComps, totalComps, magicalPower, selectedPower, tuningPoints, hyperion, hyperionLore, duplex, duplexLore, fatalTempo, fatalTempoLore, ragnarockAxe, ragnarockAxeLore, extraReaper, extraFerociousMana, extraStrongMana, extraManaEnchantTotal, extraLegionEnchant, extraTerminator, extraDeployable, reputation, wardenHelmet, wardenHelmetLore, terrorChestplate, terrorChestplateLore, terrorChestplatePrefix, terrorLeggings, terrorLeggingsLore, terrorLeggingsPrefix, terrorBoots, terrorBootsLore, terrorBootsPrefix, goldenDragon, goldenDragonLore, oneBilBank;
+let kuudraScore, extraDrill, extraFireveil, reaperPieces, lifeline, lifelineLore, manaPool, manaPoolLore, basicComps, hotComps, burningComps, fieryComps, infernalComps, totalComps, magicalPower, selectedPower, tuningPoints, hyperion, hyperionLore, duplex, duplexLore, fatalTempo, fatalTempoLore, ragnarockAxe, ragnarockAxeLore, extraReaper, extraFerociousMana, extraStrongMana, extraManaEnchantTotal, extraLegionEnchant, extraTerminator, extraDeployable, reputation, wardenHelmet, wardenHelmetLore, terrorChestplate, terrorChestplateLore, terrorChestplatePrefix, terrorLeggings, terrorLeggingsLore, terrorLeggingsPrefix, terrorBoots, terrorBootsLore, terrorBootsPrefix, goldenDragon, goldenDragonLore, oneBilBank;
 
 function setDefaults() {
-    reaperPieces = lifeline = manaPool = basicComps = hotComps = burningComps = fieryComps = infernalComps = totalComps = magicalPower = extraFerociousMana = extraStrongMana = extraManaEnchantTotal = extraLegionEnchant = reputation = 0;
+    kuudraScore = reaperPieces = lifeline = manaPool = basicComps = hotComps = burningComps = fieryComps = infernalComps = totalComps = magicalPower = extraFerociousMana = extraStrongMana = extraManaEnchantTotal = extraLegionEnchant = reputation = 0;
     extraDrill = extraFireveil = hyperion = hyperionLore = duplex = duplexLore = fatalTempo = fatalTempoLore = ragnarockAxe = ragnarockAxeLore = extraReaper = extraTerminator = extraDeployable = `&4X`;
     wardenHelmet = wardenHelmetLore = '&4No Warden Helmet';
     terrorChestplate = terrorChestplateLore = '&4No Terror Chestplate';
@@ -68,7 +66,7 @@ function processKuudraData(response) {
     const netherData = memberData.nether_island_player_data;
     const inventory = memberData.inventory;
 
-    processMagicalPower(memberData);
+    processMagicalPower(memberData, netherData);
     processRuns(netherData);
     processReputation(netherData);
     processGoldenDragon(memberData.pets_data.pets);
@@ -239,7 +237,7 @@ function checkItem(id, searchLore, displayLore, attributes, name, reforge, encha
 }
 
 function checkEquipment(id, attributes, name) {
-    if (["NECKLACE", "CLOAK", "BELT", "GAUNTLET", "GLOVES"].some(equip => id.includes(equip))) {
+    if (["NECKLACE", "CLOAK", "BELT", "GAUNTLET", "GLOVES", "BRACELET"].some(equip => id.includes(equip))) {
         checkLLMP(attributes, name);
     }
 }
@@ -335,18 +333,82 @@ function processRuns(netherData) {
         infernalComps = completedTiers?.infernal || infernalComps;
 
         totalComps = basicComps + hotComps + burningComps + fieryComps + infernalComps;
+
+        kuudraScore = basicComps * 0.5 + hotComps + burningComps * 2 + fieryComps * 4 + infernalComps * 8;
     }
 }
 
-function processMagicalPower(memberData) {
+function processMagicalPower(memberData, netherData) {
+    let maxMp = 0;
+    let totalMp = 0;
+    
     const accessoryBag = memberData.accessory_bag_storage;
     if (accessoryBag) {
-        magicalPower = accessoryBag.highest_magical_power || 0;
+        maxMp = accessoryBag.highest_magical_power || 0;
         selectedPower = accessoryBag.selected_power || '&fNONE';
-
         const checkTuning = accessoryBag.tuning?.slot_0 || 0;
         tuningPoints = getColorData("gettunings", checkTuning);
     }
+
+    const talismanBag = memberData.inventory.bag_contents.talisman_bag;
+    const hasConsumedPrism = memberData.rift?.access?.consumed_prism;
+    let hasAbicase = false;
+    const talismanIds = new Set();
+
+    if (talismanBag) {
+        const talismans = decompress(talismanBag.data);
+        if (!talismans) return;
+
+        for (let i = 0; i < talismans.func_74745_c(); i++) {
+            let talisman = talismans.func_150305_b(i);
+            if (!talisman) continue;
+
+            let tag = new NBTTagCompound(talisman).getCompoundTag("tag");
+            if (tag.hasNoTags()) continue;
+
+            let id = tag.getCompoundTag("ExtraAttributes").getString("id");
+            if (talismanIds.has(id)) continue;
+            talismanIds.add(id);
+
+            let display = tag.getCompoundTag("display");
+            let searchLore = (display.toObject()["Lore"] || []).join(' ').removeFormatting();
+
+            if (id === 'ABICASE') {
+                hasAbicase = true;
+            }
+
+            if (searchLore.includes('UNCOMMON')) {
+                totalMp += 5;
+            } else if (searchLore.includes('COMMON')) {
+                totalMp += 3;
+            } else if (searchLore.includes('RARE')) {
+                totalMp += 8;
+            } else if (searchLore.includes('EPIC')) {
+                totalMp += 12;
+            } else if (searchLore.includes('LEGENDARY')) {
+                totalMp += (id === 'HEGEMONY_ARTIFACT') ? 32 : 16;
+            } else if (searchLore.includes('MYTHIC')) {
+                totalMp += (id === 'HEGEMONY_ARTIFACT') ? 44 : 22;
+            } else if (searchLore.includes('VERY SPECIAL')) {
+                totalMp += 5;
+            } else if (searchLore.includes('SPECIAL')) {
+                totalMp += 3;
+            }
+        }
+    }
+
+    if (hasConsumedPrism) {
+        totalMp += 11;
+    }
+
+    if (hasAbicase) {
+        const activeContacts = netherData.abiphone.active_contacts;
+        if (activeContacts) {
+            totalMp += Math.floor(activeContacts.length / 2);
+        }
+    }
+
+    magicalPower = totalMp > maxMp ? maxMp : totalMp;
 }
 
 function processGoldenDragon(pets) {
@@ -399,7 +461,8 @@ function apiOff() {
 
 function displayMessage(name) {
     const playerMessage = new Message(
-        new TextComponent(`&2&m-----&f[- &2${name} &f-]&2&m-----`)
+        new TextComponent(`&2&m-----&f[- &2${name} &7[Lvl ${(kuudraScore / 100) | 0}] &f-]&2&m-----`)
+            .setHoverValue(`&a&lKuudra score: &f${kuudraScore.toFixed()}`)
             .setClick("run_command", `/pv ${name}`)
     );
 
