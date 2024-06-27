@@ -1,45 +1,26 @@
 import { fixNumber } from './utils/generalUtils.js';
 import Settings from "./settings/config.js";
 
-let runoverview = Settings.runoverview;
-let stopExecution = false;
 let inOverview = false;
 let rawStartTime, rawEndTime, startTime, endTime;
-let member_one = `&cNo player found`;
-let member_two = `&cNo player found`;
-let member_three = `&cNo player found`;
-let member_four = `&cNo player found`;
 let party = [];
-let yCheck = false;
 let timerStart = 0;
 let dps = 0;
-
-const handlers = {
-    mainHandler: null,
-    yCheckHandler1: null,
-    yCheckHandler2: null,
-    completionHandler: null,
-    cancelHandler: null,
-    tabListHandler: null,
-};
+let mainHandler = null;
+let checksHandler = null;
+let worldHandler = null;
 
 function startRunOverview(callback) {
-    const playername = Player.getName();
-    stopExecution = false;
     inOverview = true;
-    ChatLib.chat("&r");
-    ChatLib.chat("&aRun overview has started!");
-    ChatLib.chat("&r&r");
+    ChatLib.chat("\n&aRun overview has started!\n");
     rawStartTime = Date.now();
-    let turnonTablistCheck = false;
     let supplies = 0;
+    let worldCheck = false;
+    let yCheck = false;
 
     try {
-        handlers.mainHandler = register('chat', (msg) => {
-            if (msg.includes("sayhello")) {
-                console.log("TRIGGER: sayhello");
-                ChatLib.chat("Hello there!");
-            } else if (msg.startsWith("[NPC] Elle: Okay adventurers, I will go and fish up Kuudra!")) {
+        mainHandler = register('chat', (msg) => {
+            if (msg.startsWith("[NPC] Elle: Okay adventurers, I will go and fish up Kuudra!")) {
                 console.log("TRIGGER: start");
                 startTime = Date.now();
             } else if (msg.trim().startsWith("KUUDRA DOWN!")) {
@@ -48,8 +29,8 @@ function startRunOverview(callback) {
                 unregisterHandlers();
                 callback();
             } else if (msg.includes("is now ready!")) {
-                if (!turnonTablistCheck) {
-                    turnonTablistCheck = true;
+                if (!worldCheck) {
+                    worldCheck = true;
                 }
                 console.log("TRIGGER: GET PLAYER");
                 const playername = msg.split(" ")[0];
@@ -81,105 +62,80 @@ function startRunOverview(callback) {
                     player.supplies++;
                     player.supplytimes += `&8#${supplies} &a${TimeformattedTime}\n`;
                 }
-            } else if (msg.includes("forcestop") && msg.includes(`${playername}:`)) {
+            } else if (msg.includes("forcestop") && msg.includes(`${Player.getName()}:`)) {
                 unregisterHandlers();
                 callback();
+            } else if (msg.startsWith("[NPC] Elle: I knew you could do it!")) {
+                yCheck = true;
+            } else if (msg.includes("Percentage Complete: ")) {
+                let timerStop = Date.now() / 1000;
+                dps = fixNumber(300000000 / (timerStop - timerStart));
             }
         }).setCriteria("${msg}");
-    } catch (e) {
-        console.error(`Error: ${e}`);
-    }
 
-    try {
-        handlers.yCheckHandler1 = register("chat", () => {
-            yCheck = true;
-        }).setCriteria("[NPC] Elle: I knew you could do it!");
-    } catch (e) {
-        console.error(`Error: ${e}`);
-    }
-
-    try {
-        handlers.yCheckHandler2 = register("step", () => {
-            if (!yCheck) return;
-            if (Math.round(Player.getY()) < 69) {
-                timerStart = Date.now() / 1000;
-                yCheck = false;
+        checksHandler = register("tick", () => {
+            if (yCheck) {
+                if (Math.round(Player.getY()) < 69) {
+                    timerStart = Date.now() / 1000;
+                    yCheck = false;
+                }
             }
         });
-    } catch (e) {
-        console.error(`Error: ${e}`);
-    }
 
-    try {
-        handlers.completionHandler = register("chat", () => {
-            let timerStop = Date.now() / 1000;
-            dps = fixNumber(300000000 / (timerStop - timerStart));
-        }).setCriteria("Percentage Complete: ").setContains();
-    } catch (e) {
-        console.error(`Error: ${e}`);
-    }
-
-    try {
-        handlers.cancelHandler = register('command', () => {
-            if (!inOverview) return;
-            ChatLib.chat("&cCanceled the run overview");
-            unregisterHandlers();
-            callback();
-        }).setName('cancelrunoverview', true);
-    } catch (e) {
-        console.error(`Error: ${e}`);
-    }
-
-    try {
-        handlers.tabListHandler = register("tick", () => {
-            if (!World.isLoaded() || !turnonTablistCheck) return;
-            if (!TabList.getNames().join(' ').includes("Kuudra")) {
-                console.log("TRIGGER: END VIA TL");
+        worldHandler = register("worldLoad", () => {
+            if (worldCheck) {
+                console.log("TRIGGER: END VIA WL");
                 unregisterHandlers();
                 callback();
             }
         });
     } catch (e) {
-        console.error(`Error: ${e}`);
-    }
-
-    if (stopExecution) {
         unregisterHandlers();
-        callback();
+        console.error(`Error: ${e}`);
     }
 }
 
 function unregisterHandlers() {
+    mainHandler?.unregister();
+    checksHandler?.unregister();
+    worldHandler?.unregister();
     rawEndTime = Date.now();
     endTime = Date.now();
-    Object.values(handlers).forEach(handler => handler?.unregister());
-    stopExecution = false;
     inOverview = false;
-    dps = 0;
-    yCheck = false;
 }
+
+function formatTime(time) {
+    if (!time) return;
+    const minutes = Math.floor(time / 60000);
+    const seconds = Math.floor((time % 60000) / 1000);
+    const milliseconds = Math.floor((time % 1000) / 10);
+    return `${minutes}:${seconds}.${milliseconds.toString().padStart(2, '0')}`;
+}
+
+register('command', () => {
+    if (!inOverview) return;
+    ChatLib.chat("&cCanceled the run overview");
+    unregisterHandlers();
+}).setName('cancelrunoverview', true);
 
 register('chat', (msg) => {
     const playername = Player.getName();
-    if (!runoverview) return;
+    if (!Settings.runoverview) return;
     if ((msg.includes("forcestart") && msg.includes(`${playername}`)) || msg.includes("[NPC] Elle: Talk with me to begin!")) {
-        if (!stopExecution && !inOverview) {
+        if (!inOverview) {
             startRunOverview(() => {
                 const rawTime = rawEndTime - rawStartTime;
                 const runTime = endTime - startTime;
-                const formatTime = time => {
-                    const minutes = Math.floor(time / 60000);
-                    const seconds = Math.floor((time % 60000) / 1000);
-                    const milliseconds = Math.floor((time % 1000) / 10);
-                    return `${minutes}:${seconds}.${milliseconds.toString().padStart(2, '0')}`;
-                };
 
                 const rawTimeformattedTime = formatTime(rawTime);
                 const runTimeformattedTime = formatTime(runTime);
 
-                [member_one, member_two, member_three, member_four] = party.map((member, i) => (
-                    new Message(new TextComponent(`&8> &a${member.player} &4${member.deaths} ☠ &f- &6${member.supplies} Supply`)
-                        .setHoverValue(`&a&lSupply times:\n\n${member.supplytimes}`))
+                const [member_one, member_two, member_three, member_four] = party.map(member => (
+                    new Message(
+                        new TextComponent(`&8> &a${member.player} &4${member.deaths} ☠ &f- &6${member.supplies} Supply`)
+                            .setHoverValue(`&a&lSupply times:\n\n${member.supplytimes}`)
+                            .setClick("run_command", `/ct copy > ${member.player} - ${member.deaths} Death - ${member.supplies} Supply`)
+                    )
                 ));
 
                 setTimeout(() => {
@@ -193,16 +149,13 @@ register('chat', (msg) => {
                     ChatLib.chat(member_four || `&cNo player found`);
                     ChatLib.chat(`&r&r`);
                     ChatLib.chat(`&9Times & DPS:`);
-                    ChatLib.chat(`&8* &aRun time: &f${runTimeformattedTime}`);
-                    ChatLib.chat(`&8* &aRaw time: &f${rawTimeformattedTime}`);
+                    ChatLib.chat(`&8* &aRun time: &f${runTimeformattedTime || 0}`);
+                    ChatLib.chat(`&8* &aRaw time: &f${rawTimeformattedTime || 0}`);
                     ChatLib.chat(`&8* &aDPS: &f${dps}`);
                     ChatLib.chat("&b&m--------------------");
-                    party = [];
+
                     dps = 0;
-                    member_one = `&cNo player found`;
-                    member_two = `&cNo player found`;
-                    member_three = `&cNo player found`;
-                    member_four = `&cNo player found`;
+                    party = [];
                 }, 500);
             });
         } else {
@@ -226,9 +179,3 @@ register('command', () => {
     ChatLib.chat(`&8* &aRaw time: &f1:52.13`);
     ChatLib.chat("&b&m--------------------");
 }).setName('runoverviewpreview', true);
-
-function updateRunoverview() {
-    runoverview = Settings.runoverview;
-}
-
-export default updateRunoverview;

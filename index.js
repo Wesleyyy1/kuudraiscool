@@ -1,9 +1,9 @@
 import Settings from "./settings/config.js";
-import updateRunoverview from './runOverview.js';
 import getCommand from './chatCommands.js';
 import getPartyData from './doogans.js';
 import searchItem from './searchItem.js';
 import showKuudraInfo from './kuudraInfo.js';
+import './runOverview.js';
 import './utils/updateChecker.js';
 
 // Register chat event for party finder
@@ -93,8 +93,6 @@ function toggleRunOverview() {
     } else {
         ChatLib.chat("&cRun overview is now disabled!");
     }
-
-    updateRunoverview();
 }
 
 // Register commands to join specific instances
