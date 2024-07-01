@@ -1,10 +1,11 @@
-import Settings from "./settings/config.js";
+import Settings from './settings/config.js';
 import getCommand from './chatCommands.js';
 import getPartyData from './doogans.js';
 import searchItem from './searchItem.js';
 import showKuudraInfo from './kuudraInfo.js';
 import './runOverview.js';
 import './utils/updateChecker.js';
+import './kuudra-prices/attributePrices.js';
 
 // Register chat event for party finder
 register('chat', (player) => {
