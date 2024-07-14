@@ -104,6 +104,10 @@ register('command', () => ChatLib.command('joininstance KUUDRA_INFERNAL')).setNa
 
 // Register main kuudraiscool command
 register('command', (...args) => {
+    if(!args[0]){
+        Settings.openGUI();
+        return;
+    }
     const ign = Player.getName();
     switch (args[0]) {
         case 'togglepartyfinder':
@@ -136,22 +140,27 @@ register('command', (...args) => {
             Settings.openGUI();
             break;
         default:
+            ChatLib.chat("&r")
             ChatLib.chat("&r&2&lKuudraiscool commands");
             ChatLib.chat("&8* &a/kic settings");
             ChatLib.chat("&8* &a/kic togglepartyfinder (togglepf)");
             ChatLib.chat("&8* &a/kic togglerunoverview (togglerun)");
-            ChatLib.chat("&8* &a/kic t2/t3/t4/t5");
-            ChatLib.chat("&8* &a/kic apikey <key>");
-            ChatLib.chat("&8* &a/kic kuudra [player]");
+            ChatLib.chat("&8* &a/t2/t3/t4/t5");
+            ChatLib.chat("&8* &a/apikey <key>");
+            ChatLib.chat("&8* &a/kuudra [player]");
             ChatLib.chat("&8* &a/cancelrunoverview");
+            ChatLib.chat("&r")
             ChatLib.chat("&r&2&lChat commands");
             ChatLib.chat("&8* &a .stats");
             ChatLib.chat("&8* &a .runs");
             ChatLib.chat("&8* &a .rtca");
+            ChatLib.chat("&r")
             break;
     }
 }).setName('kuudraiscool', true).setAliases('kic', 'ki');
 
+
+/*
 // Register chat event for party data
 register('chat', (msg) => {
     if (msg.includes("Team Score:") && !msg.startsWith("Party >") && !msg.startsWith("Guild >")) {
@@ -173,3 +182,4 @@ register('chat', (msg) => {
         getPartyData(Settings.apikey, party);
     }
 }).setCriteria("${msg}");
+*/

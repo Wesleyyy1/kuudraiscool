@@ -4,7 +4,7 @@ import { @Vigilant, @TextProperty, @SwitchProperty, Color } from 'Vigilance';
 class Settings {
     @TextProperty({
         name: "API Key",
-        description: "Enter your API key here",
+        description: "Enter your kuudraiscool API key here",
         category: "General",
         placeholder: "No key set",
         protected: true,
@@ -13,21 +13,21 @@ class Settings {
 
     @SwitchProperty({
         name: "Party Finder",
-        description: "Enable party finder stats",
+        description: "Toggle party finder stats",
         category: "General",
     })
     partyfinder = true;
 
     @SwitchProperty({
         name: "Run Overview",
-        description: "Enable run overview",
+        description: "Toggle run overview",
         category: "General",
     })
     runoverview = true;
 
     @SwitchProperty({
         name: "Party Commands",
-        description: "Enable party commands",
+        description: "Toggle party commands",
         category: "General",
     })
     partycommands = true;
