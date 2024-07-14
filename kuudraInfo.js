@@ -14,14 +14,15 @@ const ITEM_IDS = {
     SOS_FLARE: "SOS_FLARE",
     FIRE_VEIL_WAND: "FIRE_VEIL_WAND",
     TITANIUM_DRILL_4: "TITANIUM_DRILL_4",
-    DIVAN_DRILL: "DIVAN_DRILL"
+    DIVAN_DRILL: "DIVAN_DRILL",
+    BLAZETEKK_HAM_RADIO: "BLAZETEKK_HAM_RADIO"
 };
 
-let kuudraScore, drill, drillLore, extraFireveil, reaperPieces, lifeline, lifelineLore, manaPool, manaPoolLore, basicComps, hotComps, burningComps, fieryComps, infernalComps, totalComps, magicalPower, selectedPower, tuningPoints, hyperion, hyperionLore, duplex, duplexLore, ragnarockAxe, ragnarockAxeLore, extraReaper, extraFerociousMana, extraStrongMana, extraManaEnchantTotal, extraLegionEnchant, extraTerminator, extraDeployable, reputation, wardenHelmet, wardenHelmetLore, terrorChestplate, terrorChestplateLore, terrorChestplatePrefix, terrorLeggings, terrorLeggingsLore, terrorLeggingsPrefix, terrorBoots, terrorBootsLore, terrorBootsPrefix, goldenDragon, goldenDragonLore, oneBilBank;
+let extraHamRadio, kuudraScore, drill, drillLore, extraFireveil, reaperPieces, lifeline, lifelineLore, manaPool, manaPoolLore, basicComps, hotComps, burningComps, fieryComps, infernalComps, totalComps, magicalPower, selectedPower, tuningPoints, hyperion, hyperionLore, duplex, duplexLore, ragnarockAxe, ragnarockAxeLore, extraReaper, extraFerociousMana, extraStrongMana, extraManaEnchantTotal, extraLegionEnchant, extraTerminator, extraDeployable, reputation, wardenHelmet, wardenHelmetLore, terrorChestplate, terrorChestplateLore, terrorChestplatePrefix, terrorLeggings, terrorLeggingsLore, terrorLeggingsPrefix, terrorBoots, terrorBootsLore, terrorBootsPrefix, goldenDragon, goldenDragonLore, oneBilBank;
 
 function setDefaults() {
     kuudraScore = reaperPieces = lifeline = manaPool = basicComps = hotComps = burningComps = fieryComps = infernalComps = totalComps = magicalPower = extraFerociousMana = extraStrongMana = extraManaEnchantTotal = extraLegionEnchant = reputation = 0;
-    drill = drillLore = extraFireveil = hyperion = hyperionLore = duplex = duplexLore  = ragnarockAxe = ragnarockAxeLore = extraReaper = extraTerminator = extraDeployable = `&4X`;
+    extraHamRadio = drill = drillLore = extraFireveil = hyperion = hyperionLore = duplex = duplexLore  = ragnarockAxe = ragnarockAxeLore = extraReaper = extraTerminator = extraDeployable = `&4X`;
     wardenHelmet = wardenHelmetLore = '&4No Warden Helmet';
     terrorChestplate = terrorChestplateLore = '&4No Terror Chestplate';
     terrorLeggings = terrorLeggingsLore = '&4No Terror Leggings';
@@ -119,6 +120,7 @@ function processInventory(data) {
         let gemstone = extraAttributes.getCompoundTag("gems")?.getString("COMBAT_0") || extraAttributes.getCompoundTag("gems")?.getString("COMBAT_1") || extraAttributes.getCompoundTag("gems")?.getTag("COMBAT_0")?.getString("quality") || extraAttributes.getCompoundTag("gems")?.getTag("COMBAT_1")?.getString("quality");
 
         checkItem(id, searchLore, displayLore, attributes, name, reforge, enchants, gemstone);
+        checkEquipment(id, attributes, name);
     }
 }
 
@@ -229,6 +231,8 @@ function checkItem(id, searchLore, displayLore, attributes, name, reforge, encha
     }else if(id == ITEM_IDS.TITANIUM_DRILL_4 || id == ITEM_IDS.DIVAN_DRILL){
         drill = '&2✔';
         drillLore = displayLore;
+    }else if(id == ITEM_IDS.BLAZETEKK_HAM_RADIO){
+        extraHamRadio = name;
     } else {
         checkArmor(id, displayLore, attributes, name, reforge, enchants, gemstone);
     }
@@ -454,7 +458,7 @@ function finalizeData(currentProfile, uuid) {
 }
 
 function apiOff() {
-    hyperion = hyperionLore = duplex = duplexLore = ragnarockAxe = ragnarockAxeLore = extraReaper = extraTerminator = extraDeployable = extraFireveil = drill = drillLore = `&cAPI OFF`;
+    hyperion = hyperionLore = duplex = duplexLore = ragnarockAxe = ragnarockAxeLore = extraReaper = extraTerminator = extraDeployable = extraFireveil = drill = drillLore = extraHamRadio = `&cAPI OFF`;
     wardenHelmet = wardenHelmetLore = terrorChestplate = terrorChestplateLore = terrorChestplatePrefix = terrorLeggings = terrorLeggingsLore = terrorLeggingsPrefix = terrorBoots = terrorBootsLore = terrorBootsPrefix = `&cAPI OFF`;
 }
 
@@ -513,7 +517,7 @@ function displayMessage(name) {
 
     const extraMessage = new Message(
         new TextComponent(`&aExtra &7[HOVER]`)
-            .setHoverValue(`&a&lExtra items:\n&8* &aReaper: ${extraReaper}\n&8* &aTerminator: ${extraTerminator}\n&8* &aDeployable: ${extraDeployable}\n&8* &aFire veil: ${extraFireveil}\n&8* &aLegion: &b${extraLegionEnchant} (+${(extraLegionEnchant * 0.07).toFixed(2)}% stats)\n&8* &aRep: &b${reputation}\n\n&a&lMana Enchants &b(${extraManaEnchantTotal})\n&8* &aStrong: &b${extraStrongMana} (${(extraStrongMana * 0.1).toFixed(2)}% of Mana)\n&8* &aFero: &b${extraFerociousMana} (${(extraFerociousMana * 0.1).toFixed(2)}% of Mana)`)
+            .setHoverValue(`&a&lExtra items:\n&8* &aReaper: ${extraReaper}\n&8* &aTerminator: ${extraTerminator}\n&8* &aDeployable: ${extraDeployable}\n&8* &aFire Veil: ${extraFireveil}\n&8* &aRadio: ${extraHamRadio}\n&8* &aLegion: &b${extraLegionEnchant} (+${(extraLegionEnchant * 0.07).toFixed(2)}% stats)\n&8* &aRep: &b${reputation}\n\n&a&lMana Enchants &b(${extraManaEnchantTotal})\n&8* &aStrong: &b${extraStrongMana} (${(extraStrongMana * 0.1).toFixed(2)}% of Mana)\n&8* &aFero: &b${extraFerociousMana} (${(extraFerociousMana * 0.1).toFixed(2)}% of Mana)`)
     );
 
     const wardenHelmetMessage = new Message(
