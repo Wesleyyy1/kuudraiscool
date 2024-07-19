@@ -1,5 +1,5 @@
 import { request } from '../requestV2';
-import { decompress } from './utils/generalUtils.js';
+import { decompress, errorHandler } from './utils/generalUtils.js';
 
 function getCommand(ign, apiKey, type) {
     request({
@@ -17,7 +17,9 @@ function getCommand(ign, apiKey, type) {
                 ChatLib.command(`pc ${response.error || "Player not found"}`);
             }
         })
-        .catch(error => console.error("Error in first request:", error));
+        .catch(error => {
+            errorHandler('Error while getting profile data', error, 'chatCommands.js');
+        });
 
     const processData = (memberData, name) => {
         if (type === "runs") {

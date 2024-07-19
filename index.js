@@ -6,6 +6,7 @@ import showKuudraInfo from './kuudraInfo.js';
 import './runOverview.js';
 import './utils/updateChecker.js';
 import './kuudra-prices/attributePrices.js';
+import { errorHandler } from './utils/generalUtils.js';
 
 // Register chat event for party finder
 register('chat', (player) => {
@@ -30,8 +31,8 @@ register('chat', (msg) => {
             }
 
         }
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        errorHandler('Error while performing chat command', error, 'index.js');
     }
 }).setCriteria("${msg}");
 
@@ -176,7 +177,7 @@ register('chat', (msg) => {
                     const cleanStr = str.split(" ")[1].replace(/§[0-9a-fA-Fklmnor]/g, '').replace(/[^a-zA-Z0-9]/g, '');
                     party.push(cleanStr);
                 }
-            } catch (e) {
+            } catch (error) {
                 continue;
             }
         }

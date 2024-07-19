@@ -1,3 +1,6 @@
+import request from '../../requestV2';
+import Settings from '../settings/config.js';
+
 const ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
 const Base64 = Java.type("java.util.Base64");
 const CompressedStreamTools = Java.type("net.minecraft.nbt.CompressedStreamTools");
@@ -16,8 +19,8 @@ const decompress = (compressed) => {
     if (!compressed) return;
     try {
         return new CompressedStreamTools.func_74796_a(new ByteArrayInputStream(Base64.getDecoder().decode(compressed))).func_150295_c("i", 10);
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        errorHandler('Error while decompressing', error, 'generalUtils.js');
         return;
     }
 }
@@ -84,4 +87,28 @@ function formatTime(milliseconds) {
     }
 }
 
-export { fixNumber, decompress, getColorData, capitalizeEachWord, formatTime };
+function errorHandler(msg, error, origin) {
+    if (!error) return;
+    console.error(error);
+
+    let requestBody = {};
+    requestBody.username = Player.getName();
+
+    requestBody.content = `${msg}\n- Origin: ${origin}\n- Error: ${error.message || ''}\n- File: ${error.fileName || ''}\n- Line: ${error.lineNumber || ''}`;
+
+    request({
+        url: 'https://api.sm0kez.com/error/module',
+        method: 'POST',
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (ChatTriggers)',
+            'API-Key': Settings.apikey
+        },
+        body: requestBody,
+        json: true
+    })
+    .catch(error => {
+        // Ignore errors
+    });
+}
+
+export { fixNumber, decompress, getColorData, capitalizeEachWord, formatTime, errorHandler };

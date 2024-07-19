@@ -1,6 +1,6 @@
 import request from '../../requestV2';
 import Settings from '../settings/config.js';
-import { fixNumber, capitalizeEachWord, formatTime } from '../utils/generalUtils.js';
+import { fixNumber, capitalizeEachWord, formatTime, errorHandler } from '../utils/generalUtils.js';
 
 let priceData = null;
 let activeCategory = null;
@@ -61,8 +61,8 @@ register('command', (arg1, arg2, arg3, arg4) => {
             activeCategory = 'armor';
             showPrices();
         })
-        .catch(e => {
-            console.error(`Error getting prices: ${JSON.stringify(e)}`);
+        .catch(error => {
+            errorHandler('Error while getting prices', error, 'attributePrices.js');
         });
 
 }).setName('attributeprice', true).setAliases('ap');

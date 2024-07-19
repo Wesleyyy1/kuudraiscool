@@ -1,4 +1,5 @@
 import request from '../../requestV2';
+import { errorHandler } from './generalUtils.js';
 
 const checkTrigger = register("worldLoad", () => {
     checkTrigger.unregister();
@@ -13,23 +14,23 @@ const checkTrigger = register("worldLoad", () => {
         json: true
     }).then(data => {
         if (!data || !data.version || !data.downloadUrl) return;
-        
         if (currentVers == data.version) return;
 
-        let updateMessage = `&9&m${ChatLib.getChatBreak(" ")}\n`;
-        updateMessage += `&akuudraiscool Update Available! (${data.version})\n`;
+        const Msg1 = ChatLib.getCenteredText('&a&lkuudraiscool\n');
+        const Msg2 = ChatLib.getCenteredText(`&aUpdate Available! (${data.version})`);
 
-        const msg = new Message(updateMessage);
-        msg.addTextComponent(
-            new TextComponent(`\n&aClick to go to the Github release page!`)
-                .setClick("open_url", data.downloadUrl)
-        );
-
-        msg.addTextComponent(new TextComponent(`\n&9&m${ChatLib.getChatBreak(" ")}\n`));
-
-        msg.chat();
-
-    }).catch(e => {
-        console.log(`Error checking for kuudraiscool update: ${JSON.stringify(e)}`);
+        setTimeout(() => {
+            ChatLib.chat('\n&r&9&m-----------------------------------------------------&r');
+            ChatLib.chat(`${Msg1}\n${Msg2}`);
+            ChatLib.chat('&r&9&m-----------------------------------------------------&r');
+            ChatLib.chat(
+                new Message(
+                    new TextComponent('&a[Download]')
+                    .setClick('open_url',data.downloadUrl)
+                )
+            );
+        }, 500);
+    }).catch(error => {
+        errorHandler('Error while checking for update', error, 'updateChecker.js');
     });
 });

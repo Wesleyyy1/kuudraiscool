@@ -37,7 +37,7 @@ Welcome to **kuudraiscool**, a CT module built mainly for kuudra, but also has o
 <img src="./screenshots/runoverview.png" alt="screenshot"/><br>
 <br><br>
 
-## Chat commands:
+## Chat commands
 
 - `.stats [PLAYER]`
 <br><br>
