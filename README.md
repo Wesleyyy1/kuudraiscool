@@ -11,7 +11,7 @@ Welcome to **kuudraiscool**, a CT module built mainly for kuudra, but also has o
 <br><br>
 <img src="./screenshots/kuudracommand.png" alt="screenshot" width="500"/><br>
 <img src="./screenshots/kuudracommandhover.png" alt="screenshot" width="500"/><br>
-<img src="./screenshots/kuudracommandextra.png" alt="screenshot" width="500"/>
+<img src="./screenshots/kuudracommandextra.png" alt="screenshot" width="500"/><br>
 <br><br>
 
 ## Item finder
