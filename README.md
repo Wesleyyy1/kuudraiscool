@@ -20,6 +20,7 @@ Welcome to **kuudraiscool**, a CT module built mainly for kuudra, but also has o
 <br><br>
 <img src="./screenshots/lf.png" alt="screenshot" height="390" width="500"/><br>
 <img src="./screenshots/lflore.png" alt="screenshot" height="390" width="500"/><br>
+<br><br>
 
 ## Attribute price checker (Similar to KG bot)
 
@@ -42,12 +43,10 @@ Welcome to **kuudraiscool**, a CT module built mainly for kuudra, but also has o
 <br><br>
 <img src="./screenshots/pccommandstats.png" alt="screenshot" width="500"/><br>
 <br><br>
-
 - `.runs [PLAYER]`
 <br><br>
 <img src="./screenshots/pccommandruns.png" alt="screenshot" width="500"/><br>
 <br><br>
-
 - `.rtca [PLAYER]`
 <br><br>
 <img src="./screenshots/pccommandrtca.png" alt="screenshot" width="500"/><br>
