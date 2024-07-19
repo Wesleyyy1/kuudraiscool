@@ -1,5 +1,5 @@
 import { request } from '../requestV2';
-import { decompress } from './utils/generalUtils';
+import { decompress, errorHandler } from './utils/generalUtils.js';
 
 function searchItem(playername, apiKey, search) {
     request({
@@ -16,9 +16,9 @@ function searchItem(playername, apiKey, search) {
         } else {
             ChatLib.chat(`&c${playername} is not a valid player!`);
         }
-    }).catch(errorData => {
+    }).catch(error => {
         ChatLib.chat(`&cSomething went wrong while gathering ${playername}'s data!\n&7(Probably invalid API key (/apikey <new key>))`);
-        console.log(`${errorData}`);
+        errorHandler('Error while getting profile data', error, 'searchItem.js');
     });
 }
 
@@ -70,7 +70,7 @@ function generateItemList(memberData) {
         try {
             const backpackData = decompress(memberData.inventory?.backpack_contents?.[i]?.data);
             processItems(backpackData, `Backpack #${i + 1}`);
-        } catch (e) {
+        } catch (error) {
             // Ignore errors for missing backpacks
         }
     }

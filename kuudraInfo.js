@@ -1,5 +1,5 @@
 import { request } from '../requestV2';
-import { decompress, fixNumber, getColorData } from './utils/generalUtils.js';
+import { decompress, fixNumber, getColorData, errorHandler } from './utils/generalUtils.js';
 
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
@@ -55,9 +55,9 @@ function showKuudraInfo(playername, apiKey) {
         } else {
             ChatLib.chat(`&c${playername} is not a valid player!`);
         }
-    }).catch((errorData) => {
+    }).catch((error) => {
         ChatLib.chat(`&cSomething went wrong while gathering ${playername}'s data!\n&7(Probably invalid API key (/apikey <new key>))`);
-        console.log(`${errorData}`);
+        errorHandler('Error while getting profile data', error, 'kuudraInfo.js');
     });
 }
 

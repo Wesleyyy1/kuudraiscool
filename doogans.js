@@ -1,5 +1,5 @@
 import { request } from '../requestV2';
-import { fixNumber, decompress } from './utils/generalUtils.js';
+import { fixNumber, decompress, errorHandler } from './utils/generalUtils.js';
 
 function getPartyData(apiKey, party) {
     const longMessage = [];
@@ -56,8 +56,9 @@ function getPartyData(apiKey, party) {
             checkCompletion();
         }).catch(error => {
             longMessage.push(`${player} -> ERROR`);
-            console.error(`Error fetching data for ${player}:`, error);
             checkCompletion();
+
+            errorHandler(`Error while getting profile data for ${player}`, error, 'doogans.js');
         });
     });
 }

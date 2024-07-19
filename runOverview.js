@@ -1,4 +1,4 @@
-import { fixNumber } from './utils/generalUtils.js';
+import { fixNumber, errorHandler } from './utils/generalUtils.js';
 import Settings from "./settings/config.js";
 
 let inOverview = false;
@@ -89,9 +89,9 @@ function startRunOverview(callback) {
                 callback();
             }
         });
-    } catch (e) {
+    } catch (error) {
         unregisterHandlers();
-        console.error(`Error: ${e}`);
+        errorHandler('Error while getting run info', error, 'runOverview.js');
     }
 }
 

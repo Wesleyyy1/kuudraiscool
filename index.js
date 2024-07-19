@@ -6,6 +6,7 @@ import showKuudraInfo from './kuudraInfo.js';
 import './runOverview.js';
 import './utils/updateChecker.js';
 import './kuudra-prices/attributePrices.js';
+import { errorHandler } from './utils/generalUtils.js';
 
 // Register chat event for party finder
 register('chat', (player) => {
@@ -30,8 +31,8 @@ register('chat', (msg) => {
             }
 
         }
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        errorHandler('Error while performing chat command', error, 'index.js');
     }
 }).setCriteria("${msg}");
 
@@ -97,6 +98,7 @@ function toggleRunOverview() {
 }
 
 // Register commands to join specific instances
+register('command', () => ChatLib.command('joininstance KUUDRA_NORMAL')).setName('t2', true);
 register('command', () => ChatLib.command('joininstance KUUDRA_HOT')).setName('t2', true);
 register('command', () => ChatLib.command('joininstance KUUDRA_BURNING')).setName('t3', true);
 register('command', () => ChatLib.command('joininstance KUUDRA_FIERY')).setName('t4', true);
@@ -123,6 +125,9 @@ register('command', (...args) => {
             break;
         case 'apikey':
             updateApiKey(args[1]);
+            break;
+        case 't1':
+            ChatLib.command('joininstance KUUDRA_NORMAL');
             break;
         case 't2':
             ChatLib.command('joininstance KUUDRA_HOT');
@@ -172,7 +177,7 @@ register('chat', (msg) => {
                     const cleanStr = str.split(" ")[1].replace(/§[0-9a-fA-Fklmnor]/g, '').replace(/[^a-zA-Z0-9]/g, '');
                     party.push(cleanStr);
                 }
-            } catch (e) {
+            } catch (error) {
                 continue;
             }
         }
