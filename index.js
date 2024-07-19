@@ -97,6 +97,7 @@ function toggleRunOverview() {
 }
 
 // Register commands to join specific instances
+register('command', () => ChatLib.command('joininstance KUUDRA_NORMAL')).setName('t2', true);
 register('command', () => ChatLib.command('joininstance KUUDRA_HOT')).setName('t2', true);
 register('command', () => ChatLib.command('joininstance KUUDRA_BURNING')).setName('t3', true);
 register('command', () => ChatLib.command('joininstance KUUDRA_FIERY')).setName('t4', true);
@@ -123,6 +124,9 @@ register('command', (...args) => {
             break;
         case 'apikey':
             updateApiKey(args[1]);
+            break;
+        case 't1':
+            ChatLib.command('joininstance KUUDRA_NORMAL');
             break;
         case 't2':
             ChatLib.command('joininstance KUUDRA_HOT');
