@@ -1,10 +1,9 @@
 import request from '../../requestV2';
-import { errorHandler } from './generalUtils.js';
+import { errorHandler, setVersion, isKeyValid, getRoles } from './generalUtils.js';
 
-const checkTrigger = register("worldLoad", () => {
-    checkTrigger.unregister();
-
+export function checkUpdate() {
     const currentVers = JSON.parse(FileLib.read("kuudraiscool", "metadata.json")).version;
+    setVersion(currentVers);
 
     request({
         url: `https://api.sm0kez.com/kuudraiscool/version`,
@@ -33,4 +32,4 @@ const checkTrigger = register("worldLoad", () => {
     }).catch(error => {
         errorHandler('Error while checking for update', error, 'updateChecker.js');
     });
-});
+}

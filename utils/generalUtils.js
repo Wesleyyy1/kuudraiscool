@@ -5,6 +5,11 @@ const ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
 const Base64 = Java.type("java.util.Base64");
 const CompressedStreamTools = Java.type("net.minecraft.nbt.CompressedStreamTools");
 
+let currentVersion = "";
+let keyValid = false;
+let invalidReason = "";
+let roles = [];
+
 function fixNumber(labelValue) {
     return Math.abs(Number(labelValue)) >= 1.0e+9
         ? (Math.abs(Number(labelValue)) / 1.0e+9).toFixed(2) + "B"
@@ -66,8 +71,8 @@ function getColorData(moduleName, type) {
 
 function capitalizeEachWord(input) {
     return input.split(/\s+/)
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
 }
 
 function formatTime(milliseconds) {
@@ -94,7 +99,7 @@ function errorHandler(msg, error, origin) {
     let requestBody = {};
     requestBody.username = Player.getName();
 
-    requestBody.content = `${msg}\n- Origin: ${origin}\n- Error: ${error.message || ''}\n- File: ${error.fileName || ''}\n- Line: ${error.lineNumber || ''}`;
+    requestBody.content = `${msg}\n- Origin: ${origin}\n- Error: ${error.message || ''}\n- File: ${error.fileName || ''}\n- Line: ${error.lineNumber || ''}\n- Version: ${currentVersion}`;
 
     request({
         url: 'https://api.sm0kez.com/error/module',
@@ -106,9 +111,85 @@ function errorHandler(msg, error, origin) {
         body: requestBody,
         json: true
     })
-    .catch(error => {
-        // Ignore errors
-    });
+        .catch(error => {
+            // Ignore errors
+        });
 }
 
-export { fixNumber, decompress, getColorData, capitalizeEachWord, formatTime, errorHandler };
+function setVersion(version) {
+    currentVersion = version;
+}
+
+function checkApiKey(apiKey) {
+    if ((!Settings.apikey || Settings.apikey == "") && !apiKey) {
+        invalidReason = "&7[&a&lKIC&r&7]&r&e There is no API key set. If you have an API key, set it using /kic apikey <key>.\n&eIf you do not have an API key, join the Discord: https://discord.gg/gsz58gazAK";
+        ChatLib.chat(invalidReason);
+        roles = [];
+        keyValid = false;
+        return false;
+    } else {
+        request({
+            url: 'https://api.sm0kez.com/key',
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (ChatTriggers)',
+                'API-Key': apiKey || Settings.apikey
+            },
+            json: true
+        })
+            .then(response => {
+                if (response.status == "ACTIVE") {
+                    keyValid = true;
+                    const previousRoles = roles;
+                    roles = response.roles;
+                    invalidReason = "";
+                    if (apiKey) {
+                        Settings.apikey = apiKey;
+                        ChatLib.chat("&7[&a&lKIC&r&7]&r&a Your API key has been set!");
+                    }
+
+                    if (previousRoles.length != 0 && roles.length > previousRoles.length) {
+                        ChatLib.chat("&7[&a&lKIC&r&7]&r&a Your roles have been updated with new roles!");
+                    } else if (previousRoles.length != 0 && roles.length < previousRoles.length) {
+                        ChatLib.chat("&7[&a&lKIC&r&7]&r&a Some roles have been removed.");
+                    }
+
+                    return true;
+                } else {
+                    invalidReason = `&7[&a&lKIC&r&7]&r&c Your API key is currently ${response.status}. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK`;
+                    ChatLib.chat(invalidReason);
+                    Settings.apikey = "";
+                    roles = [];
+                    keyValid = false;
+                    return false;
+                }
+            })
+            .catch(error => {
+                invalidReason = "&7[&a&lKIC&r&7]&r&c The API key provided is incorrect. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK";
+                ChatLib.chat(invalidReason);
+                Settings.apikey = "";
+                roles = [];
+                keyValid = false;
+                return false;
+            }
+        );
+    }
+}
+
+function isKeyValid() {
+    return keyValid;
+}
+
+function getRoles() {
+    return roles;
+}
+
+function showInvalidReasonMsg() {
+    ChatLib.chat(invalidReason);
+}
+
+function showMissingRolesMsg() {
+    ChatLib.chat("&7[&a&lKIC&r&7]&r&c You are missing the necessary roles to use this feature. Please check your roles or contact support for assistance.");
+}
+
+export { fixNumber, decompress, getColorData, capitalizeEachWord, formatTime, errorHandler, setVersion, checkApiKey, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg };

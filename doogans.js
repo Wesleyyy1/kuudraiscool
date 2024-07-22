@@ -1,7 +1,10 @@
 import { request } from '../requestV2';
-import { fixNumber, decompress, errorHandler } from './utils/generalUtils.js';
+import { fixNumber, decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from './utils/generalUtils.js';
 
 function getPartyData(apiKey, party) {
+    if (!isKeyValid()) return showInvalidReasonMsg();
+    if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
+
     const longMessage = [];
     let completedRequests = 0;
 
@@ -14,7 +17,7 @@ function getPartyData(apiKey, party) {
 
     party.forEach(player => {
         request({
-            url: `https://api.sm0kez.com/profile/${player}/selected`,
+            url: `https://api.sm0kez.com/hypixel/profile/${player}/selected`,
             headers: {
                 "User-Agent": "Mozilla/5.0 (ChatTriggers)",
                 "API-Key": apiKey

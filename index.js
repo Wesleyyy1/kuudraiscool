@@ -3,10 +3,10 @@ import getCommand from './chatCommands.js';
 import getPartyData from './doogans.js';
 import searchItem from './searchItem.js';
 import showKuudraInfo from './kuudraInfo.js';
+import { checkUpdate } from './utils/updateChecker.js';
+import { errorHandler, checkApiKey } from './utils/generalUtils.js';
 import './runOverview.js';
-import './utils/updateChecker.js';
 import './kuudra-prices/attributePrices.js';
-import { errorHandler } from './utils/generalUtils.js';
 
 // Register chat event for party finder
 register('chat', (player) => {
@@ -45,10 +45,13 @@ register('command', (...args) => {
     }
 }).setName('apikey', true);
 
+register('command', () => {
+    checkApiKey();
+}).setName('checkapikey', true);
+
 function updateApiKey(key) {
     if (key === Settings.apikey) return ChatLib.chat("&cYou are already using this API key!");
-    Settings.apikey = key;
-    ChatLib.chat("&aYour API key has been set!");
+    checkApiKey(key);
 }
 
 // Register command to get Kuudra info
@@ -124,6 +127,7 @@ register('command', (...args) => {
             showKuudraInfo(args[1] || ign, Settings.apikey);
             break;
         case 'apikey':
+            if (!args[1]) return ChatLib.chat("&aUse /kic apikey <key>");
             updateApiKey(args[1]);
             break;
         case 't1':
@@ -164,6 +168,12 @@ register('command', (...args) => {
     }
 }).setName('kuudraiscool', true).setAliases('kic', 'ki');
 
+const checkTrigger = register("worldLoad", () => {
+    checkTrigger.unregister();
+
+    checkUpdate();
+    checkApiKey();
+});
 
 /*
 // Register chat event for party data

@@ -1,9 +1,12 @@
 import { request } from '../requestV2';
-import { decompress, errorHandler } from './utils/generalUtils.js';
+import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from './utils/generalUtils.js';
 
 function getCommand(ign, apiKey, type) {
+    if (!isKeyValid()) return showInvalidReasonMsg();
+    if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
+    
     request({
-        url: `https://api.sm0kez.com/profile/${ign}/selected`,
+        url: `https://api.sm0kez.com/hypixel/profile/${ign}/selected`,
         headers: {
             "User-Agent": "Mozilla/5.0 (ChatTriggers)",
             "API-Key": apiKey

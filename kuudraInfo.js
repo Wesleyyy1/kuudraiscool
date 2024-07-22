@@ -1,5 +1,5 @@
 import { request } from '../requestV2';
-import { decompress, fixNumber, getColorData, errorHandler } from './utils/generalUtils.js';
+import { decompress, fixNumber, getColorData, isKeyValid, getRoles, errorHandler, showInvalidReasonMsg, showMissingRolesMsg } from './utils/generalUtils.js';
 
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
@@ -41,9 +41,12 @@ function setDefaults() {
 }
 
 function showKuudraInfo(playername, apiKey) {
+    if (!isKeyValid()) return showInvalidReasonMsg();
+    if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
+
     setDefaults();
     request({
-        url: `https://api.sm0kez.com/profile/${playername}/selected`,
+        url: `https://api.sm0kez.com/hypixel/profile/${playername}/selected`,
         headers: {
             "User-Agent": "Mozilla/5.0 (ChatTriggers)",
             "API-Key": apiKey
@@ -397,20 +400,22 @@ function processMagicalPower(memberData, netherData) {
                 totalMp += 3;
             }
         }
-    }
 
-    if (hasConsumedPrism) {
-        totalMp += 11;
-    }
-
-    if (hasAbicase) {
-        const activeContacts = netherData.abiphone.active_contacts;
-        if (activeContacts) {
-            totalMp += Math.floor(activeContacts.length / 2);
+        if (hasConsumedPrism) {
+            totalMp += 11;
         }
-    }
+    
+        if (hasAbicase) {
+            const activeContacts = netherData.abiphone.active_contacts;
+            if (activeContacts) {
+                totalMp += Math.floor(activeContacts.length / 2);
+            }
+        }
 
-    magicalPower = totalMp > maxMp ? maxMp : totalMp;
+        magicalPower = totalMp > maxMp ? maxMp : totalMp;
+    } else {
+        magicalPower = maxMp;
+    }
 }
 
 function processGoldenDragon(pets) {
