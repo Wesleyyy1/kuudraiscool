@@ -5,6 +5,11 @@ export function checkUpdate() {
     const currentVers = JSON.parse(FileLib.read("kuudraiscool", "metadata.json")).version;
     setVersion(currentVers);
 
+    if (currentVers.includes("pre")) {
+        ChatLib.chat("&7[&a&lKIC&r&7]&r&6 You are currently using a pre-release version of kuudraiscool. Please be aware that this version may contain bugs or unfinished features.\n&6If you encounter any issues, report them in our Discord server: https://discord.gg/gsz58gazAK\n&6Your feedback helps us improve!");
+        return;
+    }
+
     request({
         url: `https://api.sm0kez.com/kuudraiscool/version`,
         headers: {
