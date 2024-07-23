@@ -1,3 +1,4 @@
+import Settings from './settings/config.js';
 import { request } from '../requestV2';
 import { decompress, fixNumber, getColorData, isKeyValid, getRoles, errorHandler, showInvalidReasonMsg, showMissingRolesMsg } from './utils/generalUtils.js';
 
@@ -40,7 +41,7 @@ function setDefaults() {
     oneBilBank = `&c`;
 }
 
-function showKuudraInfo(playername, apiKey) {
+function showKuudraInfo(playername, manually) {
     if (!isKeyValid()) return showInvalidReasonMsg();
     if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
 
@@ -49,12 +50,12 @@ function showKuudraInfo(playername, apiKey) {
         url: `https://api.sm0kez.com/hypixel/profile/${playername}/selected`,
         headers: {
             "User-Agent": "Mozilla/5.0 (ChatTriggers)",
-            "API-Key": apiKey
+            "API-Key": Settings.apikey
         },
         json: true
     }).then((response) => {
         if (response.success) {
-            processKuudraData(response);
+            processKuudraData(response, manually);
         } else {
             ChatLib.chat(`&c${playername} is not a valid player!`);
         }
@@ -64,7 +65,7 @@ function showKuudraInfo(playername, apiKey) {
     });
 }
 
-function processKuudraData(response) {
+function processKuudraData(response, manually) {
     const { name, uuid, members } = response;
     const memberData = members[uuid];
     const netherData = memberData.nether_island_player_data;
@@ -81,12 +82,17 @@ function processKuudraData(response) {
         processWardrobe(inventory.wardrobe_contents?.data);
         processEquipment(inventory.equipment_contents?.data);
 
+        if (manually) {
+            processEnderchest(inventory.ender_chest_contents?.data);
+            processBackpacks(inventory.backpack_contents);
+        }
+
         finalizeData(response, uuid);
     } else {
         apiOff();
     }
 
-    displayMessage(name);
+    displayMessage(name, manually);
 }
 
 function processReputation(netherData) {
@@ -95,14 +101,7 @@ function processReputation(netherData) {
     reputation = Math.max(mageRep, barbRep);
 }
 
-function processInventory(data) {
-    const items = decompress(data);
-
-    if (!items) {
-        apiOff();
-        return;
-    }
-
+function processItems(items) {
     for (let i = 0; i < items.func_74745_c(); i++) {
         let item = items.func_150305_b(i);
         if (!item) continue;
@@ -125,6 +124,17 @@ function processInventory(data) {
         checkItem(id, searchLore, displayLore, attributes, name, reforge, enchants, gemstone);
         checkEquipment(id, attributes, name);
     }
+}
+
+function processInventory(data) {
+    const items = decompress(data);
+
+    if (!items) {
+        apiOff();
+        return;
+    }
+
+    processItems(items);
 }
 
 function processArmor(data) {
@@ -210,6 +220,32 @@ function processEquipment(data) {
 
         checkEquipment(id, attributes, name);
     }
+}
+
+function processEnderchest(data) {
+    const items = decompress(data);
+
+    if (!items) {
+        apiOff();
+        return;
+    }
+
+    processItems(items);
+}
+
+function processBackpacks(contents) {
+    if (!contents) return;
+
+    Object.keys(contents).forEach((data, index) => {
+        const items = decompress(contents[data]?.data);
+
+        if (!items) {
+            apiOff();
+            return;
+        }
+
+        processItems(items);
+    })
 }
 
 function checkItem(id, searchLore, displayLore, attributes, name, reforge, enchants, gemstone) {
@@ -467,7 +503,7 @@ function apiOff() {
     wardenHelmet = wardenHelmetLore = terrorChestplate = terrorChestplateLore = terrorChestplatePrefix = terrorLeggings = terrorLeggingsLore = terrorLeggingsPrefix = terrorBoots = terrorBootsLore = terrorBootsPrefix = `&cAPI OFF`;
 }
 
-function displayMessage(name) {
+function displayMessage(name, manually) {
     const playerMessage = new Message(
         new TextComponent(`&2&m-----&f[- &2${name} &7[Lvl ${(kuudraScore / 100) | 0}] &f-]&2&m-----`)
             .setHoverValue(`&a&lKuudra score: &f${kuudraScore.toFixed()}`)
@@ -573,7 +609,9 @@ function displayMessage(name) {
     ChatLib.chat(terrorBootsMessage);
     ChatLib.chat(goldenDragonMessage);
     ChatLib.chat("&2&m----------------------------&r");
-    ChatLib.chat(kickMessage);
+    if (!manually) {
+        ChatLib.chat(kickMessage);
+    }
 }
 
 export default showKuudraInfo;

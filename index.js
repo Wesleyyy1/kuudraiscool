@@ -11,7 +11,7 @@ import './kuudra-prices/attributePrices.js';
 // Register chat event for party finder
 register('chat', (player) => {
     if (!Settings.partyfinder || player == Player.getName()) return;
-    showKuudraInfo(player, Settings.apikey);
+    showKuudraInfo(player, false);
 }).setCriteria(/^Party Finder > (.+) joined the group! ((.+))$/);
 
 // Register chat event for party commands
@@ -57,7 +57,7 @@ function updateApiKey(key) {
 // Register command to get Kuudra info
 register('command', (...args) => {
     const ign = args[0] || Player.getName();
-    showKuudraInfo(ign, Settings.apikey);
+    showKuudraInfo(ign, true);
 }).setName('kuudra', true);
 
 // Register command to search item for a player
@@ -124,7 +124,7 @@ register('command', (...args) => {
             toggleRunOverview();
             break;
         case 'kuudra':
-            showKuudraInfo(args[1] || ign, Settings.apikey);
+            showKuudraInfo(args[1] || ign, true);
             break;
         case 'apikey':
             if (!args[1]) return ChatLib.chat("&aUse /kic apikey <key>");
