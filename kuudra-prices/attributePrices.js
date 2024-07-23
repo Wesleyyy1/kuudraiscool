@@ -1,6 +1,6 @@
 import request from '../../requestV2';
 import Settings from '../settings/config.js';
-import { fixNumber, capitalizeEachWord, formatTime, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg  } from '../utils/generalUtils.js';
+import { fixNumber, capitalizeEachWord, formatTime, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from '../utils/generalUtils.js';
 
 const itemTypes = {
     armor: {
@@ -74,6 +74,7 @@ const attributes = [
 
 let priceData = null;
 let activeCategory = null;
+let cheapest = false;
 let currentIndex = {};
 
 register('command', (arg1, arg2, arg3, arg4) => {
@@ -135,6 +136,7 @@ register('command', (arg1, arg2, arg3, arg4) => {
         .then(data => {
             priceData = data;
             activeCategory = 'armor';
+            cheapest = false;
             initializeCurrentIndex();
             showPrices();
         })
@@ -154,6 +156,11 @@ register('command', (arg1, arg2) => {
         showPrices(parseInt(arg2));
     }
 }).setName('apchangecategory');
+
+register('command', (arg1) => {
+    cheapest = !cheapest;
+    showPrices(parseInt(arg1));
+}).setName('aptogglecheapest');
 
 register('command', (direction, type, maxIndex, msgid) => {
     if (!['prev', 'next'].includes(direction) || !type || !maxIndex || !msgid) return;
@@ -239,23 +246,43 @@ function showPrices(messageId) {
         const timeAgo = formatTime(Math.abs(priceData.timestamp - Date.now()));
         message.addTextComponent(new TextComponent(`\n&6Click to open the auction. Last refresh was &e${timeAgo}&6.\n`));
 
+        const dataSource = activeCategory === 'equipment' ? priceData.equipment : priceData.armor;
+
         Object.entries(itemTypes[activeCategory] || {}).forEach(([itemType, types]) => {
             message.addTextComponent(new TextComponent(`\n&6Cheapest &2${capitalizeEachWord(itemType)}\n`));
-            types.forEach(type => {
-                const dataSource = activeCategory === 'equipment' ? priceData.equipment : priceData.armor;
-                if (dataSource[itemType][type] && dataSource[itemType][type][currentIndex[type]]) {
-                    const currentItemIndex = currentIndex[type];
-                    const totalItems = dataSource[itemType][type].length;
-                    const itemText = new TextComponent(`&6- &9${capitalizeEachWord(type.replaceAll('_', ' '))} &6for &e${fixNumber(dataSource[itemType][type][currentItemIndex].price)} &7(${currentItemIndex + 1}/${totalItems})`)
-                        .setClick('run_command', `/viewauction ${dataSource[itemType][type][currentItemIndex].uuid}`);
+            if (activeCategory === 'armor' && cheapest) {
+                const items = types.reduce((acc, type) => {
+                    if (dataSource[itemType][type]) {
+                        dataSource[itemType][type].forEach(item => {
+                            const newItem = { ...item, type };
+                            acc.push(newItem);
+                        });
+                    }
+                    return acc;
+                }, []);
+                items.sort((a, b) => a.price - b.price);
+                items.slice(0, 5).forEach(item => {
+                    const itemText = new TextComponent(`&6- &9${capitalizeEachWord(item.type.replaceAll('_', ' '))} &6for &e${fixNumber(item.price)}\n`)
+                        .setClick('run_command', `/viewauction ${item.uuid}`);
                     message.addTextComponent(itemText);
+                });
+            } else {
+                types.forEach(type => {
+                    if (dataSource[itemType][type] && dataSource[itemType][type][currentIndex[type]]) {
+                        const currentItemIndex = currentIndex[type];
+                        const totalItems = dataSource[itemType][type].length;
+                        const item = dataSource[itemType][type][currentItemIndex];
+                        const itemText = new TextComponent(`&6- &9${capitalizeEachWord(type.replaceAll('_', ' '))} &6for &e${fixNumber(item.price)} &7(${currentItemIndex + 1}/${totalItems})`)
+                            .setClick('run_command', `/viewauction ${item.uuid}`);
+                        message.addTextComponent(itemText);
 
-                    const prevButton = new TextComponent(` &a[<] `).setClick('run_command', `/apnavigate prev ${type} ${totalItems} ${lineId}`);
-                    const nextButton = new TextComponent(` &a[>]\n`).setClick('run_command', `/apnavigate next ${type} ${totalItems} ${lineId}`);
-                    message.addTextComponent(prevButton);
-                    message.addTextComponent(nextButton);
-                }
-            });
+                        const prevButton = new TextComponent(` &a[<] `).setClick('run_command', `/apnavigate prev ${type} ${totalItems} ${lineId}`);
+                        const nextButton = new TextComponent(` &a[>]\n`).setClick('run_command', `/apnavigate next ${type} ${totalItems} ${lineId}`);
+                        message.addTextComponent(prevButton);
+                        message.addTextComponent(nextButton);
+                    }
+                });
+            }
         });
 
         message.addTextComponent(new TextComponent('\n'));
@@ -267,6 +294,13 @@ function showPrices(messageId) {
                 .setClick('run_command', `/apchangecategory ${cat} ${lineId}`);
             message.addTextComponent(categoryText);
         });
+
+        if (activeCategory === 'armor') {
+            const cheapstColor = cheapest ? '&a' : '&6';
+            const cheapestText = new TextComponent(`${cheapstColor} [Cheapest] `)
+                .setClick('run_command', `/aptogglecheapest ${lineId}`);
+            message.addTextComponent(cheapestText);
+        }
 
         ChatLib.chat(message);
     }
