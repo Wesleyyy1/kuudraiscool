@@ -1,5 +1,5 @@
-import request from '../../requestV2';
-import Settings from '../settings/config.js';
+import axios from "axios";
+import Settings from "../settings/config.js";
 
 const ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
 const Base64 = Java.type("java.util.Base64");
@@ -25,7 +25,7 @@ const decompress = (compressed) => {
     try {
         return new CompressedStreamTools.func_74796_a(new ByteArrayInputStream(Base64.getDecoder().decode(compressed))).func_150295_c("i", 10);
     } catch (error) {
-        errorHandler('Error while decompressing', error, 'generalUtils.js');
+        errorHandler("Error while decompressing", error, "generalUtils.js");
         return;
     }
 }
@@ -54,14 +54,14 @@ function getColorData(moduleName, type) {
         case "gemstonechecker":
             return type ? (gemstoneColors[type.toUpperCase()] || "&8*") : "&8*";
         case "gettunings":
-            if (type && typeof type === 'object') {
+            if (type && typeof type === "object") {
                 const filteredData = Object.entries(type)
                     .filter(([key, value]) => value && tuningStats[key])
                     .map(([key, value]) => {
                         const [name, color, multiplier] = tuningStats[key];
                         return `&aTuning: ${color}${(value * multiplier).toFixed(2)} ${name}`;
                     });
-                return filteredData.join('\n');
+                return filteredData.join("\n");
             }
             return "No tuning data found.";
         default:
@@ -72,7 +72,7 @@ function getColorData(moduleName, type) {
 function capitalizeEachWord(input) {
     return input.split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
+        .join(" ");
 }
 
 function formatTime(milliseconds) {
@@ -82,13 +82,13 @@ function formatTime(milliseconds) {
     const days = Math.floor(hours / 24);
 
     if (seconds < 60) {
-        return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
+        return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
     } else if (minutes < 60) {
-        return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+        return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
     } else if (hours < 24) {
-        return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+        return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
     } else {
-        return `${days} day${days !== 1 ? 's' : ''} ago`;
+        return `${days} day${days !== 1 ? "s" : ""} ago`;
     }
 }
 
@@ -99,17 +99,15 @@ function errorHandler(msg, error, origin) {
     let requestBody = {};
     requestBody.username = Player.getName();
 
-    requestBody.content = `${msg}\n- Origin: ${origin}\n- Error: ${error.message || ''}\n- File: ${error.fileName || ''}\n- Line: ${error.lineNumber || ''}\n- Version: ${currentVersion}`;
+    requestBody.content = `${msg}\n- Origin: ${origin}\n- Error: ${error || ""}\n- Version: ${currentVersion}`;
 
-    request({
-        url: 'https://api.sm0kez.com/error/module',
-        method: 'POST',
+    axios.post("https://api.sm0kez.com/error/module", {
         headers: {
-            'User-Agent': 'Mozilla/5.0 (ChatTriggers)',
-            'API-Key': Settings.apikey
+            "User-Agent": "Mozilla/5.0 (ChatTriggers)",
+            "API-Key": Settings.apikey
         },
         body: requestBody,
-        json: true
+        parseBody: true
     })
         .catch(error => {
             // Ignore errors
@@ -128,20 +126,19 @@ function checkApiKey(apiKey) {
         keyValid = false;
         return false;
     } else {
-        request({
-            url: 'https://api.sm0kez.com/key',
-            method: 'GET',
+        axios.get("https://api.sm0kez.com/key", {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (ChatTriggers)',
-                'API-Key': apiKey || Settings.apikey
-            },
-            json: true
+                "User-Agent": "Mozilla/5.0 (ChatTriggers)",
+                "API-Key": Settings.apikey
+            }
         })
             .then(response => {
-                if (response.status == "ACTIVE") {
+                const data = response.data;
+    
+                if (data.status == "ACTIVE") {
                     keyValid = true;
                     const previousRoles = roles;
-                    roles = response.roles;
+                    roles = data.roles;
                     invalidReason = "";
                     if (apiKey) {
                         Settings.apikey = apiKey;
@@ -156,7 +153,7 @@ function checkApiKey(apiKey) {
 
                     return true;
                 } else {
-                    invalidReason = `&7[&a&lKIC&r&7]&r&c Your API key is currently ${response.status}. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK`;
+                    invalidReason = `&7[&a&lKIC&r&7]&r&c Your API key is currently ${data.status}. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK`;
                     ChatLib.chat(invalidReason);
                     Settings.apikey = "";
                     roles = [];
@@ -165,14 +162,18 @@ function checkApiKey(apiKey) {
                 }
             })
             .catch(error => {
-                invalidReason = "&7[&a&lKIC&r&7]&r&c The API key provided is incorrect. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK";
-                ChatLib.chat(invalidReason);
-                Settings.apikey = "";
-                roles = [];
-                keyValid = false;
-                return false;
-            }
-        );
+                if (error.isAxiosError && error.code != 500) {
+                    invalidReason = "&7[&a&lKIC&r&7]&r&c The API key provided is incorrect. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK";
+                    ChatLib.chat(invalidReason);
+                    Settings.apikey = "";
+                    roles = [];
+                    keyValid = false;
+                    return false;
+                } else {
+                    ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while checking your API key!\n&cPlease report this in the discord server`);
+                    errorHandler("Error while getting profile data", error.message, "generalUtils.js");
+                }
+            });
     }
 }
 

@@ -1,4 +1,4 @@
-import { @Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, Color } from 'Vigilance';
+import { @Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, Color } from "Vigilance";
 
 @Vigilant("kuudraiscool/data", "kuudraiscool", {
     getCategoryComparator: () => (a, b) => {

@@ -1,6 +1,6 @@
-import Settings from './settings/config.js';
-import { request } from '../requestV2';
-import { decompress, fixNumber, getColorData, isKeyValid, getRoles, errorHandler, showInvalidReasonMsg, showMissingRolesMsg } from './utils/generalUtils.js';
+import Settings from "./settings/config.js";
+import axios from "axios";
+import { decompress, fixNumber, getColorData, isKeyValid, getRoles, errorHandler, showInvalidReasonMsg, showMissingRolesMsg } from "./utils/generalUtils.js";
 
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
@@ -23,19 +23,19 @@ let extraHamRadio, kuudraScore, drill, drillLore, extraFireveil, reaperPieces, l
 
 function setDefaults() {
     kuudraScore = reaperPieces = lifeline = manaPool = basicComps = hotComps = burningComps = fieryComps = infernalComps = totalComps = magicalPower = extraFerociousMana = extraStrongMana = extraManaEnchantTotal = extraLegionEnchant = reputation = 0;
-    extraHamRadio = drill = drillLore = extraFireveil = hyperion = hyperionLore = duplex = duplexLore  = ragnarockAxe = ragnarockAxeLore = extraReaper = extraTerminator = extraDeployable = `&4X`;
-    wardenHelmet = wardenHelmetLore = '&4No Warden Helmet';
-    terrorChestplate = terrorChestplateLore = '&4No Terror Chestplate';
-    terrorLeggings = terrorLeggingsLore = '&4No Terror Leggings';
-    terrorBoots = terrorBootsLore = '&4No Terror Boots';
-    goldenDragon = '&4No Golden Dragon';
+    extraHamRadio = drill = drillLore = extraFireveil = hyperion = hyperionLore = duplex = duplexLore = ragnarockAxe = ragnarockAxeLore = extraReaper = extraTerminator = extraDeployable = `&4X`;
+    wardenHelmet = wardenHelmetLore = "&4No Warden Helmet";
+    terrorChestplate = terrorChestplateLore = "&4No Terror Chestplate";
+    terrorLeggings = terrorLeggingsLore = "&4No Terror Leggings";
+    terrorBoots = terrorBootsLore = "&4No Terror Boots";
+    goldenDragon = "&4No Golden Dragon";
     terrorChestplatePrefix = terrorLeggingsPrefix = terrorBootsPrefix = `&8*`;
 
     lifelineLore = `&a&lLifeline Breakdown:\n\n`;
     manaPoolLore = `&a&lMana Pool Breakdown:\n\n`;
 
-    selectedPower = '';
-    tuningPoints = '';
+    selectedPower = "";
+    tuningPoints = "";
 
     goldenDragonLore = `&r`;
     oneBilBank = `&c`;
@@ -46,23 +46,30 @@ function showKuudraInfo(playername, manually) {
     if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
 
     setDefaults();
-    request({
-        url: `https://api.sm0kez.com/hypixel/profile/${playername}/selected`,
+
+    axios.get(`https://api.sm0kez.com/hypixel/profile/${playername}/selected`, {
         headers: {
             "User-Agent": "Mozilla/5.0 (ChatTriggers)",
             "API-Key": Settings.apikey
-        },
-        json: true
-    }).then((response) => {
-        if (response.success) {
-            processKuudraData(response, manually);
-        } else {
-            ChatLib.chat(`&c${playername} is not a valid player!`);
         }
-    }).catch((error) => {
-        ChatLib.chat(`&cSomething went wrong while gathering ${playername}'s data!\n&7(Probably invalid API key (/apikey <new key>))`);
-        errorHandler('Error while getting profile data', error, 'kuudraInfo.js');
-    });
+    })
+        .then(response => {
+            const data = response.data;
+
+            if (data.success) {
+                processKuudraData(data, manually);
+            } else {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cPlayer not found!`);
+            }
+        })
+        .catch(error => {
+            if (error.isAxiosError && error.code != 500) {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+            } else {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}"s data!\n&cPlease report this in the discord server`);
+                errorHandler("Error while getting profile data", error.message, "kuudraInfo.js");
+            }
+        });
 }
 
 function processKuudraData(response, manually) {
@@ -114,9 +121,9 @@ function processItems(items) {
         let id = extraAttributes.getString("id");
         let display = tag.getCompoundTag("display");
         let lore = display.toObject()["Lore"] || [];
-        let searchLore = lore.join(' ');
+        let searchLore = lore.join(" ");
         let name = display.getString("Name");
-        let displayLore = `${name}\n${lore.join('\n')}`;
+        let displayLore = `${name}\n${lore.join("\n")}`;
         let reforge = extraAttributes.getString("modifier");
         let enchants = extraAttributes.getCompoundTag("enchantments").toObject();
         let gemstone = extraAttributes.getCompoundTag("gems")?.getString("COMBAT_0") || extraAttributes.getCompoundTag("gems")?.getString("COMBAT_1") || extraAttributes.getCompoundTag("gems")?.getTag("COMBAT_0")?.getString("quality") || extraAttributes.getCompoundTag("gems")?.getTag("COMBAT_1")?.getString("quality");
@@ -158,7 +165,7 @@ function processArmor(data) {
         let display = tag.getCompoundTag("display");
         let lore = display.toObject()["Lore"] || [];
         let name = display.getString("Name");
-        let displayLore = `${name}\n${lore.join('\n')}`;
+        let displayLore = `${name}\n${lore.join("\n")}`;
         let reforge = extraAttributes.getString("modifier");
         let enchants = extraAttributes.getCompoundTag("enchantments").toObject();
         let gemstone = extraAttributes.getCompoundTag("gems")?.getString("COMBAT_0") || extraAttributes.getCompoundTag("gems")?.getString("COMBAT_1") || extraAttributes.getCompoundTag("gems")?.getTag("COMBAT_0")?.getString("quality") || extraAttributes.getCompoundTag("gems")?.getTag("COMBAT_1")?.getString("quality");
@@ -188,7 +195,7 @@ function processWardrobe(data) {
         let display = tag.getCompoundTag("display");
         let lore = display.toObject()["Lore"] || [];
         let name = display.getString("Name");
-        let displayLore = `${name}\n${lore.join('\n')}`;
+        let displayLore = `${name}\n${lore.join("\n")}`;
         let reforge = extraAttributes.getString("modifier");
         let enchants = extraAttributes.getCompoundTag("enchantments").toObject();
         let gemstone = extraAttributes.getCompoundTag("gems")?.getString("COMBAT_0") || extraAttributes.getCompoundTag("gems")?.getString("COMBAT_1") || extraAttributes.getCompoundTag("gems")?.getTag("COMBAT_0")?.getString("quality") || extraAttributes.getCompoundTag("gems")?.getTag("COMBAT_1")?.getString("quality");
@@ -251,26 +258,26 @@ function processBackpacks(contents) {
 function checkItem(id, searchLore, displayLore, attributes, name, reforge, enchants, gemstone) {
     if (ITEM_IDS.WITHER_BLADES.has(id)) {
         if (searchLore.includes("Wither Impact")) {
-            hyperion = '&2✔';
+            hyperion = "&2✔";
             hyperionLore = displayLore;
         }
     } else if (id === ITEM_IDS.TERMINATOR) {
         if (searchLore.includes("Duplex")) {
-            duplex = '&2✔';
+            duplex = "&2✔";
             duplexLore = displayLore;
         }
-        extraTerminator = '&2✔';
+        extraTerminator = "&2✔";
     } else if (id === ITEM_IDS.RAGNAROCK_AXE) {
-        ragnarockAxe = '&2✔';
+        ragnarockAxe = "&2✔";
         ragnarockAxeLore = displayLore;
     } else if ([ITEM_IDS.OVERFLUX_POWER_ORB, ITEM_IDS.PLASMAFLUX_POWER_ORB, ITEM_IDS.SOS_FLARE].includes(id)) {
         extraDeployable = name;
-    } else if(id === ITEM_IDS.FIRE_VEIL_WAND){
+    } else if (id === ITEM_IDS.FIRE_VEIL_WAND) {
         extraFireveil = name;
-    }else if(id == ITEM_IDS.TITANIUM_DRILL_4 || id == ITEM_IDS.DIVAN_DRILL){
-        drill = '&2✔';
+    } else if (id == ITEM_IDS.TITANIUM_DRILL_4 || id == ITEM_IDS.DIVAN_DRILL) {
+        drill = "&2✔";
         drillLore = displayLore;
-    }else if(id == ITEM_IDS.BLAZETEKK_HAM_RADIO){
+    } else if (id == ITEM_IDS.BLAZETEKK_HAM_RADIO) {
         extraHamRadio = name;
     } else {
         checkArmor(id, displayLore, attributes, name, reforge, enchants, gemstone);
@@ -382,11 +389,11 @@ function processRuns(netherData) {
 function processMagicalPower(memberData, netherData) {
     let maxMp = 0;
     let totalMp = 0;
-    
+
     const accessoryBag = memberData.accessory_bag_storage;
     if (accessoryBag) {
         maxMp = accessoryBag.highest_magical_power || 0;
-        selectedPower = accessoryBag.selected_power || '&fNONE';
+        selectedPower = accessoryBag.selected_power || "&fNONE";
         const checkTuning = accessoryBag.tuning?.slot_0 || 0;
         tuningPoints = getColorData("gettunings", checkTuning);
     }
@@ -412,27 +419,27 @@ function processMagicalPower(memberData, netherData) {
             talismanIds.add(id);
 
             let display = tag.getCompoundTag("display");
-            let searchLore = (display.toObject()["Lore"] || []).join(' ').removeFormatting();
+            let searchLore = (display.toObject()["Lore"] || []).join(" ").removeFormatting();
 
-            if (id === 'ABICASE') {
+            if (id === "ABICASE") {
                 hasAbicase = true;
             }
 
-            if (searchLore.includes('UNCOMMON')) {
+            if (searchLore.includes("UNCOMMON")) {
                 totalMp += 5;
-            } else if (searchLore.includes('COMMON')) {
+            } else if (searchLore.includes("COMMON")) {
                 totalMp += 3;
-            } else if (searchLore.includes('RARE')) {
+            } else if (searchLore.includes("RARE")) {
                 totalMp += 8;
-            } else if (searchLore.includes('EPIC')) {
+            } else if (searchLore.includes("EPIC")) {
                 totalMp += 12;
-            } else if (searchLore.includes('LEGENDARY')) {
-                totalMp += (id === 'HEGEMONY_ARTIFACT') ? 32 : 16;
-            } else if (searchLore.includes('MYTHIC')) {
-                totalMp += (id === 'HEGEMONY_ARTIFACT') ? 44 : 22;
-            } else if (searchLore.includes('VERY SPECIAL')) {
+            } else if (searchLore.includes("LEGENDARY")) {
+                totalMp += (id === "HEGEMONY_ARTIFACT") ? 32 : 16;
+            } else if (searchLore.includes("MYTHIC")) {
+                totalMp += (id === "HEGEMONY_ARTIFACT") ? 44 : 22;
+            } else if (searchLore.includes("VERY SPECIAL")) {
                 totalMp += 5;
-            } else if (searchLore.includes('SPECIAL')) {
+            } else if (searchLore.includes("SPECIAL")) {
                 totalMp += 3;
             }
         }
@@ -440,7 +447,7 @@ function processMagicalPower(memberData, netherData) {
         if (hasConsumedPrism) {
             totalMp += 11;
         }
-    
+
         if (hasAbicase) {
             const activeContacts = netherData.abiphone.active_contacts;
             if (activeContacts) {
@@ -487,7 +494,7 @@ function processGoldenDragon(pets) {
 
 function finalizeData(currentProfile, uuid) {
     if (reaperPieces === 3) {
-        extraReaper = '&2✔';
+        extraReaper = "&2✔";
     }
 
     extraManaEnchantTotal = extraStrongMana + extraFerociousMana;

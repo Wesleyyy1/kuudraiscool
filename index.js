@@ -1,53 +1,53 @@
-import Settings from './settings/config.js';
-import getCommand from './chatCommands.js';
-import getPartyData from './doogans.js';
-import searchItem from './searchItem.js';
-import showKuudraInfo from './kuudraInfo.js';
-import { checkUpdate } from './utils/updateChecker.js';
-import { errorHandler, checkApiKey } from './utils/generalUtils.js';
-import './runOverview.js';
-import './kuudra-prices/attributePrices.js';
+import Settings from "./settings/config.js";
+import getCommand from "./chatCommands.js";
+import getPartyData from "./doogans.js";
+import searchItem from "./searchItem.js";
+import showKuudraInfo from "./kuudraInfo.js";
+import { checkUpdate } from "./utils/updateChecker.js";
+import { errorHandler, checkApiKey } from "./utils/generalUtils.js";
+import "./runOverview.js";
+import "./kuudra-prices/attributePrices.js";
 
 // Register chat event for party finder
-register('chat', (player) => {
+register("chat", (player) => {
     if (!Settings.partyfinder || player == Player.getName()) return;
     showKuudraInfo(player, false);
 }).setCriteria(/^Party Finder > (.+) joined the group! ((.+))$/);
 
 // Register chat event for party commands
-register('chat', (msg) => {
+register("chat", (msg) => {
     const message = msg.toString();
     try {
         if (Settings.partycommands && message.startsWith("Party >")) {
             if (message.includes(": .runs")) {
                 const ign = message.split(".runs")[1]?.trim() || Player.getName();
-                getCommand(ign, Settings.apikey, "runs");
+                getCommand(ign, "runs");
             } else if (message.includes(": .stats")) {
                 const ign = message.split(".stats")[1]?.trim() || Player.getName();
-                getCommand(ign, Settings.apikey, "stats");
+                getCommand(ign, "stats");
             } else if (message.includes(": .rtca")) {
                 const ign = message.split(".rtca")[1]?.trim() || Player.getName();
-                getCommand(ign, Settings.apikey, "rtca");
+                getCommand(ign, "rtca");
             }
 
         }
     } catch (error) {
-        errorHandler('Error while performing chat command', error, 'index.js');
+        errorHandler("Error while performing chat command", error, "index.js");
     }
 }).setCriteria("${msg}");
 
 // Register command to set API key
-register('command', (...args) => {
+register("command", (...args) => {
     if (args[0]) {
         updateApiKey(args[0]);
     } else {
         ChatLib.chat("&aUse /apikey <key>");
     }
-}).setName('apikey', true);
+}).setName("apikey", true);
 
-register('command', () => {
+register("command", () => {
     checkApiKey();
-}).setName('checkapikey', true);
+}).setName("checkapikey", true);
 
 function updateApiKey(key) {
     if (key === Settings.apikey) return ChatLib.chat("&cYou are already using this API key!");
@@ -55,30 +55,30 @@ function updateApiKey(key) {
 }
 
 // Register command to get Kuudra info
-register('command', (...args) => {
+register("command", (...args) => {
     const ign = args[0] || Player.getName();
     showKuudraInfo(ign, true);
-}).setName('kuudra', true);
+}).setName("kuudra", true);
 
 // Register command to search item for a player
-register('command', (...args) => {
+register("command", (...args) => {
     if (args[0] && args[1]) {
         const query = args.slice(1).join(" ");
-        searchItem(args[0], Settings.apikey, query);
+        searchItem(args[0], query);
     } else {
         ChatLib.chat("&cUse /lf <player> <query> to search a player for an item!");
     }
-}).setName('lf', true);
+}).setName("lf", true);
 
 // Register command to toggle party finder
-register('command', () => {
+register("command", () => {
     togglePartyFinder();
-}).setName('togglepartyfinder', true).setAliases('togglepf');
+}).setName("togglepartyfinder", true).setAliases("togglepf");
 
 // Register command to toggle run overview
-register('command', () => {
+register("command", () => {
     toggleRunOverview();
-}).setName('togglerunoverview', true).setAliases('togglerun');
+}).setName("togglerunoverview", true).setAliases("togglerun");
 
 function togglePartyFinder() {
     Settings.partyfinder = !Settings.partyfinder;
@@ -101,51 +101,51 @@ function toggleRunOverview() {
 }
 
 // Register commands to join specific instances
-register('command', () => ChatLib.command('joininstance KUUDRA_NORMAL')).setName('t2', true);
-register('command', () => ChatLib.command('joininstance KUUDRA_HOT')).setName('t2', true);
-register('command', () => ChatLib.command('joininstance KUUDRA_BURNING')).setName('t3', true);
-register('command', () => ChatLib.command('joininstance KUUDRA_FIERY')).setName('t4', true);
-register('command', () => ChatLib.command('joininstance KUUDRA_INFERNAL')).setName('t5', true);
+register("command", () => ChatLib.command("joininstance KUUDRA_NORMAL")).setName("t2", true);
+register("command", () => ChatLib.command("joininstance KUUDRA_HOT")).setName("t2", true);
+register("command", () => ChatLib.command("joininstance KUUDRA_BURNING")).setName("t3", true);
+register("command", () => ChatLib.command("joininstance KUUDRA_FIERY")).setName("t4", true);
+register("command", () => ChatLib.command("joininstance KUUDRA_INFERNAL")).setName("t5", true);
 
 // Register main kuudraiscool command
-register('command', (...args) => {
+register("command", (...args) => {
     if(!args[0]){
         Settings.openGUI();
         return;
     }
     const ign = Player.getName();
     switch (args[0]) {
-        case 'togglepartyfinder':
-        case 'togglepf':
+        case "togglepartyfinder":
+        case "togglepf":
             togglePartyFinder();
             break;
-        case 'togglerun':
-        case 'togglerunoverview':
+        case "togglerun":
+        case "togglerunoverview":
             toggleRunOverview();
             break;
-        case 'kuudra':
+        case "kuudra":
             showKuudraInfo(args[1] || ign, true);
             break;
-        case 'apikey':
+        case "apikey":
             if (!args[1]) return ChatLib.chat("&aUse /kic apikey <key>");
             updateApiKey(args[1]);
             break;
-        case 't1':
-            ChatLib.command('joininstance KUUDRA_NORMAL');
+        case "t1":
+            ChatLib.command("joininstance KUUDRA_NORMAL");
             break;
-        case 't2':
-            ChatLib.command('joininstance KUUDRA_HOT');
+        case "t2":
+            ChatLib.command("joininstance KUUDRA_HOT");
             break;
-        case 't3':
-            ChatLib.command('joininstance KUUDRA_BURNING');
+        case "t3":
+            ChatLib.command("joininstance KUUDRA_BURNING");
             break;
-        case 't4':
-            ChatLib.command('joininstance KUUDRA_FIERY');
+        case "t4":
+            ChatLib.command("joininstance KUUDRA_FIERY");
             break;
-        case 't5':
-            ChatLib.command('joininstance KUUDRA_INFERNAL');
+        case "t5":
+            ChatLib.command("joininstance KUUDRA_INFERNAL");
             break;
-        case 'settings':
+        case "settings":
             Settings.openGUI();
             break;
         default:
@@ -166,7 +166,7 @@ register('command', (...args) => {
             ChatLib.chat("&r")
             break;
     }
-}).setName('kuudraiscool', true).setAliases('kic', 'ki');
+}).setName("kuudraiscool", true).setAliases("kic", "ki");
 
 const checkTrigger = register("worldLoad", () => {
     checkTrigger.unregister();
@@ -177,14 +177,14 @@ const checkTrigger = register("worldLoad", () => {
 
 /*
 // Register chat event for party data
-register('chat', (msg) => {
+register("chat", (msg) => {
     if (msg.includes("Team Score:") && !msg.startsWith("Party >") && !msg.startsWith("Guild >")) {
         const party = [];
         for (let i = 0; i < 14; i++) {
             try {
                 let str = Scoreboard.getLineByIndex(Scoreboard.getLines().length - (i + 1)).toString().trim();
                 if (/[HMBTA]/.test(str)) {
-                    const cleanStr = str.split(" ")[1].replace(/§[0-9a-fA-Fklmnor]/g, '').replace(/[^a-zA-Z0-9]/g, '');
+                    const cleanStr = str.split(" ")[1].replace(/§[0-9a-fA-Fklmnor]/g, "").replace(/[^a-zA-Z0-9]/g, "");
                     party.push(cleanStr);
                 }
             } catch (error) {
@@ -194,7 +194,7 @@ register('chat', (msg) => {
         if (!party.includes(Player.getName())) {
             party.push(Player.getName());
         }
-        getPartyData(Settings.apikey, party);
+        getPartyData(party);
     }
 }).setCriteria("${msg}");
 */

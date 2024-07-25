@@ -1,4 +1,4 @@
-import { fixNumber, errorHandler } from './utils/generalUtils.js';
+import { fixNumber, errorHandler } from "./utils/generalUtils.js";
 import Settings from "./settings/config.js";
 
 let inOverview = false;
@@ -9,22 +9,23 @@ let dps = 0;
 let mainHandler = null;
 let checksHandler = null;
 let worldHandler = null;
+let buildStart, buildEnd, stunEnd, phase1End;
 
 function startRunOverview(callback) {
     inOverview = true;
     ChatLib.chat("\n&aRun overview has started!\n");
+    rawEndTime = startTime = endTime = 0;
+    buildStart = buildEnd = stunEnd = phase1End = 0;
     rawStartTime = Date.now();
     let supplies = 0;
     let worldCheck = false;
     let yCheck = false;
 
     try {
-        mainHandler = register('chat', (msg) => {
+        mainHandler = register("chat", (msg) => {
             if (msg.startsWith("[NPC] Elle: Okay adventurers, I will go and fish up Kuudra!")) {
-                console.log("TRIGGER: start");
                 startTime = Date.now();
             } else if (msg.trim().startsWith("KUUDRA DOWN!")) {
-                console.log("TRIGGER: end");
                 endTime = Date.now();
                 unregisterHandlers();
                 callback();
@@ -32,13 +33,11 @@ function startRunOverview(callback) {
                 if (!worldCheck) {
                     worldCheck = true;
                 }
-                console.log("TRIGGER: GET PLAYER");
                 const playername = msg.split(" ")[0];
                 if (!party.some(entry => entry.player === playername)) {
                     party.push({ player: playername, deaths: 0, supplies: 0, supplytimes: `&r` });
                 }
             } else if (msg.startsWith(" ☠")) {
-                console.log("TRIGGER: CHECK DEATHS");
                 let playername = msg.replace(" ☠ ", "").split(" ")[0].trim();
                 if (playername === "You") {
                     playername = Player.getName();
@@ -46,7 +45,6 @@ function startRunOverview(callback) {
                 const player = party.find(entry => entry.player === playername);
                 if (player) player.deaths++;
             } else if (msg.includes("recovered one of Elle's supplies!")) {
-                console.log("TRIGGER: CHECK SUPPLIES");
                 let playername = msg.split(" ")[0];
                 if (playername.includes("[")) {
                     playername = msg.split(" ")[1];
@@ -56,7 +54,7 @@ function startRunOverview(callback) {
                 const Timeminutes = Math.floor(Time / 60000);
                 const Timeseconds = Math.floor((Time % 60000) / 1000);
                 const Timemilliseconds = Math.floor((Time % 1000) / 10);
-                const TimeformattedTime = `${Timeminutes}:${Timeseconds}.${Timemilliseconds.toString().padStart(2, '0')}`;
+                const TimeformattedTime = `${Timeminutes}:${Timeseconds}.${Timemilliseconds.toString().padStart(2, "0")}`;
                 const player = party.find(entry => entry.player === playername);
                 if (player) {
                     player.supplies++;
@@ -70,6 +68,14 @@ function startRunOverview(callback) {
             } else if (msg.includes("Percentage Complete: ")) {
                 let timerStop = Date.now() / 1000;
                 dps = fixNumber(300000000 / (timerStop - timerStart));
+            } else if (msg.startsWith("[NPC] Elle: It's time to build the Ballista again! Cover me!")) {
+                buildStart = Date.now();
+            } else if (msg.startsWith("[NPC] Elle: Phew! The Ballista is finally ready! It should be strong enough to tank Kuudra's blows now!")) {
+                buildEnd = Date.now();
+            } else if (msg.startsWith("[NPC] Elle: That looks like it hurt! Quickly, while Kuudra is distracted, shoot him with the Ballista!")) {
+                stunEnd = Date.now();
+            } else if (msg.startsWith("[NPC] Elle: POW! SURELY THAT'S IT! I don't think he has any more in him!")) {
+                phase1End = Date.now();
             }
         }).setCriteria("${msg}");
 
@@ -84,14 +90,13 @@ function startRunOverview(callback) {
 
         worldHandler = register("worldLoad", () => {
             if (worldCheck) {
-                console.log("TRIGGER: END VIA WL");
                 unregisterHandlers();
                 callback();
             }
         });
     } catch (error) {
         unregisterHandlers();
-        errorHandler('Error while getting run info', error, 'runOverview.js');
+        errorHandler("Error while getting run info", error, "runOverview.js");
     }
 }
 
@@ -100,36 +105,29 @@ function unregisterHandlers() {
     checksHandler?.unregister();
     worldHandler?.unregister();
     rawEndTime = Date.now();
-    endTime = Date.now();
     inOverview = false;
 }
 
 function formatTime(time) {
-    if (!time) return;
+    if (!time) return 0;
     const minutes = Math.floor(time / 60000);
     const seconds = Math.floor((time % 60000) / 1000);
     const milliseconds = Math.floor((time % 1000) / 10);
-    return `${minutes}:${seconds}.${milliseconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds}.${milliseconds.toString().padStart(2, "0")}`;
 }
 
-register('command', () => {
+register("command", () => {
     if (!inOverview) return;
     ChatLib.chat("&cCanceled the run overview");
     unregisterHandlers();
-}).setName('cancelrunoverview', true);
+}).setName("cancelrunoverview", true);
 
-register('chat', (msg) => {
+register("chat", (msg) => {
     const playername = Player.getName();
     if (!Settings.runoverview) return;
     if ((msg.includes("forcestart") && msg.includes(`${playername}`)) || msg.includes("[NPC] Elle: Talk with me to begin!")) {
         if (!inOverview) {
             startRunOverview(() => {
-                const rawTime = rawEndTime - rawStartTime;
-                const runTime = endTime - startTime;
-
-                const rawTimeformattedTime = formatTime(rawTime);
-                const runTimeformattedTime = formatTime(runTime);
-
                 const [member_one, member_two, member_three, member_four] = party.map(member => (
                     new Message(
                         new TextComponent(`&8> &a${member.player} &4${member.deaths} ☠ &f- &6${member.supplies} Supply`)
@@ -137,6 +135,17 @@ register('chat', (msg) => {
                             .setClick("run_command", `/ct copy > ${member.player} - ${member.deaths} Death - ${member.supplies} Supply`)
                     )
                 ));
+
+                const rawTimeformattedTime = formatTime((rawEndTime - rawStartTime));
+                const runTimeformattedTime = formatTime((endTime - startTime));
+                const buildTime = formatTime((buildEnd - buildStart));
+                const stunTime = formatTime((stunEnd - buildEnd));
+                const phase1KillTime = formatTime((stunEnd - phase1End))
+
+                const runTime = new Message(
+                    new TextComponent(`&8* &aRun time: &f${runTimeformattedTime}`)
+                        .setHoverValue(`&a&lExtra info:\n\n&aBuild time: ${buildTime}\n&aStun time: ${stunTime}\n&aP1 kill time: ${phase1KillTime}`)
+                );
 
                 setTimeout(() => {
                     ChatLib.chat("&b&m--------------------");
@@ -149,11 +158,13 @@ register('chat', (msg) => {
                     ChatLib.chat(member_four || `&cNo player found`);
                     ChatLib.chat(`&r&r`);
                     ChatLib.chat(`&9Times & DPS:`);
-                    ChatLib.chat(`&8* &aRun time: &f${runTimeformattedTime || 0}`);
-                    ChatLib.chat(`&8* &aRaw time: &f${rawTimeformattedTime || 0}`);
+                    ChatLib.chat(runTime);
+                    ChatLib.chat(`&8* &aRaw time: &f${rawTimeformattedTime}`);
                     ChatLib.chat(`&8* &aDPS: &f${dps}`);
                     ChatLib.chat("&b&m--------------------");
 
+                    rawStartTime = rawEndTime = startTime = endTime = 0;
+                    buildStart = buildEnd = stunEnd = 0;
                     dps = 0;
                     party = [];
                 }, 500);
@@ -164,7 +175,7 @@ register('chat', (msg) => {
     }
 }).setCriteria("${msg}");
 
-register('command', () => {
+register("command", () => {
     ChatLib.chat("&b&m--------------------");
     ChatLib.chat("&9&lRUN OVERVIEW");
     ChatLib.chat(`&r`);
@@ -178,4 +189,4 @@ register('command', () => {
     ChatLib.chat(`&8* &aRun time: &f1:46.02`);
     ChatLib.chat(`&8* &aRaw time: &f1:52.13`);
     ChatLib.chat("&b&m--------------------");
-}).setName('runoverviewpreview', true);
+}).setName("runoverviewpreview", true);

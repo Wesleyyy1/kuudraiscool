@@ -1,25 +1,25 @@
-import request from '../../requestV2';
-import Settings from '../settings/config.js';
-import { fixNumber, capitalizeEachWord, formatTime, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from '../utils/generalUtils.js';
+import axios from "axios";
+import Settings from "../settings/config.js";
+import { fixNumber, capitalizeEachWord, formatTime, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from "../utils/generalUtils.js";
 
 const itemTypes = {
     armor: {
-        helmets: ['hollow_helmet', 'fervor_helmet', 'terror_helmet', 'crimson_helmet', 'aurora_helmet'],
-        chestplates: ['hollow_chestplate', 'fervor_chestplate', 'terror_chestplate', 'crimson_chestplate', 'aurora_chestplate'],
-        leggings: ['hollow_leggings', 'fervor_leggings', 'terror_leggings', 'crimson_leggings', 'aurora_leggings'],
-        boots: ['hollow_boots', 'fervor_boots', 'terror_boots', 'crimson_boots', 'aurora_boots']
+        helmets: ["hollow_helmet", "fervor_helmet", "terror_helmet", "crimson_helmet", "aurora_helmet"],
+        chestplates: ["hollow_chestplate", "fervor_chestplate", "terror_chestplate", "crimson_chestplate", "aurora_chestplate"],
+        leggings: ["hollow_leggings", "fervor_leggings", "terror_leggings", "crimson_leggings", "aurora_leggings"],
+        boots: ["hollow_boots", "fervor_boots", "terror_boots", "crimson_boots", "aurora_boots"]
     },
     equipment: {
-        necklaces: ['molten_necklace', 'lava_shell_necklace', 'delirium_necklace', 'magma_necklace', 'vanquished_magma_necklace'],
-        cloaks: ['molten_cloak', 'scourge_cloak', 'ghast_cloak', 'vanquished_ghast_cloak'],
-        belts: ['molten_belt', 'implosion_belt', 'scoville_belt', 'blaze_belt', 'vanquished_blaze_belt'],
-        bracelets: ['molten_bracelet', 'gauntlet_of_contagion', 'flaming_fist', 'glowstone_gauntlet', 'vanquished_glowstone_gauntlet']
+        necklaces: ["molten_necklace", "lava_shell_necklace", "delirium_necklace", "magma_necklace", "vanquished_magma_necklace"],
+        cloaks: ["molten_cloak", "scourge_cloak", "ghast_cloak", "vanquished_ghast_cloak"],
+        belts: ["molten_belt", "implosion_belt", "scoville_belt", "blaze_belt", "vanquished_blaze_belt"],
+        bracelets: ["molten_bracelet", "gauntlet_of_contagion", "flaming_fist", "glowstone_gauntlet", "vanquished_glowstone_gauntlet"]
     },
     fishing_armor: {
-        helmets: ['magma_lord_helmet', 'thunder_helmet', 'taurus_helmet'],
-        chestplates: ['magma_lord_chestplate', 'thunder_chestplate', 'taurus_chestplate'],
-        leggings: ['magma_lord_leggings', 'thunder_leggings', 'taurus_leggings'],
-        boots: ['magma_lord_boots', 'thunder_boots', 'taurus_boots']
+        helmets: ["magma_lord_helmet", "thunder_helmet", "taurus_helmet"],
+        chestplates: ["magma_lord_chestplate", "thunder_chestplate", "taurus_chestplate"],
+        leggings: ["magma_lord_leggings", "thunder_leggings", "taurus_leggings"],
+        boots: ["magma_lord_boots", "thunder_boots", "taurus_boots"]
     }
 };
 
@@ -77,7 +77,7 @@ let activeCategory = null;
 let cheapest = false;
 let currentIndex = {};
 
-register('command', (arg1, arg2, arg3, arg4) => {
+register("command", (arg1, arg2, arg3, arg4) => {
     if (!isKeyValid()) return showInvalidReasonMsg();
     if (!getRoles().includes("KUUDRA")) return showMissingRolesMsg();
 
@@ -107,7 +107,7 @@ register('command', (arg1, arg2, arg3, arg4) => {
     requestBody.attribute1 = attribute1;
     if (level1) {
         if (level1 < 1 || level1 > 10) {
-            ChatLib.chat('&cLevel1 must be between 1-10.');
+            ChatLib.chat("&cLevel1 must be between 1-10.");
             return;
         }
         requestBody.attributeLvl1 = level1;
@@ -117,60 +117,59 @@ register('command', (arg1, arg2, arg3, arg4) => {
     }
     if (level2) {
         if (level2 < 1 || level2 > 10) {
-            ChatLib.chat('&cLevel2 must be between 1-10.');
+            ChatLib.chat("&cLevel2 must be between 1-10.");
             return;
         }
         requestBody.attributeLvl2 = level2;
     }
 
-    request({
-        url: 'https://api.sm0kez.com/crimson/attribute/prices',
-        method: 'POST',
+    axios.post("https://api.sm0kez.com/crimson/attribute/prices", {
         headers: {
-            'User-Agent': 'Mozilla/5.0 (ChatTriggers)',
-            'API-Key': Settings.apikey
+            "User-Agent": "Mozilla/5.0 (ChatTriggers)",
+            "API-Key": Settings.apikey
         },
         body: requestBody,
-        json: true
+        parseBody: true
     })
-        .then(data => {
-            priceData = data;
-            activeCategory = 'armor';
+        .then(response => {
+            priceData = response.data;
+            activeCategory = "armor";
             cheapest = false;
             initializeCurrentIndex();
             showPrices();
         })
         .catch(error => {
-            errorHandler('Error while getting prices', error, 'attributePrices.js');
+            if (!error.isAxiosError || error.code == 500) {
+                errorHandler("Error while getting prices", error.message, "attributePrices.js");
+            }
         });
-
 }).setTabCompletions((args) => {
     if (args.length > 4) return [];
     let lastArg = args[args.length - 1].toLowerCase();
     return attributes.filter(attr => attr.toLowerCase().startsWith(lastArg));
-}).setName('attributeprice', true).setAliases('ap');
+}).setName("attributeprice", true).setAliases("ap");
 
-register('command', (arg1, arg2) => {
-    if ((['armor', 'equipment', 'fishing_armor'].includes(arg1)) && !isNaN(arg2) && activeCategory !== arg1) {
+register("command", (arg1, arg2) => {
+    if ((["armor", "equipment", "fishing_armor"].includes(arg1)) && !isNaN(arg2) && activeCategory !== arg1) {
         activeCategory = arg1;
         showPrices(parseInt(arg2));
     }
-}).setName('apchangecategory');
+}).setName("apchangecategory");
 
-register('command', (arg1) => {
+register("command", (arg1) => {
     cheapest = !cheapest;
     showPrices(parseInt(arg1));
-}).setName('aptogglecheapest');
+}).setName("aptogglecheapest");
 
-register('command', (direction, type, maxIndex, msgid) => {
-    if (!['prev', 'next'].includes(direction) || !type || !maxIndex || !msgid) return;
+register("command", (direction, type, maxIndex, msgid) => {
+    if (!["prev", "next"].includes(direction) || !type || !maxIndex || !msgid) return;
 
     let currentIndexValue = currentIndex[type];
     let newIndexValue = currentIndexValue;
 
-    if (direction === 'prev') {
+    if (direction === "prev") {
         newIndexValue = Math.max(0, currentIndexValue - 1);
-    } else if (direction === 'next') {
+    } else if (direction === "next") {
         newIndexValue = Math.min(maxIndex - 1, currentIndexValue + 1);
     }
 
@@ -178,11 +177,11 @@ register('command', (direction, type, maxIndex, msgid) => {
         currentIndex[type] = newIndexValue;
         showPrices(parseInt(msgid));
     }
-}).setName('apnavigate');
+}).setName("apnavigate");
 
-register('command', (arg1, arg2, arg3, arg4) => {
+register("command", (arg1, arg2, arg3, arg4) => {
     if (!arg1 || !arg2 || !arg3 || !arg4) {
-        ChatLib.chat('&cAll arguments are required.');
+        ChatLib.chat("&cAll arguments are required.");
         return;
     }
 
@@ -190,17 +189,17 @@ register('command', (arg1, arg2, arg3, arg4) => {
     const endlvl = parseInt(arg4);
 
     if (isNaN(startlvl) || isNaN(endlvl)) {
-        ChatLib.chat('&cLevels must be numbers.');
+        ChatLib.chat("&cLevels must be numbers.");
         return;
     }
 
     if (startlvl < 1 || startlvl > 10 || endlvl < 1 || endlvl > 10) {
-        ChatLib.chat('&cLevels must be between 1 and 10.');
+        ChatLib.chat("&cLevels must be between 1 and 10.");
         return;
     }
 
     if (startlvl >= endlvl) {
-        ChatLib.chat('&cEnd level must be greater than start level.');
+        ChatLib.chat("&cEnd level must be greater than start level.");
         return;
     }
 
@@ -214,7 +213,7 @@ register('command', (arg1, arg2, arg3, arg4) => {
         return itemTypesArray.filter(item => item.startsWith(lastArg));
     }
     return [];
-}).setName('attributeupgrade', true).setAliases('au');
+}).setName("attributeupgrade", true).setAliases("au");
 
 function initializeCurrentIndex() {
     currentIndex = {};
@@ -229,7 +228,7 @@ function showPrices(messageId) {
         const lineId = messageId || Math.floor(priceData.timestamp / 1000);
         const message = new Message().setChatLineId(lineId);
 
-        const categoryText = capitalizeEachWord(activeCategory.replaceAll('_', ' '));
+        const categoryText = capitalizeEachWord(activeCategory.replaceAll("_", " "));
         let attributeText = `&b${priceData.attribute1}`;
         if (priceData.attributeLvl1 != null) {
             attributeText += ` ${priceData.attributeLvl1}`;
@@ -246,11 +245,11 @@ function showPrices(messageId) {
         const timeAgo = formatTime(Math.abs(priceData.timestamp - Date.now()));
         message.addTextComponent(new TextComponent(`\n&6Click to open the auction. Last refresh was &e${timeAgo}&6.\n`));
 
-        const dataSource = activeCategory === 'equipment' ? priceData.equipment : priceData.armor;
+        const dataSource = activeCategory === "equipment" ? priceData.equipment : priceData.armor;
 
         Object.entries(itemTypes[activeCategory] || {}).forEach(([itemType, types]) => {
             message.addTextComponent(new TextComponent(`\n&6Cheapest &2${capitalizeEachWord(itemType)}\n`));
-            if (activeCategory === 'armor' && cheapest) {
+            if (activeCategory === "armor" && cheapest) {
                 const items = types.reduce((acc, type) => {
                     if (dataSource[itemType][type]) {
                         dataSource[itemType][type].forEach(item => {
@@ -262,8 +261,8 @@ function showPrices(messageId) {
                 }, []);
                 items.sort((a, b) => a.price - b.price);
                 items.slice(0, 5).forEach(item => {
-                    const itemText = new TextComponent(`&6- &9${capitalizeEachWord(item.type.replaceAll('_', ' '))} &6for &e${fixNumber(item.price)}\n`)
-                        .setClick('run_command', `/viewauction ${item.uuid}`);
+                    const itemText = new TextComponent(`&6- &9${capitalizeEachWord(item.type.replaceAll("_", " "))} &6for &e${fixNumber(item.price)}\n`)
+                        .setClick("run_command", `/viewauction ${item.uuid}`);
                     message.addTextComponent(itemText);
                 });
             } else {
@@ -272,12 +271,12 @@ function showPrices(messageId) {
                         const currentItemIndex = currentIndex[type];
                         const totalItems = dataSource[itemType][type].length;
                         const item = dataSource[itemType][type][currentItemIndex];
-                        const itemText = new TextComponent(`&6- &9${capitalizeEachWord(type.replaceAll('_', ' '))} &6for &e${fixNumber(item.price)} &7(${currentItemIndex + 1}/${totalItems})`)
-                            .setClick('run_command', `/viewauction ${item.uuid}`);
+                        const itemText = new TextComponent(`&6- &9${capitalizeEachWord(type.replaceAll("_", " "))} &6for &e${fixNumber(item.price)} &7(${currentItemIndex + 1}/${totalItems})`)
+                            .setClick("run_command", `/viewauction ${item.uuid}`);
                         message.addTextComponent(itemText);
 
-                        const prevButton = new TextComponent(` &a[<] `).setClick('run_command', `/apnavigate prev ${type} ${totalItems} ${lineId}`);
-                        const nextButton = new TextComponent(` &a[>]\n`).setClick('run_command', `/apnavigate next ${type} ${totalItems} ${lineId}`);
+                        const prevButton = new TextComponent(` &a[<] `).setClick("run_command", `/apnavigate prev ${type} ${totalItems} ${lineId}`);
+                        const nextButton = new TextComponent(` &a[>]\n`).setClick("run_command", `/apnavigate next ${type} ${totalItems} ${lineId}`);
                         message.addTextComponent(prevButton);
                         message.addTextComponent(nextButton);
                     }
@@ -285,20 +284,20 @@ function showPrices(messageId) {
             }
         });
 
-        message.addTextComponent(new TextComponent('\n'));
+        message.addTextComponent(new TextComponent("\n"));
 
-        const categories = ['armor', 'equipment', 'fishing_armor'];
+        const categories = ["armor", "equipment", "fishing_armor"];
         categories.forEach(cat => {
-            const color = activeCategory === cat ? '&a' : '&6';
-            const categoryText = new TextComponent(`${color} [${capitalizeEachWord(cat.replaceAll('_', ' '))}] `)
-                .setClick('run_command', `/apchangecategory ${cat} ${lineId}`);
+            const color = activeCategory === cat ? "&a" : "&6";
+            const categoryText = new TextComponent(`${color} [${capitalizeEachWord(cat.replaceAll("_", " "))}] `)
+                .setClick("run_command", `/apchangecategory ${cat} ${lineId}`);
             message.addTextComponent(categoryText);
         });
 
-        if (activeCategory === 'armor') {
-            const cheapstColor = cheapest ? '&a' : '&6';
+        if (activeCategory === "armor") {
+            const cheapstColor = cheapest ? "&a" : "&6";
             const cheapestText = new TextComponent(`${cheapstColor} [Cheapest] `)
-                .setClick('run_command', `/aptogglecheapest ${lineId}`);
+                .setClick("run_command", `/aptogglecheapest ${lineId}`);
             message.addTextComponent(cheapestText);
         }
 

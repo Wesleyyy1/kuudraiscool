@@ -1,28 +1,35 @@
-import { request } from '../requestV2';
-import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from './utils/generalUtils.js';
+import axios from "axios";
+import Settings from "./settings/config.js";
+import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from "./utils/generalUtils.js";
 
-function searchItem(playername, apiKey, search) {
+function searchItem(playername, search) {
     if (!isKeyValid()) return showInvalidReasonMsg();
     if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
 
-    request({
-        url: `https://api.sm0kez.com/hypixel/profile/${playername}/selected`,
+    axios.get(`https://api.sm0kez.com/hypixel/profile/${playername}/selected`, {
         headers: {
             "User-Agent": "Mozilla/5.0 (ChatTriggers)",
-            "API-Key": apiKey
-        },
-        json: true
-    }).then(response => {
-        if (response.success) {
-            const list = generateItemList(response.members[response.uuid]);
-            displaySearchResults(list, search, response.name);
-        } else {
-            ChatLib.chat(`&c${playername} is not a valid player!`);
+            "API-Key": Settings.apikey
         }
-    }).catch(error => {
-        ChatLib.chat(`&cSomething went wrong while gathering ${playername}'s data!\n&7(Probably invalid API key (/apikey <new key>))`);
-        errorHandler('Error while getting profile data', error, 'searchItem.js');
-    });
+    })
+        .then(response => {
+            const data = response.data;
+
+            if (data.success) {
+                const list = generateItemList(data.members[data.uuid]);
+                displaySearchResults(list, search, data.name);
+            } else {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cPlayer not found!`);
+            }
+        })
+        .catch(error => {
+            if (error.isAxiosError && error.code != 500) {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+            } else {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}"s data!\n&cPlease report this in the discord server`);
+                errorHandler("Error while getting profile data", error.message, "searchItem.js");
+            }
+        });
 }
 
 function generateItemList(memberData) {
@@ -95,7 +102,7 @@ function displaySearchResults(list, search, name) {
         const target = isLoreSearch ? `${item.lore}`.toLowerCase() : item.name.toLowerCase();
         if (target.includes(searchLower)) {
             count++;
-            ChatLib.chat(new Message(new TextComponent(`&7#${count} ${item.count}x ${item.name} (${item.source})`).setHoverValue(`${item.count}x ${item.name} (${item.source})\n${item.lore.join('\n')}`)));
+            ChatLib.chat(new Message(new TextComponent(`&7#${count} ${item.count}x ${item.name} (${item.source})`).setHoverValue(`${item.count}x ${item.name} (${item.source})\n${item.lore.join("\n")}`)));
         }
     });
 

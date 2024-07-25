@@ -1,27 +1,33 @@
-import { request } from '../requestV2';
-import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from './utils/generalUtils.js';
+import axios from "axios";
+import Settings from "./settings/config.js";
+import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from "./utils/generalUtils.js";
 
-function getCommand(ign, apiKey, type) {
+function getCommand(ign, type) {
     if (!isKeyValid()) return showInvalidReasonMsg();
     if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
-    
-    request({
-        url: `https://api.sm0kez.com/hypixel/profile/${ign}/selected`,
+
+    axios.get(`https://api.sm0kez.com/hypixel/profile/${ign}/selected`, {
         headers: {
             "User-Agent": "Mozilla/5.0 (ChatTriggers)",
-            "API-Key": apiKey
-        },
-        json: true
+            "API-Key": Settings.apikey
+        }
     })
         .then(response => {
-            if (response.success) {
-                processData(response.members?.[response.uuid], response.name);
+            const data = response.data;
+
+            if (data.success) {
+                processData(data.members?.[data.uuid], data.name);
             } else {
-                ChatLib.command(`pc ${response.error || "Player not found"}`);
+                ChatLib.command(`pc ${data.error || "Player not found!"}`);
             }
         })
         .catch(error => {
-            errorHandler('Error while getting profile data', error, 'chatCommands.js');
+            if (error.isAxiosError && error.code != 500) {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+            } else {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}"s data!\n&cPlease report this in the discord server`);
+                errorHandler("Error while getting profile data", error.message, "chatCommands.js");
+            }
         });
 
     const processData = (memberData, name) => {
