@@ -9,13 +9,13 @@ let dps = 0;
 let mainHandler = null;
 let checksHandler = null;
 let worldHandler = null;
-let buildStart, buildEnd, stunEnd, phase1End;
+let buildStart, buildEnd, stunEnd, kuudra1End;
 
 function startRunOverview(callback) {
     inOverview = true;
     ChatLib.chat("\n&aRun overview has started!\n");
     rawEndTime = startTime = endTime = 0;
-    buildStart = buildEnd = stunEnd = phase1End = 0;
+    buildStart = buildEnd = stunEnd = kuudra1End = 0;
     rawStartTime = Date.now();
     let supplies = 0;
     let worldCheck = false;
@@ -75,7 +75,7 @@ function startRunOverview(callback) {
             } else if (msg.startsWith("[NPC] Elle: That looks like it hurt! Quickly, while Kuudra is distracted, shoot him with the Ballista!")) {
                 stunEnd = Date.now();
             } else if (msg.startsWith("[NPC] Elle: POW! SURELY THAT'S IT! I don't think he has any more in him!")) {
-                phase1End = Date.now();
+                kuudra1End = Date.now();
             }
         }).setCriteria("${msg}");
 
@@ -122,6 +122,13 @@ register("command", () => {
     unregisterHandlers();
 }).setName("cancelrunoverview", true);
 
+function calculateTime(start, end) {
+    if (start === 0 || end === 0) {
+        return 0;
+    }
+    return formatTime(end - start);
+}
+
 register("chat", (msg) => {
     const playername = Player.getName();
     if (!Settings.runoverview) return;
@@ -136,15 +143,16 @@ register("chat", (msg) => {
                     )
                 ));
 
-                const rawTimeformattedTime = formatTime((rawEndTime - rawStartTime));
-                const runTimeformattedTime = formatTime((endTime - startTime));
-                const buildTime = formatTime((buildEnd - buildStart));
-                const stunTime = formatTime((stunEnd - buildEnd));
-                const phase1KillTime = formatTime((stunEnd - phase1End))
+                const rawTimeformattedTime = calculateTime(rawStartTime, rawEndTime);
+                const runTimeformattedTime = calculateTime(startTime, endTime);
+                const buildTime = calculateTime(buildStart, buildEnd);
+                const stunTime = calculateTime(buildEnd, stunEnd);
+                const kuudra1KillTime = calculateTime(stunEnd, kuudra1End);
+                const kuudra2KillTime = calculateTime(kuudra1End, endTime);
 
                 const runTime = new Message(
-                    new TextComponent(`&8* &aRun time: &f${runTimeformattedTime}`)
-                        .setHoverValue(`&a&lExtra info:\n\n&aBuild time: ${buildTime}\n&aStun time: ${stunTime}\n&aP1 kill time: ${phase1KillTime}`)
+                    new TextComponent(`&9Times & DPS:\n&8* &aRun time: &f${runTimeformattedTime}\n&8* &aRaw time: &f${rawTimeformattedTime}`)
+                        .setHoverValue(`&a&lExtra info:\n\n&aBuild time: ${buildTime}\n&aStun time: ${stunTime}\n&aDPS time: ${kuudra1KillTime}\n&aLast phase time: ${kuudra2KillTime}`)
                 );
 
                 setTimeout(() => {
@@ -157,9 +165,7 @@ register("chat", (msg) => {
                     ChatLib.chat(member_three || `&cNo player found`);
                     ChatLib.chat(member_four || `&cNo player found`);
                     ChatLib.chat(`&r&r`);
-                    ChatLib.chat(`&9Times & DPS:`);
                     ChatLib.chat(runTime);
-                    ChatLib.chat(`&8* &aRaw time: &f${rawTimeformattedTime}`);
                     ChatLib.chat(`&8* &aDPS: &f${dps}`);
                     ChatLib.chat("&b&m--------------------");
 

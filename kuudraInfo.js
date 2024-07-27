@@ -1,6 +1,6 @@
 import Settings from "./settings/config.js";
 import axios from "axios";
-import { decompress, fixNumber, getColorData, isKeyValid, getRoles, errorHandler, showInvalidReasonMsg, showMissingRolesMsg } from "./utils/generalUtils.js";
+import { decompress, fixNumber, getColorData, isKeyValid, getRoles, errorHandler, showInvalidReasonMsg, showMissingRolesMsg, capitalizeEachWord, getGregLevel } from "./utils/generalUtils.js";
 
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
@@ -66,7 +66,7 @@ function showKuudraInfo(playername, manually) {
             if (error.isAxiosError && error.code != 500) {
                 ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
             } else {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}"s data!\n&cPlease report this in the discord server`);
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
                 errorHandler("Error while getting profile data", error.message, "kuudraInfo.js");
             }
         });
@@ -469,14 +469,13 @@ function processGoldenDragon(pets) {
         if (pet.type === "GOLDEN_DRAGON") {
             let petDetails = {
                 exp: pet.exp,
-                petitem: pet.heldItem ? `&8* &aPet item: &f${pet.heldItem}\n` : `&aPet item: &fNONE\n`
+                petitem: pet.heldItem ? `&8* &aPet item: &f${capitalizeEachWord(pet.heldItem.replaceAll("_", " "))}\n` : `&aPet item: &fNONE\n`
             };
 
             if (pet.exp > 210255385) {
                 petDetails.name = `&7[Lvl 200] &6Golden Dragon`;
             } else {
-                let gdragLvl = (((pet.exp - 25353230) / 1886700) + 1).toFixed(0);
-                petDetails.name = `&7[Lvl ${gdragLvl}] &6Golden Dragon`;
+                petDetails.name = `&7[Lvl ${getGregLevel(pet.exp)}] &6Golden Dragon`;
             }
 
             gdrags.push(petDetails);

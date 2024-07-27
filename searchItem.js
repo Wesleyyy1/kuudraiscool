@@ -26,7 +26,7 @@ function searchItem(playername, search) {
             if (error.isAxiosError && error.code != 500) {
                 ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
             } else {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}"s data!\n&cPlease report this in the discord server`);
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
                 errorHandler("Error while getting profile data", error.message, "searchItem.js");
             }
         });
@@ -68,7 +68,7 @@ function generateItemList(memberData) {
         { data: memberData.inventory?.inv_armor?.data, source: "Armor" },
         { data: memberData.inventory?.inv_contents?.data, source: "Inventory" },
         { data: memberData.inventory?.ender_chest_contents?.data, source: "Enderchest" },
-        { data: memberData.inventory?.personal_vault_contents?.data, source: "Personal Vault" }
+        { data: memberData.inventory?.personal_vault_contents?.data, source: "Personal Vault" },
     ];
 
     inventorySources.forEach(({ data, source }) => {

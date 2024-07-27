@@ -8,6 +8,13 @@ import { errorHandler, checkApiKey } from "./utils/generalUtils.js";
 import "./runOverview.js";
 import "./kuudra-prices/attributePrices.js";
 
+// Checks on launch
+setTimeout(() => {
+    checkUpdate();
+    checkApiKey();
+    console.log("Kuudraiscool load!");
+}, 1000);
+
 // Register chat event for party finder
 register("chat", (player) => {
     if (!Settings.partyfinder || player == Player.getName()) return;
@@ -28,8 +35,13 @@ register("chat", (msg) => {
             } else if (message.includes(": .rtca")) {
                 const ign = message.split(".rtca")[1]?.trim() || Player.getName();
                 getCommand(ign, "rtca");
+            } else if (message.includes(": .discord")) {
+                ChatLib.command('pc [KIC] > https://discord.gg/gsz58gazAK');
+            } else if (message.includes(": .howtoplaytoxic")) {
+                ChatLib.command('pc [KIC] > https://youtu.be/JGrNIlBCdjo?si=IZGIup17lboxmLHH');
+            } else if (message.includes(": .howtoplay")) {
+                ChatLib.command('pc [KIC] > https://youtu.be/kK0FZguNw_8');
             }
-
         }
     } catch (error) {
         errorHandler("Error while performing chat command", error, "index.js");
@@ -101,7 +113,7 @@ function toggleRunOverview() {
 }
 
 // Register commands to join specific instances
-register("command", () => ChatLib.command("joininstance KUUDRA_NORMAL")).setName("t2", true);
+register("command", () => ChatLib.command("joininstance KUUDRA_NORMAL")).setName("t1", true);
 register("command", () => ChatLib.command("joininstance KUUDRA_HOT")).setName("t2", true);
 register("command", () => ChatLib.command("joininstance KUUDRA_BURNING")).setName("t3", true);
 register("command", () => ChatLib.command("joininstance KUUDRA_FIERY")).setName("t4", true);
@@ -167,13 +179,6 @@ register("command", (...args) => {
             break;
     }
 }).setName("kuudraiscool", true).setAliases("kic", "ki");
-
-const checkTrigger = register("worldLoad", () => {
-    checkTrigger.unregister();
-
-    checkUpdate();
-    checkApiKey();
-});
 
 /*
 // Register chat event for party data

@@ -139,7 +139,10 @@ register("command", (arg1, arg2, arg3, arg4) => {
             showPrices();
         })
         .catch(error => {
-            if (!error.isAxiosError || error.code == 500) {
+            if (error.isAxiosError && error.code != 500) {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+            } else {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
                 errorHandler("Error while getting prices", error.message, "attributePrices.js");
             }
         });
@@ -179,7 +182,8 @@ register("command", (direction, type, maxIndex, msgid) => {
     }
 }).setName("apnavigate");
 
-register("command", (arg1, arg2, arg3, arg4) => {
+// UNFINISHED
+/* register("command", (arg1, arg2, arg3, arg4) => {
     if (!arg1 || !arg2 || !arg3 || !arg4) {
         ChatLib.chat("&cAll arguments are required.");
         return;
@@ -204,6 +208,35 @@ register("command", (arg1, arg2, arg3, arg4) => {
     }
 
     // Your command logic here
+    let requestBody = {};
+    requestBody.attribute = arg1;
+    requestBody.item = arg2;
+    requestBody.start_level = startlvl;
+    requestBody.end_level = endlvl;
+
+    axios.post("https://api.sm0kez.com/crimson/attribute/upgrade", {
+        headers: {
+            "User-Agent": "Mozilla/5.0 (ChatTriggers)",
+            "API-Key": Settings.apikey
+        },
+        body: requestBody,
+        parseBody: true
+    })
+        .then(response => {
+            showUpgradeMsg(response.data, startlvl, endlvl);
+        })
+        .catch(error => {
+            if (error.isAxiosError && error.code != 500) {
+                if (error.code == 429) {
+                    ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+                } else {
+                    ChatLib.chat(`&7[&a&lKIC&r&7]&r &cYou've reached the usage limit for this feature. It can only be used once every 10 minutes. Please try again later.`);
+                }
+            } else {
+                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
+                errorHandler("Error while getting prices", error.message, "attributePrices.js");
+            }
+        });
 }).setTabCompletions((args) => {
     if (args.length === 1) {
         let lastArg = args[0].toLowerCase();
@@ -213,7 +246,7 @@ register("command", (arg1, arg2, arg3, arg4) => {
         return itemTypesArray.filter(item => item.startsWith(lastArg));
     }
     return [];
-}).setName("attributeupgrade", true).setAliases("au");
+}).setName("attributeupgrade", true).setAliases("au"); */
 
 function initializeCurrentIndex() {
     currentIndex = {};
@@ -240,7 +273,7 @@ function showPrices(messageId) {
             attributeText += ` ${priceData.attributeLvl2}`;
         }
 
-        message.addTextComponent(new TextComponent(`\n&6Cheapest auctions for ${attributeText}&6 on &2${categoryText}`));
+        message.addTextComponent(new TextComponent(`\n&7[&a&lKIC&r&7]&r &6Cheapest auctions for ${attributeText}&6 on &2${categoryText}`));
 
         const timeAgo = formatTime(Math.abs(priceData.timestamp - Date.now()));
         message.addTextComponent(new TextComponent(`\n&6Click to open the auction. Last refresh was &e${timeAgo}&6.\n`));
@@ -303,4 +336,25 @@ function showPrices(messageId) {
 
         ChatLib.chat(message);
     }
+}
+
+function showUpgradeMsg(data, start, end) {
+    const message = new Message();
+    message.addTextComponent(new TextComponent(`\n&7[&a&lKIC&r&7]&r &6Cheapest way to upgrade &b${capitalizeEachWord(data.attribute.replaceAll("_", " "))}&6 on your &2${capitalizeEachWord(data.item.replaceAll("_", " "))}&6 from &e${start} &6to &e${end}&6.`));
+
+    const timeAgo = formatTime(Math.abs(data.timestamp - Date.now()));
+    message.addTextComponent(new TextComponent(`\n&6Total price: &e${fixNumber(data.totalCost)}&6. Last refresh was &e${timeAgo}&6.\n`));
+
+    Object.entries(data.levels).forEach(([lvl, items]) => {
+        const totalCost = items.reduce((sum, item) => sum + item.price, 0);
+        message.addTextComponent(new TextComponent(`\n&bUpgrade to §3${lvl} &b| §3${fixNumber(totalCost)}\n`));
+        items.forEach(item => {
+            message.addTextComponent(
+                new TextComponent(`&6- &9${capitalizeEachWord(item.itemId.replaceAll("_", " "))} &6for &e${fixNumber(item.price)}\n`)
+                    .setClick("run_command", `/viewauction ${item.uuid}`)
+            );
+        });
+    });
+
+    ChatLib.chat(message);
 }
