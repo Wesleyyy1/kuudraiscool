@@ -27,6 +27,7 @@ function startRunOverview(callback) {
                 startTime = Date.now();
             } else if (msg.trim().startsWith("KUUDRA DOWN!")) {
                 endTime = Date.now();
+                dps = fixNumber(300000000 / ((endTime / 1000) - timerStart));
                 unregisterHandlers();
                 callback();
             } else if (msg.includes("is now ready!")) {
@@ -65,9 +66,6 @@ function startRunOverview(callback) {
                 callback();
             } else if (msg.startsWith("[NPC] Elle: I knew you could do it!")) {
                 yCheck = true;
-            } else if (msg.includes("Percentage Complete: ")) {
-                let timerStop = Date.now() / 1000;
-                dps = fixNumber(300000000 / (timerStop - timerStart));
             } else if (msg.startsWith("[NPC] Elle: It's time to build the Ballista again! Cover me!")) {
                 buildStart = Date.now();
             } else if (msg.startsWith("[NPC] Elle: Phew! The Ballista is finally ready! It should be strong enough to tank Kuudra's blows now!")) {
@@ -81,9 +79,10 @@ function startRunOverview(callback) {
 
         checksHandler = register("tick", () => {
             if (yCheck) {
-                if (Math.round(Player.getY()) < 69) {
+                if (Player.getY() < 69) {
                     timerStart = Date.now() / 1000;
                     yCheck = false;
+                    checksHandler?.unregister();
                 }
             }
         });

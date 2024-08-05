@@ -53,7 +53,7 @@ function processStats(memberData) {
         memberData.inventory?.equipment_contents?.data
     ];
 
-    inventoryData.forEach((data, index) => {
+    inventoryData.forEach((data) => {
         const items = decompress(data);
 
         if (!items) {

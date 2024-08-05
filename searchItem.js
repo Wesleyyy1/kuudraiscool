@@ -1,6 +1,7 @@
 import axios from "axios";
 import Settings from "./settings/config.js";
-import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from "./utils/generalUtils.js";
+import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg, getColorData, capitalizeEachWord } from "./utils/generalUtils.js";
+import { getLevel } from "./utils/petLevelUtils.js";
 
 function searchItem(playername, search) {
     if (!isKeyValid()) return showInvalidReasonMsg();
@@ -85,6 +86,43 @@ function generateItemList(memberData) {
         }
     }
 
+    const pets = memberData.pets_data?.pets;
+
+    if (pets) {
+        pets.forEach((pet) => {
+            const { type, heldItem, skin, tier, candyUsed, exp } = pet;
+
+            const lvl = type === "GOLDEN_DRAGON" ? getLevel(exp, tier, true) : getLevel(exp, tier, false);
+
+            const petColorCode = getColorData("rarity", tier);
+            const name = `&7[Lvl ${lvl}] ${petColorCode}${capitalizeEachWord(type.replaceAll("_", " "))}`;
+            const lore = [];
+
+            lore.push(heldItem ?
+                `&6Pet item: &3${capitalizeEachWord(heldItem.replaceAll("PET_ITEM_", "").replaceAll("_", " "))}` :
+                "&6Pet item: &cnone"
+            );
+
+            lore.push(skin ?
+                `&6Skin: &3${capitalizeEachWord(skin.replaceAll("_", " "))}` :
+                "&6Skin: &cnone"
+            );
+
+            if (candyUsed && candyUsed > 0) {
+                lore.push(`&6Candy used: &3${candyUsed}/10`);
+            }
+
+            lore.push(`\n${petColorCode}&l${tier} PET`);
+
+            itemList.push({
+                count: 1,
+                name,
+                source: "Pets",
+                lore
+            });
+        });
+    }
+
     return itemList;
 }
 
@@ -93,16 +131,22 @@ function displaySearchResults(list, search, name) {
     const isLoreSearch = search.includes("lore:");
     if (isLoreSearch) search = search.split("lore:")[1].trim();
 
-    ChatLib.chat(`&2&m-----&f[- &2${name} &f-]&2&m-----`);
+    ChatLib.chat(
+        new Message(
+            new TextComponent(`&2&m-----&f[- &2${name} &f-]&2&m-----`)
+                .setClick("run_command", `/pv ${name}`)
+        )
+    );
+
     ChatLib.chat(`&aResults for: &7&o${search} ${isLoreSearch ? "(lore)" : ""}`);
     ChatLib.chat(`&r`);
 
-    list.forEach((item, index) => {
+    list.forEach((item) => {
         const searchLower = search.toLowerCase();
         const target = isLoreSearch ? `${item.lore}`.toLowerCase() : item.name.toLowerCase();
         if (target.includes(searchLower)) {
             count++;
-            ChatLib.chat(new Message(new TextComponent(`&7#${count} ${item.count}x ${item.name} (${item.source})`).setHoverValue(`${item.count}x ${item.name} (${item.source})\n${item.lore.join("\n")}`)));
+            ChatLib.chat(new Message(new TextComponent(`&7#${count} ${item.count}x ${item.name} &7(${item.source})`).setHoverValue(`&7${item.count}x ${item.name} &7(${item.source})\n${item.lore.join("\n")}`)));
         }
     });
 

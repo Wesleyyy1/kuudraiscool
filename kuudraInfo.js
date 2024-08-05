@@ -1,6 +1,7 @@
 import Settings from "./settings/config.js";
 import axios from "axios";
-import { decompress, fixNumber, getColorData, isKeyValid, getRoles, errorHandler, showInvalidReasonMsg, showMissingRolesMsg, capitalizeEachWord, getGregLevel } from "./utils/generalUtils.js";
+import { decompress, fixNumber, getColorData, isKeyValid, getRoles, errorHandler, showInvalidReasonMsg, showMissingRolesMsg, capitalizeEachWord } from "./utils/generalUtils.js";
+import { getLevel } from "./utils/petLevelUtils.js";
 
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
@@ -243,7 +244,7 @@ function processEnderchest(data) {
 function processBackpacks(contents) {
     if (!contents) return;
 
-    Object.keys(contents).forEach((data, index) => {
+    Object.keys(contents).forEach((data) => {
         const items = decompress(contents[data]?.data);
 
         if (!items) {
@@ -475,7 +476,7 @@ function processGoldenDragon(pets) {
             if (pet.exp > 210255385) {
                 petDetails.name = `&7[Lvl 200] &6Golden Dragon`;
             } else {
-                petDetails.name = `&7[Lvl ${getGregLevel(pet.exp)}] &6Golden Dragon`;
+                petDetails.name = `&7[Lvl ${getLevel(pet.exp, null, true)}] &6Golden Dragon`;
             }
 
             gdrags.push(petDetails);

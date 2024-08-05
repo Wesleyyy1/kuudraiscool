@@ -273,7 +273,7 @@ function showPrices(messageId) {
             attributeText += ` ${priceData.attributeLvl2}`;
         }
 
-        message.addTextComponent(new TextComponent(`\n&7[&a&lKIC&r&7]&r &6Cheapest auctions for ${attributeText}&6 on &2${categoryText}`));
+        message.addTextComponent(new TextComponent(`\n&7[&a&lKIC&r&7]&r &6Cheapest auctions for ${attributeText.replaceAll("Mending", "Vitality")}&6 on &2${categoryText}`));
 
         const timeAgo = formatTime(Math.abs(priceData.timestamp - Date.now()));
         message.addTextComponent(new TextComponent(`\n&6Click to open the auction. Last refresh was &e${timeAgo}&6.\n`));
@@ -338,7 +338,8 @@ function showPrices(messageId) {
     }
 }
 
-function showUpgradeMsg(data, start, end) {
+// UNFINISHED
+/* function showUpgradeMsg(data, start, end) {
     const message = new Message();
     message.addTextComponent(new TextComponent(`\n&7[&a&lKIC&r&7]&r &6Cheapest way to upgrade &b${capitalizeEachWord(data.attribute.replaceAll("_", " "))}&6 on your &2${capitalizeEachWord(data.item.replaceAll("_", " "))}&6 from &e${start} &6to &e${end}&6.`));
 
@@ -357,4 +358,4 @@ function showUpgradeMsg(data, start, end) {
     });
 
     ChatLib.chat(message);
-}
+} */
