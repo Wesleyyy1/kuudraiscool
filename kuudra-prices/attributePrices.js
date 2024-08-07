@@ -72,10 +72,26 @@ const attributes = [
     "trophy_hunter"
 ];
 
+const apPartyTypes = {
+    armor: {
+        helmets: ["hollow_helmet", "fervor_helmet", "terror_helmet", "crimson_helmet", "aurora_helmet"],
+        chestplates: ["hollow_chestplate", "fervor_chestplate", "terror_chestplate", "crimson_chestplate", "aurora_chestplate"],
+        leggings: ["hollow_leggings", "fervor_leggings", "terror_leggings", "crimson_leggings", "aurora_leggings"],
+        boots: ["hollow_boots", "fervor_boots", "terror_boots", "crimson_boots", "aurora_boots"],
+    },
+    equipment: {
+        necklaces: ["molten_necklace"],
+        cloaks: ["molten_cloak"],
+        belts: ["molten_belt"],
+        bracelets: ["molten_bracelet"]
+    }
+}
+
 let priceData = null;
 let activeCategory = null;
 let cheapest = false;
 let currentIndex = {};
+let apPartyLastRan = Date.now() - 2000;
 
 register("command", (arg1, arg2, arg3, arg4) => {
     if (!isKeyValid()) return showInvalidReasonMsg();
@@ -359,3 +375,79 @@ function showPrices(messageId) {
 
     ChatLib.chat(message);
 } */
+
+export function apPartyCommand(attribute, lvl) {
+    if (!isKeyValid() || !getRoles().includes("KUUDRA") || !isNaN(attribute)) return;
+
+    if ((Date.now() - apPartyLastRan) < 2000 ) {
+        ChatLib.command("pc Command on cooldown!");
+        return;
+    }
+
+    apPartyLastRan = Date.now();
+
+    let requestBody = {};
+    requestBody.attribute1 = attribute
+    if (lvl && !isNaN(lvl) && lvl >= 1 && lvl <= 10) {
+        requestBody.attributeLvl1 = lvl;
+    }
+
+    axios.post("https://api.sm0kez.com/crimson/attribute/prices", {
+        headers: {
+            "User-Agent": "Mozilla/5.0 (ChatTriggers)",
+            "API-Key": Settings.apikey
+        },
+        body: requestBody,
+        parseBody: true
+    })
+    .then(response => {
+        let prices = {
+            helmets: 0,
+            chestplates: 0,
+            leggings: 0,
+            boots: 0,
+            necklaces: 0,
+            cloaks: 0,
+            belts: 0,
+            bracelets: 0,
+        };
+
+        let data = response.data;
+        let armorData = data.armor;
+        let equipmentData = data.equipment;
+
+        Object.entries(apPartyTypes.armor).forEach(([itemType, types]) => {
+            let items = [];
+            types.forEach(type => {
+                if (armorData[itemType] && armorData[itemType][type]) {
+                    items = items.concat(armorData[itemType][type]);
+                }
+            });
+            if (items.length > 0) {
+                items.sort((a, b) => a.price - b.price);
+                prices[itemType] = items[0].price || 0;
+            }
+        });
+
+        Object.entries(apPartyTypes.equipment).forEach(([itemType, types]) => {
+            let items = [];
+            types.forEach(type => {
+                if (equipmentData[itemType] && equipmentData[itemType][type]) {
+                    items = items.concat(equipmentData[itemType][type]);
+                }
+            });
+            if (items.length > 0) {
+                items.sort((a, b) => a.price - b.price);
+                prices[itemType] = items[0].price || 0;
+            }
+        });
+
+        let attributeText = `${data.attribute1} ${data.attributeLvl1 != null ? data.attributeLvl1 : ""}`;
+        ChatLib.command(`pc ${attributeText.replace("Mending", "Vitality")} > Helmet: ${fixNumber(prices.helmets)} - Cp: ${fixNumber(prices.chestplates)} - Legs: ${fixNumber(prices.leggings)} - Boots: ${fixNumber(prices.boots)} - Neck: ${fixNumber(prices.necklaces)} - Cloak: ${fixNumber(prices.cloaks)} - Belt: ${fixNumber(prices.belts)} - Brace: ${fixNumber(prices.bracelets)}`);
+    })
+    .catch(error => {
+        if (!error.isAxiosError || error.code == 500) {
+            errorHandler("Error while getting prices for party command", error.message, "attributePrices.js");
+        }
+    });
+}

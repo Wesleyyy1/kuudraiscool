@@ -7,6 +7,7 @@ import { checkUpdate } from "./utils/updateChecker.js";
 import { errorHandler, checkApiKey } from "./utils/generalUtils.js";
 import "./runOverview.js";
 import "./kuudra-prices/attributePrices.js";
+import { apPartyCommand } from "./kuudra-prices/attributePrices.js";
 
 // Checks on launch
 setTimeout(() => {
@@ -26,21 +27,31 @@ register("chat", (msg) => {
     const message = msg.toString();
     try {
         if (Settings.partycommands && message.startsWith("Party >")) {
-            if (message.includes(": .runs")) {
-                const ign = message.split(".runs")[1]?.trim() || Player.getName();
+            const parseCommand = (command) => {
+                const parts = message.split(command);
+                if (parts.length > 1) {
+                    const args = parts[1].trim().split(" ");
+                    return args.filter(arg => arg);
+                }
+                return [];
+            };
+
+            if (message.includes(": .runs ")) {
+                let ign = parseCommand(".runs")[0] || Player.getName();
                 getCommand(ign, "runs");
-            } else if (message.includes(": .stats")) {
-                const ign = message.split(".stats")[1]?.trim() || Player.getName();
+            } else if (message.includes(": .stats ")) {
+                let ign = parseCommand(".stats")[0] || Player.getName();
                 getCommand(ign, "stats");
-            } else if (message.includes(": .rtca")) {
-                const ign = message.split(".rtca")[1]?.trim() || Player.getName();
+            } else if (message.includes(": .rtca ")) {
+                let ign = parseCommand(".rtca")[0] || Player.getName();
                 getCommand(ign, "rtca");
-            } else if (message.includes(": .discord")) {
+            } else if (message.includes(": .kic ")) {
                 ChatLib.command('pc [KIC] > https://discord.gg/gsz58gazAK');
-            } else if (message.includes(": .howtoplaytoxic")) {
-                ChatLib.command('pc [KIC] > https://youtu.be/JGrNIlBCdjo?si=IZGIup17lboxmLHH');
-            } else if (message.includes(": .howtoplay")) {
-                ChatLib.command('pc [KIC] > https://youtu.be/kK0FZguNw_8');
+            } else if ((message.includes(": .ap ") || message.includes(": .attributeprice ")) && !message.includes(Player.getName())) {
+                let args = parseCommand(".ap");
+                let attribute = args[0] || null;
+                let lvl = args[1] || null;
+                apPartyCommand(attribute, lvl);
             }
         }
     } catch (error) {
