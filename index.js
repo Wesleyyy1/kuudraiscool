@@ -47,7 +47,7 @@ register("chat", (msg) => {
                 getCommand(ign, "rtca");
             } else if (message.includes(": .kic ")) {
                 ChatLib.command('pc [KIC] > https://discord.gg/gsz58gazAK');
-            } else if ((message.includes(": .ap ") || message.includes(": .attributeprice ")) && !message.includes(Player.getName())) {
+            } else if (message.includes(": .ap ") || message.includes(": .attributeprice ")) {
                 let args = parseCommand(".ap");
                 let attribute = args[0] || null;
                 let lvl = args[1] || null;
