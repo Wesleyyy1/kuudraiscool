@@ -1,5 +1,6 @@
 import { fixNumber, errorHandler } from "./utils/generalUtils.js";
 import Settings from "./settings/config.js";
+import Party from "./utils/Party.js";
 
 let inOverview = false;
 let rawStartTime, rawEndTime, startTime, endTime;
@@ -25,6 +26,10 @@ function startRunOverview(callback) {
         mainHandler = register("chat", (msg) => {
             if (msg.startsWith("[NPC] Elle: Okay adventurers, I will go and fish up Kuudra!")) {
                 startTime = Date.now();
+                const partyMembers = Object.keys(Party.members);
+                if (party.length != partyMembers.length) {
+                    party = partyMembers;
+                }
             } else if (msg.trim().startsWith("KUUDRA DOWN!")) {
                 endTime = Date.now();
                 dps = fixNumber(300000000 / ((endTime / 1000) - timerStart));
@@ -43,24 +48,38 @@ function startRunOverview(callback) {
                 if (playername === "You") {
                     playername = Player.getName();
                 }
-                const player = party.find(entry => entry.player === playername);
-                if (player) player.deaths++;
+
+                let player = party.find(entry => entry.player === playername);
+
+                if (!player) {
+                    player = { player: playername, deaths: 0, supplies: 0, supplytimes: `&r` };
+                    party.push(player);
+                }
+
+                player.deaths++;
             } else if (msg.includes("recovered one of Elle's supplies!")) {
                 let playername = msg.split(" ")[0];
                 if (playername.includes("[")) {
                     playername = msg.split(" ")[1];
                 }
+
                 supplies++;
-                const Time = Date.now() - startTime;
-                const Timeminutes = Math.floor(Time / 60000);
-                const Timeseconds = Math.floor((Time % 60000) / 1000);
-                const Timemilliseconds = Math.floor((Time % 1000) / 10);
-                const TimeformattedTime = `${Timeminutes}:${Timeseconds}.${Timemilliseconds.toString().padStart(2, "0")}`;
-                const player = party.find(entry => entry.player === playername);
-                if (player) {
-                    player.supplies++;
-                    player.supplytimes += `&8#${supplies} &a${TimeformattedTime}\n`;
+
+                const timeElapsed = Date.now() - startTime;
+                const minutes = Math.floor(timeElapsed / 60000);
+                const seconds = Math.floor((timeElapsed % 60000) / 1000);
+                const milliseconds = Math.floor((timeElapsed % 1000) / 10);
+                const formattedTime = `${minutes}:${seconds}.${milliseconds.toString().padStart(2, "0")}`;
+
+                let player = party.find(entry => entry.player === playername);
+
+                if (!player) {
+                    player = { player: playername, deaths: 0, supplies: 0, supplytimes: `&r` };
+                    party.push(player);
                 }
+
+                player.supplies++;
+                player.supplytimes += `&8#${supplies} &a${formattedTime}\n`;
             } else if (msg.includes("forcestop") && msg.includes(`${Player.getName()}:`)) {
                 unregisterHandlers();
                 callback();
@@ -95,7 +114,7 @@ function startRunOverview(callback) {
         });
     } catch (error) {
         unregisterHandlers();
-        errorHandler("Error while getting run info", error, "runOverview.js");
+        errorHandler("Error while getting run info", error, "runOverview.js", null);
     }
 }
 

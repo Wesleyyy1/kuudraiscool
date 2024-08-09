@@ -97,7 +97,10 @@ register("command", (arg1, arg2, arg3, arg4) => {
     if (!isKeyValid()) return showInvalidReasonMsg();
     if (!getRoles().includes("KUUDRA")) return showMissingRolesMsg();
 
-    if (!arg1) return;
+    if (!arg1) {
+        ChatLib.chat("&7[&a&lKIC&r&7]&r &cUse /ap <attribute> [level] <attribute> [level]");
+        return;
+    }
 
     const attribute1 = arg1;
     let level1 = 0;
@@ -159,7 +162,7 @@ register("command", (arg1, arg2, arg3, arg4) => {
                 ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
             } else {
                 ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
-                errorHandler("Error while getting prices", error.message, "attributePrices.js");
+                errorHandler("Error while getting prices", error.message, "attributePrices.js", `Arg1: ${arg1} | Arg2: ${arg2} | Arg3: ${arg3} | Arg4: ${arg4}`);
             }
         });
 }).setTabCompletions((args) => {
@@ -447,7 +450,7 @@ export function apPartyCommand(attribute, lvl) {
     })
     .catch(error => {
         if (!error.isAxiosError || error.code == 500) {
-            errorHandler("Error while getting prices for party command", error.message, "attributePrices.js");
+            errorHandler("Error while getting prices for party command", error.message, "attributePrices.js", `Attribute: ${attribute} | Lvl: ${lvl}`);
         }
     });
 }

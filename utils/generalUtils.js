@@ -25,7 +25,7 @@ const decompress = (compressed) => {
     try {
         return new CompressedStreamTools.func_74796_a(new ByteArrayInputStream(Base64.getDecoder().decode(compressed))).func_150295_c("i", 10);
     } catch (error) {
-        errorHandler("Error while decompressing", error, "generalUtils.js");
+        errorHandler("Error while decompressing", error, "generalUtils.js", null);
         return;
     }
 }
@@ -103,14 +103,20 @@ function formatTime(milliseconds) {
     }
 }
 
-function errorHandler(msg, error, origin) {
+function errorHandler(msg, error, origin, extra) {
     if (!error) return;
     console.error(error);
+
+    // DELETE IN RELEASE
+    return;
 
     let requestBody = {};
     requestBody.username = Player.getName();
 
     requestBody.content = `${msg}\n- Origin: ${origin}\n- Error: ${error || ""}\n- Version: ${currentVersion}`;
+    if (extra) {
+        requestBody.content += `\n- Extra: ${ex}`;
+    }
 
     axios.post("https://api.sm0kez.com/error/module", {
         headers: {
@@ -130,62 +136,83 @@ function setVersion(version) {
 }
 
 function checkApiKey(apiKey) {
-    if ((!Settings.apikey || Settings.apikey == "") && !apiKey) {
-        invalidReason = "&7[&a&lKIC&r&7]&r&e There is no API key set. If you have an API key, set it using /kic apikey <key>.\n&eIf you do not have an API key, join the Discord: https://discord.gg/gsz58gazAK";
-        ChatLib.chat(invalidReason);
+    const noApiKeyMessage = "&7[&a&lKIC&r&7]&r&e There is no API key set. If you have an API key, set it using /kic apikey <key>.\n&eIf you do not have an API key, join the Discord: https://discord.gg/gsz58gazAK";
+
+    const key = apiKey || Settings.apikey;
+
+    if (!Settings.apikey && !apiKey) {
+        ChatLib.chat(noApiKeyMessage);
+        invalidReason = noApiKeyMessage;
         roles = [];
         keyValid = false;
         return false;
-    } else {
-        axios.get("https://api.sm0kez.com/key", {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (ChatTriggers)",
-                "API-Key": apiKey || Settings.apikey
-            }
-        })
-            .then(response => {
-                const data = response.data;
-    
-                if (data.status == "ACTIVE") {
-                    keyValid = true;
-                    const previousRoles = roles;
-                    roles = data.roles;
-                    invalidReason = "";
-                    if (apiKey) {
-                        Settings.apikey = apiKey;
-                        ChatLib.chat("&7[&a&lKIC&r&7]&r&a Your API key has been set!");
-                    }
-
-                    if (previousRoles.length != 0 && roles.length > previousRoles.length) {
-                        ChatLib.chat("&7[&a&lKIC&r&7]&r&a Your roles have been updated with new roles!");
-                    } else if (previousRoles.length != 0 && roles.length < previousRoles.length) {
-                        ChatLib.chat("&7[&a&lKIC&r&7]&r&a Some roles have been removed.");
-                    }
-
-                    return true;
-                } else {
-                    invalidReason = `&7[&a&lKIC&r&7]&r&c Your API key is currently ${data.status}. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK`;
-                    ChatLib.chat(invalidReason);
-                    Settings.apikey = "";
-                    roles = [];
-                    keyValid = false;
-                    return false;
-                }
-            })
-            .catch(error => {
-                if (error.isAxiosError && error.code != 500) {
-                    invalidReason = "&7[&a&lKIC&r&7]&r&c The API key provided is incorrect. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK";
-                    ChatLib.chat(invalidReason);
-                    Settings.apikey = "";
-                    roles = [];
-                    keyValid = false;
-                    return false;
-                } else {
-                    ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while checking your API key!\n&cPlease report this in the discord server!`);
-                    errorHandler("Error while getting profile data", error.message, "generalUtils.js");
-                }
-            });
     }
+
+    axios.get("https://api.sm0kez.com/key", {
+        headers: {
+            "User-Agent": "Mozilla/5.0 (ChatTriggers)",
+            "API-Key": key
+        }
+    })
+    .then(response => {
+        const data = response.data;
+
+        if (data.status === "ACTIVE") {
+            handleActiveApiKey(data, apiKey);
+        } else {
+            handleInactiveApiKey(data.status);
+        }
+    })
+    .catch(error => {
+        if (error.response && error.response.status === 503) {
+            ChatLib.chat("&7[&a&lKIC&r&7]&r&c The API is currently offline.");
+        } if (error.response && error.response.status === 429) {
+            ChatLib.chat("&7[&a&lKIC&r&7]&r&c You cannot make anymore request to the api at this time please try again later.");
+        } else {
+            handleApiError(error);
+        }
+    });
+}
+
+function handleActiveApiKey(data, apiKey) {
+    keyValid = true;
+    const previousRoles = roles;
+    roles = data.roles;
+    invalidReason = "";
+
+    if (apiKey) {
+        Settings.apikey = apiKey;
+        ChatLib.chat("&7[&a&lKIC&r&7]&r&a Your API key has been set!");
+    }
+
+    if (previousRoles.length !== 0) {
+        if (roles.length > previousRoles.length) {
+            ChatLib.chat("&7[&a&lKIC&r&7]&r&a Your roles have been updated with new roles!");
+        } else if (roles.length < previousRoles.length) {
+            ChatLib.chat("&7[&a&lKIC&r&7]&r&a Some roles have been removed.");
+        }
+    }
+}
+
+function handleInactiveApiKey(status) {
+    invalidReason = `&7[&a&lKIC&r&7]&r&c Your API key is currently ${status}. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK`;
+    ChatLib.chat(invalidReason);
+    roles = [];
+    keyValid = false;
+}
+
+function handleApiError(error) {
+    const incorrectApiKeyMessage = "&7[&a&lKIC&r&7]&r&c The API key provided is incorrect. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK";
+    if (error.isAxiosError && error.response && error.response.status !== 500) {
+        invalidReason = incorrectApiKeyMessage;
+        ChatLib.chat(incorrectApiKeyMessage);
+    } else {
+        ChatLib.chat("&7[&a&lKIC&r&7]&r &cSomething went wrong while checking your API key!\n&cPlease report this in the discord server!");
+        errorHandler("Error while getting profile data", error.message, "generalUtils.js", null);
+    }
+
+    roles = [];
+    keyValid = false;
 }
 
 function isKeyValid() {

@@ -26,7 +26,7 @@ function getCommand(ign, type) {
                 ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
             } else {
                 ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
-                errorHandler("Error while getting profile data", error.message, "chatCommands.js");
+                errorHandler("Error while getting profile data", error.message, "chatCommands.js", `User: ${ign} | Type: ${type}`);
             }
         });
 

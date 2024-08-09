@@ -28,7 +28,7 @@ function searchItem(playername, search) {
                 ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
             } else {
                 ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
-                errorHandler("Error while getting profile data", error.message, "searchItem.js");
+                errorHandler("Error while getting profile data", error.message, "searchItem.js", `User: ${playername} | Search: ${search}`);
             }
         });
 }

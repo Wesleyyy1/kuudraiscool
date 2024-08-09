@@ -1,6 +1,6 @@
 import Settings from "./settings/config.js";
 import getCommand from "./chatCommands.js";
-import getPartyData from "./doogans.js";
+import checkParty from "./doogans.js";
 import searchItem from "./searchItem.js";
 import showKuudraInfo from "./kuudraInfo.js";
 import { checkUpdate } from "./utils/updateChecker.js";
@@ -55,7 +55,7 @@ register("chat", (msg) => {
             }
         }
     } catch (error) {
-        errorHandler("Error while performing chat command", error, "index.js");
+        errorHandler("Error while performing chat command", error, "index.js", `Message: ${message}`);
     }
 }).setCriteria("${msg}");
 
@@ -64,7 +64,7 @@ register("command", (...args) => {
     if (args[0]) {
         updateApiKey(args[0]);
     } else {
-        ChatLib.chat("&aUse /apikey <key>");
+        ChatLib.chat("&7[&a&lKIC&r&7]&r &aUse /apikey <key>");
     }
 }).setName("apikey", true);
 
@@ -73,7 +73,7 @@ register("command", () => {
 }).setName("checkapikey", true);
 
 function updateApiKey(key) {
-    if (key === Settings.apikey) return ChatLib.chat("&cYou are already using this API key!");
+    if (key === Settings.apikey) return ChatLib.chat("&7[&a&lKIC&r&7]&r &cYou are already using this API key!");
     checkApiKey(key);
 }
 
@@ -89,7 +89,7 @@ register("command", (...args) => {
         const query = args.slice(1).join(" ");
         searchItem(args[0], query);
     } else {
-        ChatLib.chat("&cUse /lf <player> <query> to search a player for an item!");
+        ChatLib.chat("&7[&a&lKIC&r&7]&r &cUse /lf <player> <query> to search a player for an item!");
     }
 }).setName("lf", true);
 
@@ -150,7 +150,7 @@ register("command", (...args) => {
             showKuudraInfo(args[1] || ign, true);
             break;
         case "apikey":
-            if (!args[1]) return ChatLib.chat("&aUse /kic apikey <key>");
+            if (!args[1]) return ChatLib.chat("&7[&a&lKIC&r&7]&r &aUse /kic apikey <key>");
             updateApiKey(args[1]);
             break;
         case "t1":
@@ -191,26 +191,13 @@ register("command", (...args) => {
     }
 }).setName("kuudraiscool", true).setAliases("kic", "ki");
 
-/*
 // Register chat event for party data
 register("chat", (msg) => {
     if (msg.includes("Team Score:") && !msg.startsWith("Party >") && !msg.startsWith("Guild >")) {
-        const party = [];
-        for (let i = 0; i < 14; i++) {
-            try {
-                let str = Scoreboard.getLineByIndex(Scoreboard.getLines().length - (i + 1)).toString().trim();
-                if (/[HMBTA]/.test(str)) {
-                    const cleanStr = str.split(" ")[1].replace(/§[0-9a-fA-Fklmnor]/g, "").replace(/[^a-zA-Z0-9]/g, "");
-                    party.push(cleanStr);
-                }
-            } catch (error) {
-                continue;
-            }
-        }
-        if (!party.includes(Player.getName())) {
-            party.push(Player.getName());
-        }
-        getPartyData(party);
+        checkParty();
     }
 }).setCriteria("${msg}");
-*/
+
+register("command", () => {
+    checkParty();
+}).setName("doogans", true);
