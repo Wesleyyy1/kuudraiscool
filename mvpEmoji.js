@@ -27,14 +27,13 @@ const emojiList = {
     ":sloth:": "(・⊝・)",
     ":yey:": "ヽ (◕◡◕) ﾉ",
 };
+
 register("MessageSent", (message, event) => {
-    let msg = message.toString();
-    let p = Player.getPlayer()
-    if (msg.includes(`[MVP++] ${p}`)) return;
+    let msg = message;
 
     for (let key in emojiList) {
         if (msg.includes(key)) {
-            chat = msg.replaceAll(key, emojiList[key]);
+            msg = msg.replaceAll(key, emojiList[key]);
         }
     }
 
