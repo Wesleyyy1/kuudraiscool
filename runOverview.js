@@ -15,7 +15,7 @@ let buildStart, buildEnd, stunEnd, kuudra1End;
 function startRunOverview(callback) {
     inOverview = true;
     ChatLib.chat("\n&aRun overview has started!\n");
-    rawEndTime = startTime = endTime = 0;
+    rawEndTime = startTime = endTime = timerStart = 0;
     buildStart = buildEnd = stunEnd = kuudra1End = 0;
     rawStartTime = Date.now();
     let supplies = 0;
@@ -26,10 +26,6 @@ function startRunOverview(callback) {
         mainHandler = register("chat", (msg) => {
             if (msg.startsWith("[NPC] Elle: Okay adventurers, I will go and fish up Kuudra!")) {
                 startTime = Date.now();
-                const partyMembers = Object.keys(Party.members);
-                if (party.length != partyMembers.length) {
-                    party = partyMembers;
-                }
             } else if (msg.trim().startsWith("KUUDRA DOWN!")) {
                 endTime = Date.now();
                 dps = fixNumber(300000000 / ((endTime / 1000) - timerStart));

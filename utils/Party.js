@@ -2,6 +2,13 @@
 // ----- Credits: UnclaimedBloom6 -----
 // ------------------------------------
 
+const partySpamMessages = [
+    /.+ has disbanded the party!/,
+    /(.+) invited (.+) to the party! They have 60 seconds to accept./,
+    /-----------------------------------------------------/,
+    /Party [Members|Leader:|Members:]+.+/
+]
+
 let hidingPartySpam = false
 
 const hidePartySpam = (ms) => {
@@ -94,9 +101,10 @@ export default new class Party {
             // Joining a party
             if (/&eYou have joined &r.+'s &r&eparty!&r/.test(formatted)) {
                 setTimeout(() => {
-                    hidePartySpam(750)
+                    hidePartySpam(1000)
+                    console.log("pl")
                     ChatLib.command("pl")
-                }, 300);
+                }, 250);
             }
 
             // Party leader left
@@ -128,3 +136,9 @@ export default new class Party {
 		this.leader = null
 	}
 }
+
+register("chat", (e) => {
+    if (!hidingPartySpam) return
+    let unformatted = ChatLib.getChatMessage(e, false)
+    if (partySpamMessages.some(a => unformatted.match(a))) return cancel(e)
+})

@@ -37,18 +37,19 @@ register("chat", (msg) => {
                 return [];
             };
 
-            if (message.includes(": .runs ")) {
+            if (message.includes(": .runs")) {
                 let ign = parseCommand(".runs")[0] || Player.getName();
                 getCommand(ign, "runs");
-            } else if (message.includes(": .stats ")) {
+            } else if (message.includes(": .stats")) {
                 let ign = parseCommand(".stats")[0] || Player.getName();
                 getCommand(ign, "stats");
-            } else if (message.includes(": .rtca ")) {
+            } else if (message.includes(": .rtca")) {
                 let ign = parseCommand(".rtca")[0] || Player.getName();
                 getCommand(ign, "rtca");
-            } else if (message.includes(": .kic ")) {
+            } else if (message.includes(": .kic")) {
+                console.log("Discord command")
                 ChatLib.command('pc [KIC] > https://discord.gg/gsz58gazAK');
-            } else if (message.includes(": .ap ") || message.includes(": .attributeprice ")) {
+            } else if (message.includes(": .ap") || message.includes(": .attributeprice")) {
                 let args = parseCommand(".ap");
                 let attribute = args[0] || null;
                 let lvl = args[1] || null;
