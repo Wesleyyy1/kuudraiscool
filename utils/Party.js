@@ -102,7 +102,6 @@ export default new class Party {
             if (/&eYou have joined &r.+'s &r&eparty!&r/.test(formatted)) {
                 setTimeout(() => {
                     hidePartySpam(1000)
-                    console.log("pl")
                     ChatLib.command("pl")
                 }, 250);
             }
