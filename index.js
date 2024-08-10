@@ -7,6 +7,7 @@ import { checkUpdate } from "./utils/updateChecker.js";
 import { errorHandler, checkApiKey } from "./utils/generalUtils.js";
 import "./runOverview.js";
 import "./kuudra-prices/attributePrices.js";
+import "./mvpEmoji.js";
 import { apPartyCommand } from "./kuudra-prices/attributePrices.js";
 
 // Checks on launch

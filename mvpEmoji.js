@@ -1,8 +1,8 @@
 const emojiList = {
     "<3": "❤",
-    ":star:": "⭐",
-    ":yes:": "✅",
-    ":no:": "❌",
+    ":star:": "✮",
+    ":yes:": "✔",
+    ":no:": "✖",
     ":java:": "☕",
     ":arrow:": "➜",
     ":shrug:": "¯\\_(ツ)_/¯",
@@ -20,29 +20,26 @@ const emojiList = {
     ":puffer:": "<('O')>",
     ":dog:": "(ᵔᴥᵔ)",
     "h/": "ヽ(^◇^*)/",
-    ":dab:": "<o/",
     ":cat:": "= ＾● ⋏ ●＾ =",
     ":cute:": "(✿◠‿◠)",
     ":snow:": "☃",
     ":dj:": "ヽ(⌐■_■)ノ♬",
     ":sloth:": "(・⊝・)",
     ":yey:": "ヽ (◕◡◕) ﾉ",
-    
-
 };
 register("MessageSent", (message, event) => {
-    let chat = message.toString();
+    let msg = message.toString();
     let p = Player.getPlayer()
-    if (chat.includes(`[MVP++] ${p}`)) return;
+    if (msg.includes(`[MVP++] ${p}`)) return;
 
     for (let key in emojiList) {
-        if (chat.includes(key)) {
-            chat = chat.replaceAll(key, emojiList[key]);
+        if (msg.includes(key)) {
+            chat = msg.replaceAll(key, emojiList[key]);
         }
     }
 
-    if (chat !== message) {
+    if (msg !== message) {
         cancel(event);
-        ChatLib.say(chat);
+        ChatLib.say(msg);
     }
 });
