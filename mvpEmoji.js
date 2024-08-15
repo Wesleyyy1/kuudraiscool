@@ -1,3 +1,5 @@
+import Settings from "./settings/config.js";
+
 const emojiList = {
     "<3": "❤",
     ":star:": "✮",
@@ -29,6 +31,7 @@ const emojiList = {
 };
 
 register("MessageSent", (message, event) => {
+    if (!Settings.emojis) return;
     let msg = message;
 
     for (let key in emojiList) {

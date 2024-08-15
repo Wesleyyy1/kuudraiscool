@@ -3,19 +3,21 @@ import getCommand from "./chatCommands.js";
 import checkParty from "./doogans.js";
 import searchItem from "./searchItem.js";
 import showKuudraInfo from "./kuudraInfo.js";
+import Party from "./utils/Party.js";
 import { checkUpdate } from "./utils/updateChecker.js";
-import { errorHandler, checkApiKey } from "./utils/generalUtils.js";
+import { apPartyCommand } from "./kuudra-prices/attributePrices.js";
+import { checkApiKey, kicPrefix, getDiscord, setRegisters } from "./utils/generalUtils.js";
 import "./runOverview.js";
 import "./kuudra-prices/attributePrices.js";
 import "./mvpEmoji.js";
-import { apPartyCommand } from "./kuudra-prices/attributePrices.js";
 
 // Checks on launch
 setTimeout(() => {
     checkUpdate();
     checkApiKey();
-    console.log("Kuudraiscool load!");
-}, 1000);
+    Party.checkParty();
+    setRegisters();
+}, 2000);
 
 // Register chat event for party finder
 register("chat", (player) => {
@@ -23,40 +25,52 @@ register("chat", (player) => {
     showKuudraInfo(player, false);
 }).setCriteria(/^Party Finder > (.+) joined the group! ((.+))$/);
 
-// Register chat event for party commands
-register("chat", (msg) => {
-    const message = msg.toString();
-    try {
-        if (Settings.partycommands && message.startsWith("Party >")) {
-            const parseCommand = (command) => {
-                const parts = message.split(command);
-                if (parts.length > 1) {
-                    const args = parts[1].trim().split(" ");
-                    return args.filter(arg => arg);
-                }
-                return [];
-            };
+const parseCommand = (message) => {
+    const startIdx = message.indexOf(": ") + 2;
+    const commandPart = message.substring(startIdx).trim();
+    const parts = commandPart.split(" ");
+    const command = parts[0];
+    const args = parts.slice(1).filter(arg => arg);
 
-            if (message.includes(": .runs")) {
-                let ign = parseCommand(".runs")[0] || Player.getName();
-                getCommand(ign, "runs");
-            } else if (message.includes(": .stats")) {
-                let ign = parseCommand(".stats")[0] || Player.getName();
-                getCommand(ign, "stats");
-            } else if (message.includes(": .rtca")) {
-                let ign = parseCommand(".rtca")[0] || Player.getName();
-                getCommand(ign, "rtca");
-            } else if (message.includes(": .kic")) {
-                ChatLib.command('pc [KIC] > https://discord.gg/gsz58gazAK');
-            } else if (message.includes(": .ap") || message.includes(": .attributeprice")) {
-                let args = parseCommand(".ap");
-                let attribute = args[0] || null;
-                let lvl = args[1] || null;
-                apPartyCommand(attribute, lvl);
-            }
+    return { command, args };
+};
+
+const handleCommand = (context, commandInfo) => {
+    const command = commandInfo.command;
+    const args = commandInfo.args;
+
+    if (command === ".ap" || command === ".attributeprice") {
+        let attribute = args[0] || null;
+        let lvl = args[1] || null;
+        apPartyCommand(attribute, lvl, context);
+    } else if (command === ".kic") {
+        ChatLib.command(`${context} [KIC] > ${getDiscord()}`);
+    } else {
+        let ign = args[0] || Player.getName();
+        getCommand(ign, command.substring(1));
+    }
+};
+
+// Register chat event for chat commands
+register("chat", (msg) => {
+    if (!Settings.chatcommands) return;
+
+    if (msg.startsWith("Party >")) {
+        if (!Settings.partycommands) return;
+
+        const commands = [".runs", ".stats", ".rtca", ".kic", ".ap", ".attributeprice"];
+        const commandInfo = parseCommand(msg);
+        if (commands.includes(commandInfo.command)) {
+            handleCommand("pc", commandInfo);
         }
-    } catch (error) {
-        errorHandler("Error while performing chat command", error, "index.js", `Message: ${message}`);
+    } else if (msg.startsWith("From ")) {
+        if (!Settings.dmcommands) return;
+
+        const commands = [".runs", ".rtca", ".kic", ".ap", ".attributeprice"];
+        const commandInfo = parseCommand(msg);
+        if (commands.includes(commandInfo.command)) {
+            handleCommand("r", commandInfo);
+        }
     }
 }).setCriteria("${msg}");
 
@@ -65,7 +79,7 @@ register("command", (...args) => {
     if (args[0]) {
         updateApiKey(args[0]);
     } else {
-        ChatLib.chat("&7[&a&lKIC&r&7]&r &aUse /apikey <key>");
+        ChatLib.chat(`${kicPrefix} &aUse /apikey <key>`);
     }
 }).setName("apikey", true);
 
@@ -74,7 +88,7 @@ register("command", () => {
 }).setName("checkapikey", true);
 
 function updateApiKey(key) {
-    if (key === Settings.apikey) return ChatLib.chat("&7[&a&lKIC&r&7]&r &cYou are already using this API key!");
+    if (key === Settings.apikey) return ChatLib.chat(`${kicPrefix} &cYou are already using this API key!`);
     checkApiKey(key);
 }
 
@@ -90,39 +104,9 @@ register("command", (...args) => {
         const query = args.slice(1).join(" ");
         searchItem(args[0], query);
     } else {
-        ChatLib.chat("&7[&a&lKIC&r&7]&r &cUse /lf <player> <query> to search a player for an item!");
+        ChatLib.chat(`${kicPrefix} &cUse /lf <player> <query> to search a player for an item!`);
     }
 }).setName("lf", true);
-
-// Register command to toggle party finder
-register("command", () => {
-    togglePartyFinder();
-}).setName("togglepartyfinder", true).setAliases("togglepf");
-
-// Register command to toggle run overview
-register("command", () => {
-    toggleRunOverview();
-}).setName("togglerunoverview", true).setAliases("togglerun");
-
-function togglePartyFinder() {
-    Settings.partyfinder = !Settings.partyfinder;
-    
-    if (Settings.partyfinder) {
-        ChatLib.chat("&aParty Finder stats is now enabled!");
-    } else {
-        ChatLib.chat("&cParty Finder stats is now disabled!");
-    }
-}
-
-function toggleRunOverview() {
-    Settings.runoverview = !Settings.runoverview;
-
-    if (Settings.runoverview) {
-        ChatLib.chat("&aRun overview is now enabled!");
-    } else {
-        ChatLib.chat("&cRun overview is now disabled!");
-    }
-}
 
 // Register commands to join specific instances
 register("command", () => ChatLib.command("joininstance KUUDRA_NORMAL")).setName("t1", true);
@@ -130,6 +114,24 @@ register("command", () => ChatLib.command("joininstance KUUDRA_HOT")).setName("t
 register("command", () => ChatLib.command("joininstance KUUDRA_BURNING")).setName("t3", true);
 register("command", () => ChatLib.command("joininstance KUUDRA_FIERY")).setName("t4", true);
 register("command", () => ChatLib.command("joininstance KUUDRA_INFERNAL")).setName("t5", true);
+
+const kicCommandsMsg = new Message();
+kicCommandsMsg.addTextComponent("\n");
+kicCommandsMsg.addTextComponent("&r&2&lKuudraiscool commands\n");
+kicCommandsMsg.addTextComponent("&8* &a/kic settings\n");
+kicCommandsMsg.addTextComponent("&8* &a/t1 /t2 /t3 /t4 /t5\n");
+kicCommandsMsg.addTextComponent("&8* &a/apikey <key>\n");
+kicCommandsMsg.addTextComponent("&8* &a/kuudra [player]\n");
+kicCommandsMsg.addTextComponent("&8* &a/ap <attribute> [level] <attribute> [level]\n");
+kicCommandsMsg.addTextComponent("&8* &a/cancelrunoverview\n");
+kicCommandsMsg.addTextComponent("\n");
+kicCommandsMsg.addTextComponent("&r&2&lChat commands\n");
+kicCommandsMsg.addTextComponent("&8* &a .stats [player]\n");
+kicCommandsMsg.addTextComponent("&8* &a .runs [player]\n");
+kicCommandsMsg.addTextComponent("&8* &a .rtca [player]\n");
+kicCommandsMsg.addTextComponent("&8* &a .ap <attribute> [level]\n");
+kicCommandsMsg.addTextComponent("\n");
+kicCommandsMsg.addTextComponent("&2[] = optional &7| &2<> = required\n");
 
 // Register main kuudraiscool command
 register("command", (...args) => {
@@ -139,19 +141,11 @@ register("command", (...args) => {
     }
     const ign = Player.getName();
     switch (args[0]) {
-        case "togglepartyfinder":
-        case "togglepf":
-            togglePartyFinder();
-            break;
-        case "togglerun":
-        case "togglerunoverview":
-            toggleRunOverview();
-            break;
         case "kuudra":
             showKuudraInfo(args[1] || ign, true);
             break;
         case "apikey":
-            if (!args[1]) return ChatLib.chat("&7[&a&lKIC&r&7]&r &aUse /kic apikey <key>");
+            if (!args[1]) return ChatLib.chat(`${kicPrefix} &aUse /kic apikey <key>`);
             updateApiKey(args[1]);
             break;
         case "t1":
@@ -173,21 +167,7 @@ register("command", (...args) => {
             Settings.openGUI();
             break;
         default:
-            ChatLib.chat("&r")
-            ChatLib.chat("&r&2&lKuudraiscool commands");
-            ChatLib.chat("&8* &a/kic settings");
-            ChatLib.chat("&8* &a/kic togglepartyfinder (togglepf)");
-            ChatLib.chat("&8* &a/kic togglerunoverview (togglerun)");
-            ChatLib.chat("&8* &a/t2/t3/t4/t5");
-            ChatLib.chat("&8* &a/apikey <key>");
-            ChatLib.chat("&8* &a/kuudra [player]");
-            ChatLib.chat("&8* &a/cancelrunoverview");
-            ChatLib.chat("&r")
-            ChatLib.chat("&r&2&lChat commands");
-            ChatLib.chat("&8* &a .stats");
-            ChatLib.chat("&8* &a .runs");
-            ChatLib.chat("&8* &a .rtca");
-            ChatLib.chat("&r")
+            ChatLib.chat(kicCommandsMsg);
             break;
     }
 }).setName("kuudraiscool", true).setAliases("kic", "ki");

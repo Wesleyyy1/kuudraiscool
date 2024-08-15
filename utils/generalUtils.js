@@ -1,14 +1,21 @@
 import axios from "axios";
 import Settings from "../settings/config.js";
+import { data } from "./data";
 
 const ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
 const Base64 = Java.type("java.util.Base64");
 const CompressedStreamTools = Java.type("net.minecraft.nbt.CompressedStreamTools");
+const Threading = Java.type("gg.essential.api.utils.Multithreading");
 
 let currentVersion = "";
 let keyValid = false;
 let invalidReason = "";
 let roles = [];
+let discordUrl = "https://discord.gg/gsz58gazAK";
+const kicPrefix = "&7[&a&lKIC&r&7]&r";
+let registers = [];
+let worldJoin = [];
+let worldLeave = [];
 
 function fixNumber(labelValue) {
     return Math.abs(Number(labelValue)) >= 1.0e+9
@@ -39,7 +46,7 @@ function getColorData(moduleName, type) {
         "UNCOMMON": "&a",
         "COMMON": "&f"
     };
-    
+
     const gemstoneColors = {
         "ROUGH": "&f*",
         "FLAWED": "&a*",
@@ -68,7 +75,7 @@ function getColorData(moduleName, type) {
                     .filter(([key, value]) => value && tuningStats[key])
                     .map(([key, value]) => {
                         const [name, color, multiplier] = tuningStats[key];
-                        return `&aTuning: ${color}${(value * multiplier).toFixed(2)} ${name}`;
+                        return `${color}${(value * multiplier).toFixed(2)} ${name}`;
                     });
                 return filteredData.join("\n");
             }
@@ -107,9 +114,6 @@ function errorHandler(msg, error, origin, extra) {
     if (!error) return;
     console.error(error);
 
-    // DELETE IN RELEASE
-    return;
-
     let requestBody = {};
     requestBody.username = Player.getName();
 
@@ -135,8 +139,16 @@ function setVersion(version) {
     currentVersion = version;
 }
 
+function setDiscord(discord) {
+    discord = discord;
+}
+
+function getDiscord() {
+    return discordUrl;
+}
+
 function checkApiKey(apiKey) {
-    const noApiKeyMessage = "&7[&a&lKIC&r&7]&r&e There is no API key set. If you have an API key, set it using /kic apikey <key>.\n&eIf you do not have an API key, join the Discord: https://discord.gg/gsz58gazAK";
+    const noApiKeyMessage = `${kicPrefix} &eThere is no API key set. If you have an API key, set it using /kic apikey <key>.\n&eIf you do not have an API key, join the Discord: ${getDiscord()}`;
 
     const key = apiKey || Settings.apikey;
 
@@ -154,24 +166,24 @@ function checkApiKey(apiKey) {
             "API-Key": key
         }
     })
-    .then(response => {
-        const data = response.data;
+        .then(response => {
+            const data = response.data;
 
-        if (data.status === "ACTIVE") {
-            handleActiveApiKey(data, apiKey);
-        } else {
-            handleInactiveApiKey(data.status);
-        }
-    })
-    .catch(error => {
-        if (error.response && error.response.status === 503) {
-            ChatLib.chat("&7[&a&lKIC&r&7]&r&c The API is currently offline.");
-        } if (error.response && error.response.status === 429) {
-            ChatLib.chat("&7[&a&lKIC&r&7]&r&c You cannot make anymore request to the api at this time please try again later.");
-        } else {
-            handleApiError(error);
-        }
-    });
+            if (data.status === "ACTIVE") {
+                handleActiveApiKey(data, apiKey);
+            } else {
+                handleInactiveApiKey(data.status);
+            }
+        })
+        .catch(error => {
+            if (error.response && error.response.status === 503) {
+                ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
+            } if (error.response && error.response.status === 429) {
+                ChatLib.chat(`${kicPrefix} &cYou cannot make anymore request to the api at this time please try again later.`);
+            } else {
+                handleApiError(error);
+            }
+        });
 }
 
 function handleActiveApiKey(data, apiKey) {
@@ -182,32 +194,32 @@ function handleActiveApiKey(data, apiKey) {
 
     if (apiKey) {
         Settings.apikey = apiKey;
-        ChatLib.chat("&7[&a&lKIC&r&7]&r&a Your API key has been set!");
+        ChatLib.chat(`${kicPrefix} &aYour API key has been set!`);
     }
 
     if (previousRoles.length !== 0) {
         if (roles.length > previousRoles.length) {
-            ChatLib.chat("&7[&a&lKIC&r&7]&r&a Your roles have been updated with new roles!");
+            ChatLib.chat(`${kicPrefix} &aYour roles have been updated with new roles!`);
         } else if (roles.length < previousRoles.length) {
-            ChatLib.chat("&7[&a&lKIC&r&7]&r&a Some roles have been removed.");
+            ChatLib.chat(`${kicPrefix} &aSome roles have been removed.`);
         }
     }
 }
 
 function handleInactiveApiKey(status) {
-    invalidReason = `&7[&a&lKIC&r&7]&r&c Your API key is currently ${status}. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK`;
+    invalidReason = `${kicPrefix} &cYour API key is currently ${status}. Please verify your API key or get a new one from the Discord: ${getDiscord()}`;
     ChatLib.chat(invalidReason);
     roles = [];
     keyValid = false;
 }
 
 function handleApiError(error) {
-    const incorrectApiKeyMessage = "&7[&a&lKIC&r&7]&r&c The API key provided is incorrect. Please verify your API key or get a new one from the Discord: https://discord.gg/gsz58gazAK";
+    const incorrectApiKeyMessage = `${kicPrefix} &cThe API key provided is incorrect. Please verify your API key or get a new one from the Discord: ${getDiscord()}`;
     if (error.isAxiosError && error.response && error.response.status !== 500) {
         invalidReason = incorrectApiKeyMessage;
         ChatLib.chat(incorrectApiKeyMessage);
     } else {
-        ChatLib.chat("&7[&a&lKIC&r&7]&r &cSomething went wrong while checking your API key!\n&cPlease report this in the discord server!");
+        ChatLib.chat(`${kicPrefix} &cSomething went wrong while checking your API key!\n&cPlease report this in the discord server!`);
         errorHandler("Error while getting profile data", error.message, "generalUtils.js", null);
     }
 
@@ -228,7 +240,80 @@ function showInvalidReasonMsg() {
 }
 
 function showMissingRolesMsg() {
-    ChatLib.chat("&7[&a&lKIC&r&7]&r&c You are missing the necessary roles to use this feature. Please check your roles or contact support for assistance.");
+    ChatLib.chat(`${kicPrefix} &cYou are missing the necessary roles to use this feature. Please check your roles or contact support for assistance.`);
 }
 
-export { fixNumber, decompress, getColorData, capitalizeEachWord, formatTime, errorHandler, setVersion, checkApiKey, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg };
+function delay(func, time) {
+    if (time) {
+        Threading.schedule(() => { func() }, time, java.util.concurrent.TimeUnit.MILLISECONDS);
+    } else {
+        Threading.runAsync(() => { func() });
+    }
+}
+
+function registerWhen(trigger, dependency, active = false) {
+    registers.push([trigger.unregister(), dependency, active]);
+}
+
+function setRegisters() {
+    registers.forEach(trigger => {
+        if (trigger[1]() && !trigger[2]) {
+            trigger[0].register();
+            trigger[2] = true;
+        } else if (!trigger[1]() && trigger[2]) {
+            trigger[0].unregister();
+            trigger[2] = false;
+        }
+    });
+}
+
+function onWorldJoin(func) { worldJoin.push(func); }
+
+function onWorldLeave(func) { worldLeave.push(func); }
+
+register("worldLoad", () => {
+    let i = worldJoin.length;
+    while (i--) {
+        worldJoin[i]();
+    };
+    data.save();
+})
+
+register("worldUnload", () => {
+    let i = worldLeave.length;
+    while (i--) {
+        worldLeave[i]();
+    };
+    data.save();
+})
+
+register("serverDisconnect", () => {
+    let i = worldLeave.length;
+    while (i--) {
+        worldLeave[i]();
+    };
+    data.save();
+})
+
+export {
+    fixNumber,
+    decompress,
+    getColorData,
+    capitalizeEachWord,
+    formatTime,
+    errorHandler,
+    setVersion,
+    checkApiKey,
+    isKeyValid,
+    getRoles,
+    showInvalidReasonMsg,
+    showMissingRolesMsg,
+    setDiscord,
+    getDiscord,
+    kicPrefix,
+    delay,
+    registerWhen,
+    setRegisters,
+    onWorldJoin,
+    onWorldLeave
+};

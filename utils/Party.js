@@ -6,7 +6,9 @@ const partySpamMessages = [
     /.+ has disbanded the party!/,
     /(.+) invited (.+) to the party! They have 60 seconds to accept./,
     /-----------------------------------------------------/,
-    /Party [Members|Leader:|Members:]+.+/
+    /Party [Members|Leader:|Members:]+.+/,
+    /You are not currently in a party./,
+    /^$/
 ]
 
 let hidingPartySpam = false
@@ -87,7 +89,7 @@ export default new class Party {
             // You make a party in party finder
             if (unformatted == "Party Finder > Your party has been queued in the dungeon finder!") {
                 setTimeout(() => {
-                    hidePartySpam(1000)
+                    hidePartySpam(750)
                     ChatLib.command("pl")
                 }, 250);
             }
@@ -101,7 +103,7 @@ export default new class Party {
             // Joining a party
             if (/&eYou have joined &r.+'s &r&eparty!&r/.test(formatted)) {
                 setTimeout(() => {
-                    hidePartySpam(1000)
+                    hidePartySpam(750)
                     ChatLib.command("pl")
                 }, 250);
             }
@@ -117,6 +119,13 @@ export default new class Party {
             }
         })
 	}
+
+    checkParty() {
+        setTimeout(() => {
+            hidePartySpam(750)
+            ChatLib.command("pl")
+        }, 250);
+    }
 
 	addMember(player) {
 		this.members[stripRank(player.removeFormatting())] = player

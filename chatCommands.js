@@ -1,6 +1,6 @@
 import axios from "axios";
 import Settings from "./settings/config.js";
-import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from "./utils/generalUtils.js";
+import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg, kicPrefix } from "./utils/generalUtils.js";
 
 function getCommand(ign, type) {
     if (!isKeyValid()) return showInvalidReasonMsg();
@@ -23,9 +23,9 @@ function getCommand(ign, type) {
         })
         .catch(error => {
             if (error.isAxiosError && error.code != 500) {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+                ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
             } else {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
+                ChatLib.chat(`${kicPrefix} &cSomething went wrong while gathering ${ign}'s data!\n&cPlease report this in the discord server!`);
                 errorHandler("Error while getting profile data", error.message, "chatCommands.js", `User: ${ign} | Type: ${type}`);
             }
         });

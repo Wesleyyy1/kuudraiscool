@@ -1,6 +1,16 @@
 import axios from "axios";
 import Settings from "../settings/config.js";
-import { fixNumber, capitalizeEachWord, formatTime, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from "../utils/generalUtils.js";
+import {
+    fixNumber,
+    capitalizeEachWord,
+    formatTime,
+    errorHandler,
+    isKeyValid,
+    getRoles,
+    showInvalidReasonMsg,
+    showMissingRolesMsg,
+    kicPrefix
+} from "../utils/generalUtils.js";
 
 const itemTypes = {
     armor: {
@@ -98,7 +108,7 @@ register("command", (arg1, arg2, arg3, arg4) => {
     if (!getRoles().includes("KUUDRA")) return showMissingRolesMsg();
 
     if (!arg1) {
-        ChatLib.chat("&7[&a&lKIC&r&7]&r &cUse /ap <attribute> [level] <attribute> [level]");
+        ChatLib.chat(`${kicPrefix} &cUse /ap <attribute> [level] <attribute> [level]`);
         return;
     }
 
@@ -159,9 +169,9 @@ register("command", (arg1, arg2, arg3, arg4) => {
         })
         .catch(error => {
             if (error.isAxiosError && error.code != 500) {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+                ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
             } else {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
+                ChatLib.chat(`${kicPrefix} &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
                 errorHandler("Error while getting prices", error.message, "attributePrices.js", `Arg1: ${arg1} | Arg2: ${arg2} | Arg3: ${arg3} | Arg4: ${arg4}`);
             }
         });
@@ -247,12 +257,12 @@ register("command", (direction, type, maxIndex, msgid) => {
         .catch(error => {
             if (error.isAxiosError && error.code != 500) {
                 if (error.code == 429) {
-                    ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+                    ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
                 } else {
-                    ChatLib.chat(`&7[&a&lKIC&r&7]&r &cYou've reached the usage limit for this feature. It can only be used once every 10 minutes. Please try again later.`);
+                    ChatLib.chat(`${kicPrefix} &cYou've reached the usage limit for this feature. It can only be used once every 10 minutes. Please try again later.`);
                 }
             } else {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
+                ChatLib.chat(`${kicPrefix} &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
                 errorHandler("Error while getting prices", error.message, "attributePrices.js");
             }
         });
@@ -292,7 +302,7 @@ function showPrices(messageId) {
             attributeText += ` ${priceData.attributeLvl2}`;
         }
 
-        message.addTextComponent(new TextComponent(`\n&7[&a&lKIC&r&7]&r &6Cheapest auctions for ${attributeText.replaceAll("Mending", "Vitality")}&6 on &2${categoryText}`));
+        message.addTextComponent(new TextComponent(`\n${kicPrefix} &6Cheapest auctions for ${attributeText.replaceAll("Mending", "Vitality")}&6 on &2${categoryText}`));
 
         const timeAgo = formatTime(Math.abs(priceData.timestamp - Date.now()));
         message.addTextComponent(new TextComponent(`\n&6Click to open the auction. Last refresh was &e${timeAgo}&6.\n`));
@@ -360,7 +370,7 @@ function showPrices(messageId) {
 // UNFINISHED
 /* function showUpgradeMsg(data, start, end) {
     const message = new Message();
-    message.addTextComponent(new TextComponent(`\n&7[&a&lKIC&r&7]&r &6Cheapest way to upgrade &b${capitalizeEachWord(data.attribute.replaceAll("_", " "))}&6 on your &2${capitalizeEachWord(data.item.replaceAll("_", " "))}&6 from &e${start} &6to &e${end}&6.`));
+    message.addTextComponent(new TextComponent(`\n${kicPrefix} &6Cheapest way to upgrade &b${capitalizeEachWord(data.attribute.replaceAll("_", " "))}&6 on your &2${capitalizeEachWord(data.item.replaceAll("_", " "))}&6 from &e${start} &6to &e${end}&6.`));
 
     const timeAgo = formatTime(Math.abs(data.timestamp - Date.now()));
     message.addTextComponent(new TextComponent(`\n&6Total price: &e${fixNumber(data.totalCost)}&6. Last refresh was &e${timeAgo}&6.\n`));
@@ -379,7 +389,7 @@ function showPrices(messageId) {
     ChatLib.chat(message);
 } */
 
-export function apPartyCommand(attribute, lvl) {
+export function apPartyCommand(attribute, lvl, chat) {
     if (!isKeyValid() || !getRoles().includes("KUUDRA") || !isNaN(attribute)) return;
 
     if ((Date.now() - apPartyLastRan) < 2000 ) {
@@ -446,7 +456,7 @@ export function apPartyCommand(attribute, lvl) {
         });
 
         let attributeText = `${data.attribute1} ${data.attributeLvl1 != null ? data.attributeLvl1 : ""}`;
-        ChatLib.command(`pc ${attributeText.replace("Mending", "Vitality")} > Helmet: ${fixNumber(prices.helmets)} - Cp: ${fixNumber(prices.chestplates)} - Legs: ${fixNumber(prices.leggings)} - Boots: ${fixNumber(prices.boots)} - Neck: ${fixNumber(prices.necklaces)} - Cloak: ${fixNumber(prices.cloaks)} - Belt: ${fixNumber(prices.belts)} - Brace: ${fixNumber(prices.bracelets)}`);
+        ChatLib.command(`${chat} ${attributeText.replace("Mending", "Vitality")} > Helmet: ${fixNumber(prices.helmets)} - Cp: ${fixNumber(prices.chestplates)} - Legs: ${fixNumber(prices.leggings)} - Boots: ${fixNumber(prices.boots)} - Neck: ${fixNumber(prices.necklaces)} - Cloak: ${fixNumber(prices.cloaks)} - Belt: ${fixNumber(prices.belts)} - Brace: ${fixNumber(prices.bracelets)}`);
     })
     .catch(error => {
         if (!error.isAxiosError || error.code == 500) {

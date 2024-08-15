@@ -1,6 +1,16 @@
 import axios from "axios";
 import Settings from "./settings/config.js";
-import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg, getColorData, capitalizeEachWord } from "./utils/generalUtils.js";
+import {
+    decompress,
+    errorHandler,
+    isKeyValid,
+    getRoles,
+    showInvalidReasonMsg,
+    showMissingRolesMsg,
+    getColorData,
+    capitalizeEachWord,
+    kicPrefix
+} from "./utils/generalUtils.js";
 import { getLevel } from "./utils/petLevelUtils.js";
 
 function searchItem(playername, search) {
@@ -20,14 +30,14 @@ function searchItem(playername, search) {
                 const list = generateItemList(data.members[data.uuid]);
                 displaySearchResults(list, search, data.name);
             } else {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cPlayer not found!`);
+                ChatLib.chat(`${kicPrefix} &cPlayer not found!`);
             }
         })
         .catch(error => {
             if (error.isAxiosError && error.code != 500) {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &c${error.response.data}`);
+                ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
             } else {
-                ChatLib.chat(`&7[&a&lKIC&r&7]&r &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
+                ChatLib.chat(`${kicPrefix} &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
                 errorHandler("Error while getting profile data", error.message, "searchItem.js", `User: ${playername} | Search: ${search}`);
             }
         });
@@ -72,10 +82,14 @@ function generateItemList(memberData) {
         { data: memberData.inventory?.personal_vault_contents?.data, source: "Personal Vault" },
     ];
 
-    inventorySources.forEach(({ data, source }) => {
+    for (let i = 0; i < inventorySources.length; i++) {
+        const { data, source } = inventorySources[i];
+        if (!data) {
+            return { API: false, items: [] };
+        }
         const decompressedData = decompress(data);
         processItems(decompressedData, source);
-    });
+    }
 
     for (let i = 0; i < 19; i++) {
         try {
@@ -123,7 +137,7 @@ function generateItemList(memberData) {
         });
     }
 
-    return itemList;
+    return { API: true, items: itemList };
 }
 
 function displaySearchResults(list, search, name) {
@@ -131,26 +145,31 @@ function displaySearchResults(list, search, name) {
     const isLoreSearch = search.includes("lore:");
     if (isLoreSearch) search = search.split("lore:")[1].trim();
 
-    ChatLib.chat(
-        new Message(
-            new TextComponent(`&2&m-----&f[- &2${name} &f-]&2&m-----`)
-                .setClick("run_command", `/pv ${name}`)
-        )
-    );
+    const message = new Message();
 
-    ChatLib.chat(`&aResults for: &7&o${search} ${isLoreSearch ? "(lore)" : ""}`);
-    ChatLib.chat(`&r`);
+    const title = new TextComponent(`&2&m-----&f[- &2${name} &f-]&2&m-----\n`)
+        .setClick("run_command", `/pv ${name}`);
 
-    list.forEach((item) => {
-        const searchLower = search.toLowerCase();
-        const target = isLoreSearch ? `${item.lore}`.toLowerCase() : item.name.toLowerCase();
-        if (target.includes(searchLower)) {
-            count++;
-            ChatLib.chat(new Message(new TextComponent(`&7#${count} ${item.count}x ${item.name} &7(${item.source})`).setHoverValue(`&7${item.count}x ${item.name} &7(${item.source})\n${item.lore.join("\n")}`)));
-        }
-    });
+    message.addTextComponent(title);
 
-    ChatLib.chat("&2&m-------------------------&r");
+    if (list.API) {
+        message.addTextComponent(new TextComponent(`&aResults for: &7&o${search} ${isLoreSearch ? "(lore)" : ""}\n`));
+
+        list.items.forEach((item) => {
+            const searchLower = search.toLowerCase();
+            const target = isLoreSearch ? `${item.lore}`.toLowerCase() : item.name.toLowerCase();
+            if (target.includes(searchLower)) {
+                count++;
+                message.addTextComponent(new TextComponent(`&7#${count} ${item.count}x ${item.name} &7(${item.source})\n`).setHoverValue(`&7${item.count}x ${item.name} &7(${item.source})\n${item.lore.join("\n")}`));
+            }
+        });
+    } else {
+        message.addTextComponent(new TextComponent("&4 API is turned off!\n"));
+    }
+
+    message.addTextComponent(new TextComponent("&2&m-------------------------&r"));
+
+    ChatLib.chat(message);
 }
 
 export default searchItem;

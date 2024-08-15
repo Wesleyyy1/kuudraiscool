@@ -1,9 +1,9 @@
 import axios from "axios";
 import Settings from "./settings/config.js";
-import { fixNumber, decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg } from "./utils/generalUtils.js";
+import { fixNumber, decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg, kicPrefix } from "./utils/generalUtils.js";
 import Party from "./utils/Party.js";
 
-let message = [];
+let msgData = {};
 
 function checkParty() {
     if (!isKeyValid()) return showInvalidReasonMsg();
@@ -11,9 +11,14 @@ function checkParty() {
 
     const party = Object.keys(Party.members);
     if (party.length == 0) {
-        ChatLib.chat("&7[&a&lKIC&r&7]&r &cYou are currently not in a party!");
+        ChatLib.chat(`${kicPrefix} &cYou are currently not in a party!`);
         return;
     }
+
+    msgData = {
+        messages: [],
+        checked: 0
+    };
 
     party.forEach(player => {
         axios.get(`https://api.sm0kez.com/hypixel/profile/${player}/selected`, {
@@ -28,13 +33,15 @@ function checkParty() {
                 if (data.success) {
                     processPlayerData(data);
                 } else {
-                    message.push(`${player} -> INVALID`);
+                    msgData.messages.push(`${player} -> INVALID`);
+                    msgData.checked++;
                 }
 
                 checkCompleted();
             })
             .catch(error => {
-                message.push(`${player} -> ERROR`);
+                msgData.messages.push(`${player} -> ERROR`);
+                msgData.checked++;
                 checkCompleted();
                 if (!error.isAxiosError || error.code == 500) {
                     errorHandler(`Error while getting profile data for ${player}`, error.message, "doogans.js", `User: ${player}`);
@@ -69,16 +76,31 @@ function processPlayerData(data) {
     let enoughSoulflow = soulflow >= 501 ? true : `GET SOULFLOW (${fixNumber(soulflow)})`;
 
     if (enoughArrows !== true || enoughSoulflow !== true) {
-        message.push(`${name} -> ${[enoughArrows, enoughSoulflow].filter(msg => msg !== true).join(" + ")}`);
+        msgData.messages.push(`${name} -> ${[enoughArrows, enoughSoulflow].filter(msg => msg !== true).join(" + ")}`);
+        msgData.checked++;
     } else {
-        message.push(`${name} -> OK`)
+        msgData.checked++;
     }
 }
 
 function checkCompleted() {
-    if (message.length == Object.keys(Party.members).length) {
-        ChatLib.chat(message.join(" | "));
-        message = [];
+    if (msgData.checked == Object.keys(Party.members).length) {
+        const msg = new Message();
+
+        msg.addTextComponent("&2&m-----&f[- &2doogans &f-]&2&m-----\n");
+
+        if (msgData.messages.length == 0) {
+            msg.addTextComponent(new TextComponent("&aAll party members have sufficient soulflow and arrows!"));
+        } else {
+            msg.addTextComponent(new TextComponent("&cThe following members have issues:\n"));
+            msgData.messages.forEach(message => {
+                msg.addTextComponent(new TextComponent(`${message}\n`));
+            });
+        }
+
+        msg.addTextComponent(new TextComponent("&2&m-----------------------"));
+
+        ChatLib.chat(msg);
     }
 }
 
