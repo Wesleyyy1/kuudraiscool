@@ -51,7 +51,7 @@ const attributesItems = {};
 const auctionItems = {};
 
 function isPaidChest() {
-    return Player.getContainer()?.getName().removeFormatting() === "Paid Chest";
+    return Player.getContainer()?.getName()?.removeFormatting() === "Paid Chest";
 }
 
 const profitExample = `${kicPrefix} &a&lChest profit\n\n&aTotal: +4.48M\n\n&6Infernal Kuudra Key &7x1 &f= &c-3.87M\n&6Crimson Chestplate &7x1 &f= &a+4.30M\n&7Ferocious Mana 5 &7x1 &f= &a+1.53M\n&dCrimson Essence &7x1600 &f= &a+2.52M`;

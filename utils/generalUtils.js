@@ -17,6 +17,7 @@ let worldJoin = [];
 let worldLeave = [];
 
 function fixNumber(labelValue) {
+    if (!labelValue) return 0;
     const sign = Math.sign(labelValue);
     const absoluteValue = Math.abs(Number(labelValue));
 

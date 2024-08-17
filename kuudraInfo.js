@@ -782,10 +782,16 @@ function finalizeData(currentProfile, uuid) {
     }
 
     const bankBalance = currentProfile.banking?.balance;
-
-    oneBilBank = bankBalance ? bankBalance > 950000000 ? "&a" : "&c" : "&c";
-    goldenDragonLore += `&8* &aBank: &f${fixNumber(bankBalance) || "&cAPI OFF"}\n`;
-    goldenDragonLore += `&8* &aPurse: &f${fixNumber(currentProfile?.members?.[uuid]?.currencies?.coin_purse) || "&cAPI OFF"}\n`;
+    
+    if (bankBalance) {
+        oneBilBank = bankBalance ? bankBalance > 950000000 ? "&a" : "&c" : "&c";
+        goldenDragonLore += `&8* &aBank: &f${fixNumber(bankBalance) || "&cAPI OFF"}\n`;
+    } else {
+        oneBilBank = "&c";
+        goldenDragonLore += `&8* &aBank: &cAPI OFF\n`;
+    }
+    
+    goldenDragonLore += `&8* &aPurse: &f${fixNumber(currentProfile.members[uuid].currencies?.coin_purse) || 0}\n`;
     const gold = fixNumber(currentProfile?.members?.[uuid]?.collection?.GOLD_INGOT) || "&cAPI OFF";
     goldenDragonLore += `&8* &aGold: &f${gold}`;
 }

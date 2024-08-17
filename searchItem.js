@@ -114,12 +114,12 @@ function generateItemList(memberData) {
 
             lore.push(heldItem ?
                 `&6Pet item: &3${capitalizeEachWord(heldItem.replaceAll("PET_ITEM_", "").replaceAll("_", " "))}` :
-                "&6Pet item: &cnone"
+                "&6Pet item: &cNone"
             );
 
             lore.push(skin ?
                 `&6Skin: &3${capitalizeEachWord(skin.replaceAll("_", " "))}` :
-                "&6Skin: &cnone"
+                "&6Skin: &cNone"
             );
 
             if (candyUsed && candyUsed > 0) {
