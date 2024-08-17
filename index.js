@@ -125,6 +125,8 @@ kicCommandsMsg.addTextComponent("&8* &a/t1 /t2 /t3 /t4 /t5\n");
 kicCommandsMsg.addTextComponent("&8* &a/apikey <key>\n");
 kicCommandsMsg.addTextComponent("&8* &a/kuudra [player]\n");
 kicCommandsMsg.addTextComponent("&8* &a/ap <attribute> [level] <attribute> [level]\n");
+kicCommandsMsg.addTextComponent("&8* &a/doogans\n");
+kicCommandsMsg.addTextComponent("&8* &a/kuudraprofit edit/reset\n");
 kicCommandsMsg.addTextComponent("&8* &a/cancelrunoverview\n");
 kicCommandsMsg.addTextComponent("\n");
 kicCommandsMsg.addTextComponent("&r&2&lChat commands\n");

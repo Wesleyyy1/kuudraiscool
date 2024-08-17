@@ -72,11 +72,11 @@ function processPlayerData(data) {
 
     const soulflow = memberData.item_data?.soulflow || 0;
 
-    let enoughArrows = arrows >= 433 || !arrows ? true : `GET ARROWS (${(arrows / 2880 * 100).toFixed(2)}%)`;
-    let enoughSoulflow = soulflow >= 501 ? true : `GET SOULFLOW (${fixNumber(soulflow)})`;
+    let enoughArrows = arrows >= 433 || !arrows ? true : `GET ARROWS (&c${(arrows / 2880 * 100).toFixed(2)}%&7)`;
+    let enoughSoulflow = soulflow >= 501 ? true : `GET SOULFLOW (&c${fixNumber(soulflow)}&7)`;
 
     if (enoughArrows !== true || enoughSoulflow !== true) {
-        msgData.messages.push(`${name} -> ${[enoughArrows, enoughSoulflow].filter(msg => msg !== true).join(" + ")}`);
+        msgData.messages.push(`&a${name} &f-> &7${[enoughArrows, enoughSoulflow].filter(msg => msg !== true).join(" + ")}`);
         msgData.checked++;
     } else {
         msgData.checked++;
@@ -92,9 +92,9 @@ function checkCompleted() {
         if (msgData.messages.length == 0) {
             msg.addTextComponent(new TextComponent("&aAll party members have sufficient soulflow and arrows!"));
         } else {
-            msg.addTextComponent(new TextComponent("&cThe following members have issues:\n"));
+            msg.addTextComponent(new TextComponent("&cThe following members have issues:\n\n"));
             msgData.messages.forEach(message => {
-                msg.addTextComponent(new TextComponent(`${message}\n`));
+                msg.addTextComponent(new TextComponent(`${message}\n`).setClick("run_command", `/ct copy ${ChatLib.removeFormatting(message)}`));
             });
         }
 

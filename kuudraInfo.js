@@ -797,12 +797,16 @@ function finalizeData(currentProfile, uuid) {
 }
 
 function apiOff() {
-    hyperion = hyperionLore = duplex = duplexLore = ragnarockAxe = ragnarockAxeLore = extraReaper = extraTerminator = extraDeployable = extraFireveil = drill = drillLore = extraHamRadio = `&cAPI OFF`;
+    goldenDragon = goldenDragonLore = hyperion = hyperionLore = duplex = duplexLore = extraReaper = extraTerminator = extraFireveil = extraHamRadio = "&cAPI OFF";
     
     armor.helmet.name = armor.helmet.lore = "&cAPI OFF";
     armor.chestplate.name = armor.chestplate.lore = "&cAPI OFF";
     armor.leggings.name = armor.leggings.lore = "&cAPI OFF";
     armor.boots.name = armor.boots.lore = "&cAPI OFF";
+
+    items.ragnarock.name = items.ragnarock.lore = "&cAPI OFF";
+    items.drill.name = items.drill.lore = "&cAPI OFF";
+    items.deployable.name = "&cAPI OFF";
 }
 
 function generateLLMPLore(type) {
