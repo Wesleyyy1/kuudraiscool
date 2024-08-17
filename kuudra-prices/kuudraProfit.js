@@ -2,6 +2,7 @@ import axios from "axios";
 import Settings from "../settings/config.js";
 import { fixNumber, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg, capitalizeEachWord, kicPrefix } from "../utils/generalUtils.js";
 import ScalableGui from "../utils/ScalableGui.js";
+import World from "../utils/World.js";
 
 const kuudraData = {
     KEY: {
@@ -53,11 +54,12 @@ function isPaidChest() {
     return Player.getContainer()?.getName().removeFormatting() === "Paid Chest";
 }
 
-const profitExample = "&aCrimson Chestplate\n&aPrice: 420M\n&aMagic Find 6: 6.2M\n&aVeteran 9: 4.5M";
-const profitGui = new ScalableGui("kuudraProfit", "kuudraProfit", isPaidChest, profitExample, true);
+const profitExample = `${kicPrefix} &a&lChest profit\n\n&aTotal: +4.48M\n\n&6Infernal Kuudra Key &7x1 &f= &c-3.87M\n&6Crimson Chestplate &7x1 &f= &a+4.30M\n&7Ferocious Mana 5 &7x1 &f= &a+1.53M\n&dCrimson Essence &7x1600 &f= &a+2.52M`;
+const profitGui = new ScalableGui("kuudraProfit", "kuudraProfit", ["Kuudra", "all"], isPaidChest, profitExample, true);
 profitGui.setCommand("kuudraprofit");
 
 register("packetReceived", (packet, event) => {
+    if (World.world !== "Kuudra" || !Settings.kuudraProfit) return;
     const player = Player.getPlayer();
     const container = Player.getContainer();
     if (!player || !container) return;
@@ -129,8 +131,16 @@ register("packetReceived", (packet, event) => {
         if (!itemId) return;
 
         if (itemId === "KUUDRA_TEETH") {
-            // Implement later
-            // const count = item.getStackSize() | 0;
+            const count = item.getStackSize() | 0;
+            bazaarItems["teeth"] = {
+                name: itemName,
+                itemId: itemId,
+                buyPrice: "Loading...",
+                sellPrice: "Loading...",
+                count: count,
+                time: Date.now()
+            };
+            itemsToUpdate.push("teeth");
         }
 
         if (lowerLore.includes("soulbound")) return;
@@ -303,10 +313,13 @@ register("packetReceived", (packet, event) => {
         updateBazaarItem("MAGE");
     }
 
-    if (itemsToUpdate.length < 0 && itemsWithoutUpdate.length < 0) return;
+    const itemsToUpdateFiltered = [...new Set(itemsToUpdate)];
+    const itemsWithoutUpdateFiltered = [...new Set(itemsWithoutUpdate)];
 
-    fetchItemPrices(itemsToUpdate, function () {
-        updateOverlay(itemsToUpdate.concat(itemsWithoutUpdate), kuudraTier);
+    if (itemsToUpdateFiltered.length < 0 && itemsWithoutUpdateFiltered.length < 0) return;
+
+    fetchItemPrices(itemsToUpdateFiltered, function () {
+        updateOverlay(itemsToUpdateFiltered.concat(itemsWithoutUpdateFiltered), kuudraTier);
     });
 }).setFilteredClass(net.minecraft.network.play.server.S30PacketWindowItems);
 
@@ -434,6 +447,7 @@ function calculateTotalProfit(uuids) {
             return totalProfit + (item.price > Settings.minGodroll * 1000000 ? item.price : Math.max(item.priceAttribute1 || 0, item.priceAttribute2 || 0));
         } else if (bazaarItems[uuid]) {
             if (uuid === "crimson" && Settings.ignoreEssence) return totalProfit;
+            if (uuid === "teeth" && Settings.ignoreTeeth) return totalProfit;
             const item = bazaarItems[uuid];
             const price = Settings.sellOrderPrice 
                 ? (item.buyPrice !== 0 ? item.buyPrice : item.sellPrice) 
@@ -452,8 +466,7 @@ function updateOverlay(uuids, tier) {
     let keyMessage = "";
 
     if (tier !== "UNKNOWN") {
-        // TODO: Get key based on faction.
-        const key = getKey("KEY_MAGE");
+        const key = getKey();
         if (key) {
             totalProfit -= key.price;
             keyMessage = `${key.name} &7x1 &f= &c-${fixNumber(key.price)}\n${Settings.kuudraProfitCompact ? "" : "\n"}`;
@@ -461,7 +474,7 @@ function updateOverlay(uuids, tier) {
     }
 
     const profitColor = totalProfit > 0 ? "&a" : "&c";
-    const msg = `${kicPrefix} &a&lChest profit\n\n${profitColor}Total: ${fixNumber(totalProfit)}\n\n${keyMessage}`;
+    const msg = `${kicPrefix} &a&lChest profit\n\n${profitColor}${totalProfit > 25000000 ? "&l" : ""}Total: ${totalProfit < 0 ? "-" : "+"}${fixNumber(totalProfit)}\n\n${keyMessage}`;
 
     const itemMessages = uuids.map(uuid =>
         Settings.kuudraProfitCompact ? getOverlayTextCompact(uuid) : getOverlayText(uuid)
@@ -470,8 +483,9 @@ function updateOverlay(uuids, tier) {
     profitGui.setMessage(`${msg}${itemMessages}`);
 }
 
-function getKey(uuid) {
-    const item = bazaarItems[uuid];
+function getKey() {
+    const type = Settings.barbKey ? "KEY_BARB" : "KEY_MAGE";
+    const item = bazaarItems[type];
     if (!item) return null;
 
     const price = (Settings.sellOrderPrice ? item.buyPrice || item.sellPrice : item.sellPrice || item.buyPrice) + (item.basePrice || 0);
@@ -481,6 +495,7 @@ function getKey(uuid) {
 
 function getOverlayText(uuid) {
     if (Settings.ignoreEssence && uuid === "crimson") return;
+    if (Settings.ignoreTeeth && uuid === "teeth") return;
 
     const item = attributesItems[uuid] || bazaarItems[uuid] || auctionItems[uuid];
     if (!item || item.calcIgnore) return;
@@ -494,6 +509,7 @@ function getOverlayText(uuid) {
 
 function getOverlayTextCompact(uuid) {
     if (Settings.ignoreEssence && uuid === "crimson") return;
+    if (Settings.ignoreTeeth && uuid === "teeth") return;
 
     const item = attributesItems[uuid] || bazaarItems[uuid] || auctionItems[uuid];
     if (!item || item.calcIgnore) return;

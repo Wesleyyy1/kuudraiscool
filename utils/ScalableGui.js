@@ -1,70 +1,54 @@
 import Settings from "../settings/config.js";
-import { registerWhen } from "./generalUtils.js";
-import { data } from "./data.js";
-const GuiButton = Java.type("net.minecraft.client.gui.GuiButton");
+import { kicPrefix, registerWhen } from "./generalUtils.js";
+import { kicData } from "./data.js";
+import World from "./World.js";
+
 const instruct = "Use scroll to scale, click the button to reset, and drag to move the overlay.";
 
 export default class ScalableGui {
-    constructor(subObject, settings, condition, example, overGui = false) {
-        this.obj = data;
-        this.subObj = this.obj[subObject];
-        this.settings = settings;
+    constructor(pogSubObj, setting, requires, condition, example, overGui = false) {
+        this.subObj = kicData[pogSubObj];
+        this.setting = setting;
         this.example = example;
         this.overGui = overGui;
-        this.drawBackground = Settings.drawBackground;
-
-        if (!("x" in this.subObj)) this.subObj.x = 50;
-        if (!("y" in this.subObj)) this.subObj.y = 50;
-        if (!("scale" in this.subObj)) this.subObj.scale = 1;
+        this.requires = new Set(requires);
 
         this.gui = new Gui();
         this.message = "";
 
         this.renderTrigger = register("renderOverlay", () => {
-            this.renderOverlay(this.example, this.getX(), this.getY(), this.getScale(), this.drawBackground, true);
+            this.renderOverlay(this.example, this.getX(), this.getY(), this.getScale(), true);
         }).unregister();
 
         this.gui.registerOpened(() => {
-            data.save();
             this.renderTrigger.register();
         });
 
         this.gui.registerClosed(() => {
-            data.save();
             this.renderTrigger.unregister();
         });
 
         registerWhen(register(this.overGui ? "guiRender" : "renderOverlay", () => {
             if (!this.gui.isOpen() && condition()) {
-                this.renderOverlay(this.message, this.getX(), this.getY(), this.getScale(), this.drawBackground, false, this.overGui);
+                this.renderOverlay(this.message, this.getX(), this.getY(), this.getScale(), false);
             }
-        }), () => Settings[this.settings]);
-
-        this.gui.addButton(new GuiButton(1, Renderer.screen.getWidth() - 110, Renderer.screen.getHeight() - 50, 80, 20, "Reset scale"));
-
-        this.gui.registerActionPerformed(button => {
-            if (button == 1) {
-                this.subObj.scale = 1;
-
-                this.obj.save();
-            }
-        });
+        }), () => Settings[this.setting] && (this.requires.has(World.world) || this.requires.has("all")));
 
         this.gui.registerScrolled((mx, my, dir) => {
             if (dir == 1) this.subObj.scale += 0.02;
             else this.subObj.scale -= 0.02;
-            this.obj.save();
+            kicData.save();
         });
 
         this.gui.registerMouseDragged((mx, my, btn, lastClick) => {
             this.subObj.x = mx;
             this.subObj.y = my;
-            this.obj.save();
+            kicData.save();
         });
     }
 
-    renderOverlay(text, x, y, scale, drawBackground, isExample = false) {
-        if (drawBackground) {
+    renderOverlay(text, x, y, scale, isExample = false) {
+        if (Settings.drawBackground) {
             const textDimensions = this.calculateTextDimensions(text, scale);
             Renderer.drawRect(
                 Renderer.color(0, 0, 0, 75),
@@ -119,9 +103,16 @@ export default class ScalableGui {
     }
 
     setCommand(commandName) {
-        register("command", () => {
-            this.open();
-        }).setName(commandName);
+        register("command", (...args) => {
+            if (args && args[0] === "reset") {
+                this.subObj.x = 50;
+                this.subObj.y = 50;
+                this.subObj.scale = 1;
+                ChatLib.chat(`${kicPrefix} &aHUD location reset!`);
+            } else {
+                this.open();
+            }
+        }).setName(commandName).setTabCompletions("edit", "reset");
 
         return this;
     }

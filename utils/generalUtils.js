@@ -1,6 +1,5 @@
 import axios from "axios";
 import Settings from "../settings/config.js";
-import { data } from "./data";
 
 const ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
 const Base64 = Java.type("java.util.Base64");
@@ -281,7 +280,6 @@ register("worldLoad", () => {
     while (i--) {
         worldJoin[i]();
     };
-    data.save();
 })
 
 register("worldUnload", () => {
@@ -289,7 +287,6 @@ register("worldUnload", () => {
     while (i--) {
         worldLeave[i]();
     };
-    data.save();
 })
 
 register("serverDisconnect", () => {
@@ -297,7 +294,6 @@ register("serverDisconnect", () => {
     while (i--) {
         worldLeave[i]();
     };
-    data.save();
 })
 
 export {

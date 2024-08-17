@@ -12,7 +12,7 @@ class Settings {
 
     @ButtonProperty({
         name: "&3Discord Server",
-        description: "Join if you want to talk to us directly, report a bug or want to make a suggestion.",
+        description: "Join our Discord server to talk to us directly, report bugs, or make suggestions.",
         category: "General",
         placeholder: "Join"
     })
@@ -22,7 +22,7 @@ class Settings {
 
     @TextProperty({
         name: "API Key",
-        description: "Enter your kuudraiscool API key here",
+        description: "Enter your KuudraIsCool API key here.",
         category: "General",
         placeholder: "No key set",
         protected: true,
@@ -30,8 +30,8 @@ class Settings {
     apikey = "";
 
     @SwitchProperty({
-        name: "MVP++ Emoji's",
-        description: "Ability to send ++ emoji's without being ++.",
+        name: "MVP++ Emojis",
+        description: "Allows sending MVP++ emojis without having MVP++.",
         category: "General",
     })
     emojis = false;
@@ -40,14 +40,14 @@ class Settings {
 
     @SwitchProperty({
         name: "Party Finder",
-        description: "Toggle party finder stats",
+        description: "Toggle Party Finder stats.",
         category: "Kuudra",
     })
     partyfinder = true;
 
     @SwitchProperty({
         name: "Run Overview",
-        description: "Toggle run overview",
+        description: "Toggle the Run Overview display.",
         category: "Kuudra",
     })
     runoverview = true;
@@ -56,23 +56,34 @@ class Settings {
 
     @SwitchProperty({
         name: "Kuudra Profit",
-        description: "Kuudra Profit",
+        description: "Toggle Kuudra Profit display.",
         category: "Kuudra",
         subcategory: "Chest Profit"
     })
     kuudraProfit = false;
 
+    @ButtonProperty({
+        name: "Move Kuudra Profit GUI",
+        description: "Click to edit the GUI location.",
+        category: "Kuudra",
+        subcategory: "Chest Profit",
+        placeholder: "Click!"
+    })
+    kuudraProfitGui() {
+        ChatLib.command("kuudraprofit", true)
+    }
+
     @SwitchProperty({
         name: "Kuudra Profit Compact",
-        description: "Kuudra Profit Compact",
+        description: "Display the profit in a compact layout.",
         category: "Kuudra",
         subcategory: "Chest Profit"
     })
-    kuudraProfitCompact = false;
+    kuudraProfitCompact = true;
 
     @SliderProperty({
         name: "Minimum God Roll",
-        description: "Set the minimum amount a attribute combo may be to be tracked as a godroll (in millions).",
+        description: "Set the minimum value for an attribute combination to be tracked as a godroll (in millions).",
         category: "Kuudra",
         subcategory: "Chest Profit",
         min: 0,
@@ -82,7 +93,7 @@ class Settings {
 
     @SwitchProperty({
         name: "Ignore essence value",
-        description: "Don't include the price of essence in the profit.",
+        description: "Exclude the value of essence from profit calculations.",
         category: "Kuudra",
         subcategory: "Chest Profit"
     })
@@ -90,39 +101,47 @@ class Settings {
 
     @SwitchProperty({
         name: "Ignore teeth value",
-        description: "Don't include the price of teeth in the profit(based of tabasco books).",
+        description: "Exclude the value of teeth from profit calculations (based on Tabasco 2 books).",
         category: "Kuudra",
         subcategory: "Chest Profit"
     })
-    ignoreTeeth = false;
+    ignoreTeeth = true;
 
     @SwitchProperty({
         name: "Use sell order price",
-        description: "Calculate profit based on sell order price (ON) or insta sell price (OFF).",
+        description: "Calculate profit based on the sell order price (ON) or the instant sell price (OFF).",
         category: "Kuudra",
         subcategory: "Chest Profit"
     })
     sellOrderPrice = true;
 
+    @SwitchProperty({
+        name: "(TEMP) Key type",
+        description: "Use barbarian (ON) or mage (OFF) key price in the profit calculation.",
+        category: "Kuudra",
+        subcategory: "Chest Profit"
+    })
+    barbKey = true;
+
     // Chat commands
 
     @SwitchProperty({
         name: "Chat Commands",
-        description: "Toggle chat commands",
+        description: "Toggle chat commands.",
         category: "Chat Commands",
     })
     chatcommands = false;
 
     @SwitchProperty({
         name: "Party Commands",
-        description: "Toggle party commands",
+        description: "Toggle party commands.",
         category: "Chat Commands",
     })
     partycommands = false;
 
     @SwitchProperty({
         name: "Dm Commands",
-        description: "Toggle dm commands",
+        description: "Toggle DM commands.",
         category: "Chat Commands",
     })
     dmcommands = false;
@@ -131,14 +150,14 @@ class Settings {
 
     @SwitchProperty({
         name: "Draw with Shadow",
-        description: "Option for rendering HUDS with text shadow",
+        description: "Toggle rendering HUDS with text shadow",
         category: "Overlay"
     })
     textShadow = false;
 
     @SwitchProperty({
         name: "Draw with Background",
-        description: "Option for rendering HUDS with dark background",
+        description: "Toggle rendering HUDS with a dark background.",
         category: "Overlay"
     })
     drawBackground = false;
@@ -194,10 +213,12 @@ class Settings {
         this.setCategoryDescription("Credits", "&akuudraiscool&r &7- by &dWesley &7& &dAnthony");
 
         this.addDependency("Kuudra Profit Compact", "Kuudra Profit");
+        this.addDependency("Move Kuudra Profit GUI", "Kuudra Profit");
         this.addDependency("Minimum God Roll", "Kuudra Profit");
         this.addDependency("Ignore essence value", "Kuudra Profit");
         this.addDependency("Ignore teeth value", "Kuudra Profit");
         this.addDependency("Use sell order price", "Kuudra Profit");
+        this.addDependency("(TEMP) Key type", "Kuudra Profit");
 
         this.addDependency("Party Commands", "Chat Commands");
         this.addDependency("Dm Commands", "Chat Commands");
