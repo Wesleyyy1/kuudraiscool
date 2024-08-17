@@ -1,6 +1,5 @@
 import { fixNumber, errorHandler } from "./utils/generalUtils.js";
 import Settings from "./settings/config.js";
-import Party from "./utils/Party.js";
 
 let inOverview = false;
 let rawStartTime, rawEndTime, startTime, endTime;

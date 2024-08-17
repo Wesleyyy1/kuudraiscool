@@ -2,7 +2,7 @@ import { @Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, @SliderProp
 
 @Vigilant("kuudraiscool/data", "kuudraiscool", {
     getCategoryComparator: () => (a, b) => {
-        const categories = ["General", "Kuudra", "Chat Commands", "Dev", "Credits"];
+        const categories = ["General", "Kuudra", "Chat Commands", "Overlay", "Credits"];
         return categories.indexOf(a.name) - categories.indexOf(b.name);
     }
 })
@@ -52,6 +52,58 @@ class Settings {
     })
     runoverview = true;
 
+    // Kuudra - Chest Profit
+
+    @SwitchProperty({
+        name: "Kuudra Profit",
+        description: "Kuudra Profit",
+        category: "Kuudra",
+        subcategory: "Chest Profit"
+    })
+    kuudraProfit = false;
+
+    @SwitchProperty({
+        name: "Kuudra Profit Compact",
+        description: "Kuudra Profit Compact",
+        category: "Kuudra",
+        subcategory: "Chest Profit"
+    })
+    kuudraProfitCompact = false;
+
+    @SliderProperty({
+        name: "Minimum God Roll",
+        description: "Set the minimum amount a attribute combo may be to be tracked as a godroll (in millions).",
+        category: "Kuudra",
+        subcategory: "Chest Profit",
+        min: 0,
+        max: 350
+    })
+    minGodroll = 50;
+
+    @SwitchProperty({
+        name: "Ignore essence value",
+        description: "Don't include the price of essence in the profit.",
+        category: "Kuudra",
+        subcategory: "Chest Profit"
+    })
+    ignoreEssence = false;
+
+    @SwitchProperty({
+        name: "Ignore teeth value",
+        description: "Don't include the price of teeth in the profit(based of tabasco books).",
+        category: "Kuudra",
+        subcategory: "Chest Profit"
+    })
+    ignoreTeeth = false;
+
+    @SwitchProperty({
+        name: "Use sell order price",
+        description: "Calculate profit based on sell order price (ON) or insta sell price (OFF).",
+        category: "Kuudra",
+        subcategory: "Chest Profit"
+    })
+    sellOrderPrice = true;
+
     // Chat commands
 
     @SwitchProperty({
@@ -75,44 +127,21 @@ class Settings {
     })
     dmcommands = false;
 
-    // Dev
+    // Overlay
 
     @SwitchProperty({
         name: "Draw with Shadow",
         description: "Option for rendering HUDS with text shadow",
-        category: "Dev"
+        category: "Overlay"
     })
     textShadow = false;
 
     @SwitchProperty({
         name: "Draw with Background",
         description: "Option for rendering HUDS with dark background",
-        category: "Dev"
+        category: "Overlay"
     })
     drawBackground = false;
-
-    @SwitchProperty({
-        name: "Kuudra Profit",
-        description: "Kuudra Profit",
-        category: "Dev"
-    })
-    kuudraProfit = false;
-
-    @SwitchProperty({
-        name: "Kuudra Profit Compact",
-        description: "Kuudra Profit Compact",
-        category: "Dev"
-    })
-    kuudraProfitCompact = false;
-
-    @SliderProperty({
-        name: "Minimum God Roll",
-        description: `Set the minimum amount a attribute combo may be to be tracked as a godroll (in millions).`,
-        category: "Dev",
-        min: 0,
-        max: 350
-    })
-    minGodroll = 50;
 
     // Credits
 
@@ -163,6 +192,12 @@ class Settings {
         this.setCategoryDescription("Kuudra", "&akuudraiscool&r &7- by &dWesley &7& &dAnthony");
         this.setCategoryDescription("Chat Commands", "&akuudraiscool&r &7- by &dWesley &7& &dAnthony");
         this.setCategoryDescription("Credits", "&akuudraiscool&r &7- by &dWesley &7& &dAnthony");
+
+        this.addDependency("Kuudra Profit Compact", "Kuudra Profit");
+        this.addDependency("Minimum God Roll", "Kuudra Profit");
+        this.addDependency("Ignore essence value", "Kuudra Profit");
+        this.addDependency("Ignore teeth value", "Kuudra Profit");
+        this.addDependency("Use sell order price", "Kuudra Profit");
 
         this.addDependency("Party Commands", "Chat Commands");
         this.addDependency("Dm Commands", "Chat Commands");

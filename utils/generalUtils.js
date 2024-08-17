@@ -18,13 +18,18 @@ let worldJoin = [];
 let worldLeave = [];
 
 function fixNumber(labelValue) {
-    return Math.abs(Number(labelValue)) >= 1.0e+9
-        ? (Math.abs(Number(labelValue)) / 1.0e+9).toFixed(2) + "B"
-        : Math.abs(Number(labelValue)) >= 1.0e+6
-            ? (Math.abs(Number(labelValue)) / 1.0e+6).toFixed(2) + "M"
-            : Math.abs(Number(labelValue)) >= 1.0e+3
-                ? (Math.abs(Number(labelValue)) / 1.0e+3).toFixed(2) + "K"
-                : Math.abs(Number(labelValue));
+    const sign = Math.sign(labelValue);
+    const absoluteValue = Math.abs(Number(labelValue));
+
+    if (absoluteValue >= 1.0e+9) {
+        return (sign * (absoluteValue / 1.0e+9)).toFixed(2) + "B";
+    } else if (absoluteValue >= 1.0e+6) {
+        return (sign * (absoluteValue / 1.0e+6)).toFixed(2) + "M";
+    } else if (absoluteValue >= 1.0e+3) {
+        return (sign * (absoluteValue / 1.0e+3)).toFixed(2) + "K";
+    } else {
+        return (sign * absoluteValue).toString();
+    }
 }
 
 const decompress = (compressed) => {

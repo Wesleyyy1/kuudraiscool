@@ -10,6 +10,8 @@ import { checkApiKey, kicPrefix, getDiscord, setRegisters } from "./utils/genera
 import "./runOverview.js";
 import "./kuudra-prices/attributePrices.js";
 import "./mvpEmoji.js";
+import "./utils/World.js";
+import "./kuudra-prices/kuudraProfit.js";
 
 // Checks on launch
 setTimeout(() => {

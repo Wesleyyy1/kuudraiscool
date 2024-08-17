@@ -25,10 +25,12 @@ export default class ScalableGui {
         }).unregister();
 
         this.gui.registerOpened(() => {
+            data.save();
             this.renderTrigger.register();
         });
 
         this.gui.registerClosed(() => {
+            data.save();
             this.renderTrigger.unregister();
         });
 
