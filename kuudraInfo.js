@@ -628,6 +628,8 @@ function shouldReplace(currentItem, attributes, enchants, reforge) {
     let newLL = attributes.lifeline ? parseInt(attributes.lifeline) : 0;
     let currentLL = currentItem.ll || 0;
 
+    if (currentLL > newLL) return false;
+
     if (newLL > currentLL) return true;
     if (newLL === currentLL) {
         let newMP = attributes.mana_pool ? parseInt(attributes.mana_pool) : 0;
