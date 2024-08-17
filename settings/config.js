@@ -101,7 +101,7 @@ class Settings {
 
     @SwitchProperty({
         name: "Ignore teeth value",
-        description: "Exclude the value of teeth from profit calculations (based on Tabasco 2 books).",
+        description: "Exclude the value of teeth from profit calculations (based on Tabasco 3 books).",
         category: "Kuudra",
         subcategory: "Chest Profit"
     })
