@@ -181,7 +181,7 @@ function checkApiKey(apiKey, manual = false) {
             }
         })
         .catch(error => {
-            if (error.response && error.response.status === 503) {
+            if (error.response && (error.response.status === 502 || error.response.status === 503)) {
                 ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
             } if (error.response && error.response.status === 429) {
                 ChatLib.chat(`${kicPrefix} &cYou cannot make anymore request to the api at this time please try again later.`);

@@ -249,7 +249,7 @@ register("packetReceived", (packet, event) => {
             return;
         }
 
-        if (itemId === "MANDRAA") {
+        if (itemId === "MANDRAA" || itemId === "KUUDRA_MANDIBLE") {
             if (!bazaarItems[uuid]) {
                 bazaarItems[uuid] = {
                     name: itemName,
@@ -389,7 +389,9 @@ function fetchItemPrices(uuidsToUpdate, callback) {
             callback();
         })
         .catch(error => {
-            if (!error.isAxiosError || error.code == 500) {
+            if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
+                ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
+            } else if (!error.isAxiosError || error.code == 500) {
                 errorHandler("Error while getting prices for items", error.message, "kuudraProfit.js", null);
             }
             callback();

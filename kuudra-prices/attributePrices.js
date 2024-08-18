@@ -168,7 +168,9 @@ register("command", (arg1, arg2, arg3, arg4) => {
             showPrices();
         })
         .catch(error => {
-            if (error.isAxiosError && error.code != 500) {
+            if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
+                ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
+            } else if (error.isAxiosError && error.code != 500) {
                 ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
             } else {
                 ChatLib.chat(`${kicPrefix} &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
@@ -255,7 +257,9 @@ register("command", (direction, type, maxIndex, msgid) => {
             showUpgradeMsg(response.data, startlvl, endlvl);
         })
         .catch(error => {
-            if (error.isAxiosError && error.code != 500) {
+            if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
+                ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
+            } else if (error.isAxiosError && error.code != 500) {
                 if (error.code == 429) {
                     ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
                 } else {
