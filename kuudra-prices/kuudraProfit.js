@@ -217,7 +217,7 @@ register("packetReceived", (packet, event) => {
         }
 
         const attributes = extraAttr.getTag("attributes");
-        if (attributes !== null) {
+        if (attributes !== null && itemId !== "HOLLOW_WAND") {
             const parsedAttributes = parseNbt(attributes.toString());
             
             if (!attributesItems[uuid]) {
