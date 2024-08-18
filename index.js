@@ -120,8 +120,7 @@ register("command", () => ChatLib.command("joininstance KUUDRA_FIERY")).setName(
 register("command", () => ChatLib.command("joininstance KUUDRA_INFERNAL")).setName("t5", true);
 
 const kicCommandsMsg = new Message();
-kicCommandsMsg.addTextComponent("\n");
-kicCommandsMsg.addTextComponent("&r&2&lKuudraiscool commands\n");
+kicCommandsMsg.addTextComponent("\n&r&2&lKuudraiscool commands\n");
 kicCommandsMsg.addTextComponent("&8* &a/kic settings\n");
 kicCommandsMsg.addTextComponent("&8* &a/t1 /t2 /t3 /t4 /t5\n");
 kicCommandsMsg.addTextComponent("&8* &a/apikey <key>\n");
@@ -131,14 +130,12 @@ kicCommandsMsg.addTextComponent("&8* &a/doogans\n");
 kicCommandsMsg.addTextComponent("&8* &a/kuudraprofit edit/reset\n");
 kicCommandsMsg.addTextComponent("&8* &a/runoverviewpreview\n");
 kicCommandsMsg.addTextComponent("&8* &a/cancelrunoverview\n");
-kicCommandsMsg.addTextComponent("&8* &a/checkapikey\n");
-kicCommandsMsg.addTextComponent("\n");
+kicCommandsMsg.addTextComponent("&8* &a/kic checkapikey\n\n");
 kicCommandsMsg.addTextComponent("&r&2&lChat commands\n");
 kicCommandsMsg.addTextComponent("&8* &a .stats [player]\n");
 kicCommandsMsg.addTextComponent("&8* &a .runs [player]\n");
 kicCommandsMsg.addTextComponent("&8* &a .rtca [player]\n");
-kicCommandsMsg.addTextComponent("&8* &a .ap <attribute> [level]\n");
-kicCommandsMsg.addTextComponent("\n");
+kicCommandsMsg.addTextComponent("&8* &a .ap <attribute> [level]\n\n");
 kicCommandsMsg.addTextComponent("&2[] = optional &7| &2<> = required\n");
 
 // Register main kuudraiscool command
@@ -176,11 +173,12 @@ register("command", (...args) => {
             break;
         case "checkapikey":
             checkApiKey(null, true);
+            break;
         default:
             ChatLib.chat(kicCommandsMsg);
             break;
     }
-}).setName("kuudraiscool", true).setAliases("kic", "ki");
+}).setName("kuudraiscool", true).setAliases("kic", "ki").setTabCompletions("kuudra", "apikey", "t1", "t2", "t3", "t4", "t5", "settings", "checkapikey");
 
 // Register chat event for party data
 register("chat", (msg) => {

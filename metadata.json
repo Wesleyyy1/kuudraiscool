@@ -3,7 +3,7 @@
   "creator": "Wesley & Anthony",
   "description": "kuudra is very cool",
   "entry": "index.js",
-  "version": "dev-2.6",
+  "version": "2.0.0",
   "requires": [
     "Vigilance",
     "axios",

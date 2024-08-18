@@ -30,7 +30,7 @@ export function checkUpdate() {
             const Msg2 = ChatLib.getCenteredText(`&aUpdate Available! (${data.version})`);
 
             setTimeout(() => {
-                ChatLib.chat("\n&r&9&m-----------------------------------------------------&r");
+                ChatLib.chat("&r&9&m-----------------------------------------------------&r");
                 ChatLib.chat(`${Msg1}\n${Msg2}`);
                 ChatLib.chat("&r&9&m-----------------------------------------------------&r");
                 ChatLib.chat(
