@@ -89,7 +89,7 @@ export default new class Party {
             // You make a party in party finder
             if (unformatted == "Party Finder > Your party has been queued in the dungeon finder!") {
                 setTimeout(() => {
-                    hidePartySpam(750)
+                    hidePartySpam(1000)
                     ChatLib.command("pl")
                 }, 250);
             }
@@ -103,7 +103,7 @@ export default new class Party {
             // Joining a party
             if (/&eYou have joined &r.+'s &r&eparty!&r/.test(formatted)) {
                 setTimeout(() => {
-                    hidePartySpam(750)
+                    hidePartySpam(1000)
                     ChatLib.command("pl")
                 }, 250);
             }
@@ -122,7 +122,7 @@ export default new class Party {
 
     checkParty() {
         setTimeout(() => {
-            hidePartySpam(750)
+            hidePartySpam(1000)
             ChatLib.command("pl")
         }, 250);
     }

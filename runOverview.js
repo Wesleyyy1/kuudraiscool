@@ -14,7 +14,7 @@ let buildStart, buildEnd, stunEnd, kuudra1End;
 function startRunOverview(callback) {
     inOverview = true;
     ChatLib.chat("\n&aRun overview has started!\n");
-    rawEndTime = startTime = endTime = timerStart = 0;
+    dps = rawEndTime = startTime = endTime = timerStart = 0;
     buildStart = buildEnd = stunEnd = kuudra1End = 0;
     rawStartTime = Date.now();
     let supplies = 0;
@@ -27,7 +27,9 @@ function startRunOverview(callback) {
                 startTime = Date.now();
             } else if (msg.trim().startsWith("KUUDRA DOWN!")) {
                 endTime = Date.now();
-                dps = fixNumber(300000000 / ((endTime / 1000) - timerStart));
+                if (endTime && timerStart) {
+                    dps = fixNumber(300000000 / ((endTime / 1000) - timerStart));
+                }
                 unregisterHandlers();
                 callback();
             } else if (msg.includes("is now ready!")) {
@@ -149,11 +151,9 @@ register("chat", (msg) => {
         if (!inOverview) {
             startRunOverview(() => {
                 const [member_one, member_two, member_three, member_four] = party.map(member => (
-                    new Message(
-                        new TextComponent(`&8> &a${member.player} &4${member.deaths} ☠ &f- &6${member.supplies} Supply`)
-                            .setHoverValue(`&a&lSupply times:\n\n${member.supplytimes}`)
-                            .setClick("run_command", `/ct copy > ${member.player} - ${member.deaths} Death - ${member.supplies} Supply`)
-                    )
+                    new TextComponent(`&8> &a${member.player} &4${member.deaths} ☠ &f- &6${member.supplies} Supply\n`)
+                        .setHoverValue(`&a&lSupply times:\n\n${member.supplytimes}`)
+                        .setClick("run_command", `/ct copy > ${member.player} - ${member.deaths} Death - ${member.supplies} Supply`)
                 ));
 
                 const rawTimeformattedTime = calculateTime(rawStartTime, rawEndTime);
@@ -163,24 +163,24 @@ register("chat", (msg) => {
                 const kuudra1KillTime = calculateTime(stunEnd, kuudra1End);
                 const kuudra2KillTime = calculateTime(kuudra1End, endTime);
 
-                const runTime = new Message(
-                    new TextComponent(`&9Times & DPS:\n&8* &aRun time: &f${runTimeformattedTime}\n&8* &aRaw time: &f${rawTimeformattedTime}`)
-                        .setHoverValue(`&a&lExtra info:\n\n&aBuild time: ${buildTime}\n&aStun time: ${stunTime}\n&aDPS time: ${kuudra1KillTime}\n&aLast phase time: ${kuudra2KillTime}`)
-                );
+                const runTime = new TextComponent(`&8* &aRun time: &f${runTimeformattedTime}\n&8* &aRaw time: &f${rawTimeformattedTime}\n`)
+                    .setHoverValue(`&a&lExtra info:\n\n&aBuild time: &f${buildTime}\n&aStun time: &f${stunTime}\n&aDPS time: &f${kuudra1KillTime}\n&aLast phase time: &f${kuudra2KillTime}`);
 
                 setTimeout(() => {
-                    ChatLib.chat("&b&m--------------------");
-                    ChatLib.chat("&9&lRUN OVERVIEW");
-                    ChatLib.chat(`&r`);
-                    ChatLib.chat(`&9Party:`);
-                    ChatLib.chat(member_one || `&cNo player found`);
-                    ChatLib.chat(member_two || `&cNo player found`);
-                    ChatLib.chat(member_three || `&cNo player found`);
-                    ChatLib.chat(member_four || `&cNo player found`);
-                    ChatLib.chat(`&r&r`);
-                    ChatLib.chat(runTime);
-                    ChatLib.chat(`&8* &aDPS: &f${dps}`);
-                    ChatLib.chat("&b&m--------------------");
+                    const message = new Message();
+                    message.addTextComponent("&b&m--------------------\n");
+                    message.addTextComponent("&9&lRUN OVERVIEW\n\n");
+                    message.addTextComponent("&9Party:\n");
+                    message.addTextComponent(member_one || "&cNo player found\n");
+                    message.addTextComponent(member_two || "&cNo player found\n");
+                    message.addTextComponent(member_three || "&cNo player found\n");
+                    message.addTextComponent(member_four || "&cNo player found\n");
+                    message.addTextComponent("\n&9Times & DPS:\n");
+                    message.addTextComponent(runTime);
+                    message.addTextComponent(`&8* &aDPS: &f${dps}\n`);
+                    message.addTextComponent("&b&m--------------------");
+
+                    ChatLib.chat(message);
 
                     rawStartTime = rawEndTime = startTime = endTime = 0;
                     buildStart = buildEnd = stunEnd = 0;
@@ -195,17 +195,42 @@ register("chat", (msg) => {
 }).setCriteria("${msg}");
 
 register("command", () => {
-    ChatLib.chat("&b&m--------------------");
-    ChatLib.chat("&9&lRUN OVERVIEW");
-    ChatLib.chat(`&r`);
-    ChatLib.chat(`&9Party:`);
-    ChatLib.chat(`&8> &aSuuerSindre: &44 ☠ &f- &60 Supplies`);
-    ChatLib.chat(`&8> &aHelletGT: &40 ☠ &f- &63 Supplies`);
-    ChatLib.chat(`&8> &aWesleygame: &41 ☠ &f- &62 Supplies`);
-    ChatLib.chat(`&8> &acatgirlrain: &40 ☠ &f- &61 Supplies`);
-    ChatLib.chat(`&r&r`);
-    ChatLib.chat(`&9Times:`);
-    ChatLib.chat(`&8* &aRun time: &f1:46.02`);
-    ChatLib.chat(`&8* &aRaw time: &f1:52.13`);
-    ChatLib.chat("&b&m--------------------");
+    const party = [
+        { player: "SuuerSindre", deaths: 4, supplies: 0, supplytimes: "" },
+        { player: "Xaned", deaths: 0, supplies: 2, supplytimes: "&8#1 &a1:30.22\n&8#4 &a1:50.43\n" },
+        { player: "Wesleygame", deaths: 1, supplies: 2, supplytimes: "&8#2 &a1:35.54\n&8#5 &a2:05.12\n" },
+        { player: "catgirlrain", deaths: 0, supplies: 2, supplytimes: "&8#3 &a1:40.31\n&8#6 &a2:10.49\n"}
+    ];
+
+    const rawTimeformattedTime = "3:52.13";
+    const runTimeformattedTime = "3:46.02";
+    const buildTime = "0:32.22";
+    const stunTime = "0:14.06";
+    const kuudra1KillTime = "0:09.59";
+    const kuudra2KillTime = "0:36.13";
+    const dps = "13.69M";
+
+    const [member_one, member_two, member_three, member_four] = party.map(member => (
+        new TextComponent(`&8> &a${member.player} &4${member.deaths} ☠ &f- &6${member.supplies} Supply\n`)
+            .setHoverValue(`&a&lSupply times:\n\n${member.supplytimes}`)
+            .setClick("run_command", `/ct copy > ${member.player} - ${member.deaths} Death - ${member.supplies} Supply`)
+    ));
+
+    const runTime = new TextComponent(`&8* &aRun time: &f${runTimeformattedTime}\n&8* &aRaw time: &f${rawTimeformattedTime}\n`)
+        .setHoverValue(`&a&lExtra info:\n\n&aBuild time: &f${buildTime}\n&aStun time: &f${stunTime}\n&aDPS time: &f${kuudra1KillTime}\n&aLast phase time: &f${kuudra2KillTime}`);
+
+    const message = new Message();
+    message.addTextComponent("&b&m--------------------\n");
+    message.addTextComponent("&9&lRUN OVERVIEW\n");
+    message.addTextComponent("\n&9Party:\n");
+    message.addTextComponent(member_one || "&cNo player found\n");
+    message.addTextComponent(member_two || "&cNo player found\n");
+    message.addTextComponent(member_three || "&cNo player found\n");
+    message.addTextComponent(member_four || "&cNo player found\n");
+    message.addTextComponent("\n&9Times & DPS:\n");
+    message.addTextComponent(runTime);
+    message.addTextComponent(`&8* &aDPS: &f${dps}\n`);
+    message.addTextComponent("&b&m--------------------");
+
+    ChatLib.chat(message);
 }).setName("runoverviewpreview", true);

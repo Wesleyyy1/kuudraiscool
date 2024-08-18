@@ -33,14 +33,14 @@ function checkParty() {
                 if (data.success) {
                     processPlayerData(data);
                 } else {
-                    msgData.messages.push(`${player} -> INVALID`);
+                    msgData.messages.push(`&a${player} &f-> &7INVALID`);
                     msgData.checked++;
                 }
 
                 checkCompleted();
             })
             .catch(error => {
-                msgData.messages.push(`${player} -> ERROR`);
+                msgData.messages.push(`&a${player} &f-> &7ERROR`);
                 msgData.checked++;
                 checkCompleted();
                 if (!error.isAxiosError || error.code == 500) {
@@ -56,6 +56,7 @@ function processPlayerData(data) {
 
     let arrows = 0;
     const data = memberData.inventory?.bag_contents?.quiver?.data;
+
     if (data) {
         const quiver = decompress(data);
 
@@ -68,9 +69,20 @@ function processPlayerData(data) {
                 arrows += count;
             }
         }
+    } else {
+        msgData.messages.push(`&a${name} &f-> &7API OFF`);
+        msgData.checked++;
+        return;
     }
 
     const soulflow = memberData.item_data?.soulflow || 0;
+
+    if (!soulflow) {
+        msgData.messages.push(`&a${name} &f-> &7API OFF`);
+        msgData.checked++;
+        return;
+    }
+
 
     let enoughArrows = arrows >= 433 || !arrows ? true : `GET ARROWS (&c${(arrows / 2880 * 100).toFixed(2)}%&7)`;
     let enoughSoulflow = soulflow >= 501 ? true : `GET SOULFLOW (&c${fixNumber(soulflow)}&7)`;

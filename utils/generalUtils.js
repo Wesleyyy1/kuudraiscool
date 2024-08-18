@@ -152,7 +152,7 @@ function getDiscord() {
     return discordUrl;
 }
 
-function checkApiKey(apiKey) {
+function checkApiKey(apiKey, manual = false) {
     const noApiKeyMessage = `${kicPrefix} &eThere is no API key set. If you have an API key, set it using /kic apikey <key>.\n&eIf you do not have an API key, join the Discord: ${getDiscord()}`;
 
     const key = apiKey || Settings.apikey;
@@ -175,7 +175,7 @@ function checkApiKey(apiKey) {
             const data = response.data;
 
             if (data.status === "ACTIVE") {
-                handleActiveApiKey(data, apiKey);
+                handleActiveApiKey(data, apiKey, manual);
             } else {
                 handleInactiveApiKey(data.status);
             }
@@ -191,23 +191,16 @@ function checkApiKey(apiKey) {
         });
 }
 
-function handleActiveApiKey(data, apiKey) {
+function handleActiveApiKey(data, apiKey, manual) {
     keyValid = true;
-    const previousRoles = roles;
-    roles = data.roles;
     invalidReason = "";
+    roles = data.roles;
 
     if (apiKey) {
         Settings.apikey = apiKey;
         ChatLib.chat(`${kicPrefix} &aYour API key has been set!`);
-    }
-
-    if (previousRoles.length !== 0) {
-        if (roles.length > previousRoles.length) {
-            ChatLib.chat(`${kicPrefix} &aYour roles have been updated with new roles!`);
-        } else if (roles.length < previousRoles.length) {
-            ChatLib.chat(`${kicPrefix} &aSome roles have been removed.`);
-        }
+    } else if (manual) {
+        ChatLib.chat(`${kicPrefix} &aYou're API key has been verified and is working.`);
     }
 }
 

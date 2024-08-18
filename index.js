@@ -13,13 +13,19 @@ import "./mvpEmoji.js";
 import "./utils/World.js";
 import "./kuudra-prices/kuudraProfit.js";
 
-// Checks on launch
-setTimeout(() => {
-    checkUpdate();
-    checkApiKey();
-    Party.checkParty();
-    setRegisters();
-}, 2000);
+let firstChecks = false;
+
+const firstChecksReg = register("worldLoad", () => {
+    setTimeout(() => {
+        if (firstChecks) return;
+        checkUpdate();
+        checkApiKey();
+        Party.checkParty();
+        setRegisters();
+        firstChecks = true;
+        firstChecksReg.unregister();
+    }, 3000);
+})
 
 // Register chat event for party finder
 register("chat", (player) => {
@@ -85,10 +91,6 @@ register("command", (...args) => {
     }
 }).setName("apikey", true);
 
-register("command", () => {
-    checkApiKey();
-}).setName("checkapikey", true);
-
 function updateApiKey(key) {
     if (key === Settings.apikey) return ChatLib.chat(`${kicPrefix} &cYou are already using this API key!`);
     checkApiKey(key);
@@ -127,7 +129,9 @@ kicCommandsMsg.addTextComponent("&8* &a/kuudra [player]\n");
 kicCommandsMsg.addTextComponent("&8* &a/ap <attribute> [level] <attribute> [level]\n");
 kicCommandsMsg.addTextComponent("&8* &a/doogans\n");
 kicCommandsMsg.addTextComponent("&8* &a/kuudraprofit edit/reset\n");
+kicCommandsMsg.addTextComponent("&8* &a/runoverviewpreview\n");
 kicCommandsMsg.addTextComponent("&8* &a/cancelrunoverview\n");
+kicCommandsMsg.addTextComponent("&8* &a/checkapikey\n");
 kicCommandsMsg.addTextComponent("\n");
 kicCommandsMsg.addTextComponent("&r&2&lChat commands\n");
 kicCommandsMsg.addTextComponent("&8* &a .stats [player]\n");
@@ -139,7 +143,7 @@ kicCommandsMsg.addTextComponent("&2[] = optional &7| &2<> = required\n");
 
 // Register main kuudraiscool command
 register("command", (...args) => {
-    if(!args[0]){
+    if (!args[0]) {
         Settings.openGUI();
         return;
     }
@@ -170,6 +174,8 @@ register("command", (...args) => {
         case "settings":
             Settings.openGUI();
             break;
+        case "checkapikey":
+            checkApiKey(null, true);
         default:
             ChatLib.chat(kicCommandsMsg);
             break;

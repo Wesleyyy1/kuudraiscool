@@ -886,7 +886,7 @@ function displayMessage(name, manually) {
     const goldenDragonMessage = new TextComponent(`${oneBilBank}* ${goldenDragon}\n`)
         .setHoverValue(goldenDragonLore);
 
-    const kickMessage = new TextComponent(`&cRemove &4${name} &cfrom the party`)
+    const kickMessage = new TextComponent(`\n&cRemove &4${name} &cfrom the party`)
         .setClick("run_command", `/p kick ${name}`);
 
     const message = new Message();
