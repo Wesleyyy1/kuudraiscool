@@ -153,7 +153,7 @@ function displaySearchResults(list, search, name) {
     message.addTextComponent(title);
 
     if (list.API) {
-        message.addTextComponent(new TextComponent(`&aResults for: &7&o${search} ${isLoreSearch ? "(lore)" : ""}\n`));
+        message.addTextComponent(`&aResults for: &7&o${search} ${isLoreSearch ? "(lore)" : ""}\n`);
 
         list.items.forEach((item) => {
             const searchLower = search.toLowerCase();
@@ -164,10 +164,10 @@ function displaySearchResults(list, search, name) {
             }
         });
     } else {
-        message.addTextComponent(new TextComponent("&4 API is turned off!\n"));
+        message.addTextComponent("&4 API is turned off!\n");
     }
 
-    message.addTextComponent(new TextComponent("&2&m-------------------------&r"));
+    message.addTextComponent("&2&m-------------------------&r");
 
     ChatLib.chat(message);
 }

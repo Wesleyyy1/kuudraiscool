@@ -820,8 +820,10 @@ function generateLLMPLore(type) {
         const value = item[type];
 
         if (value && value > 0) {
-            total += value;
-            lore += `${item.name} &f+${value}\n`;
+            if (key !== "helmet") {
+                total += value;
+                lore += `${item.name} &f+${value}\n`;
+            }
         }
     });
 
@@ -895,19 +897,19 @@ function displayMessage(name, manually) {
     message.addTextComponent(manaPoolMessage);
     message.addTextComponent(runsMessage);
     message.addTextComponent(mpMessage);
-    message.addTextComponent(new TextComponent("\n"));
+    message.addTextComponent("\n");
     message.addTextComponent(hyperionMessage);
     message.addTextComponent(duplexMessage);
     message.addTextComponent(drillMessage);
     message.addTextComponent(ragnarockAxeMessage);
     message.addTextComponent(extraMessage);
-    message.addTextComponent(new TextComponent("\n"));
+    message.addTextComponent("\n");
     message.addTextComponent(helmetMessage);
     message.addTextComponent(terrorChestplateMessage);
     message.addTextComponent(terrorLeggingsMessage);
     message.addTextComponent(terrorBootsMessage);
     message.addTextComponent(goldenDragonMessage);
-    message.addTextComponent(new TextComponent("&2&m----------------------------&r"));
+    message.addTextComponent("&2&m----------------------------&r");
     
     if (!manually && Party.leader == Player.getName()) {
         message.addTextComponent(kickMessage);

@@ -78,6 +78,7 @@ export default new class Party {
                 let players = formatted.match(/&eYou'll be partying with: (.+)/)[1].split("&e, ")
                 for (let p of players) this.addMember(p)
             }
+
             // Party List shown in chat
             if (/^&eParty .+: (.+)/.test(formatted)) {
                 let match = formatted.match(/^&eParty .+: &r(.+)/)
@@ -86,8 +87,9 @@ export default new class Party {
                     if (players[i].replace(new RegExp(" ", "g"), "") !== "") this.addMember(players[i])
                 }
             }
+
             // You make a party in party finder
-            if (unformatted == "Party Finder > Your party has been queued in the dungeon finder!") {
+            if (unformatted == "Party Finder > Your party has been queued in the dungeon finder!" || unformatted == "Party Finder > Your party has been queued in the party finder!") {
                 setTimeout(() => {
                     hidePartySpam(1000)
                     ChatLib.command("pl")
