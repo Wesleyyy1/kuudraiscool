@@ -1,24 +1,35 @@
-import { request } from '../requestV2';
-import { decompress, errorHandler } from './utils/generalUtils.js';
+import axios from "axios";
+import Settings from "./settings/config.js";
+import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg, kicPrefix } from "./utils/generalUtils.js";
 
-function getCommand(ign, apiKey, type) {
-    request({
-        url: `https://api.sm0kez.com/profile/${ign}/selected`,
+function getCommand(ign, type) {
+    if (!isKeyValid()) return showInvalidReasonMsg();
+    if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
+
+    axios.get(`https://api.sm0kez.com/hypixel/profile/${ign}/selected`, {
         headers: {
             "User-Agent": "Mozilla/5.0 (ChatTriggers)",
-            "API-Key": apiKey
-        },
-        json: true
+            "API-Key": Settings.apikey
+        }
     })
         .then(response => {
-            if (response.success) {
-                processData(response.members?.[response.uuid], response.name);
+            const data = response.data;
+
+            if (data.success) {
+                processData(data.members?.[data.uuid], data.name);
             } else {
-                ChatLib.command(`pc ${response.error || "Player not found"}`);
+                ChatLib.command(`pc ${data.error || "Player not found!"}`);
             }
         })
         .catch(error => {
-            errorHandler('Error while getting profile data', error, 'chatCommands.js');
+            if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
+                ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
+            } else if (error.isAxiosError && error.code != 500) {
+                ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
+            } else {
+                ChatLib.chat(`${kicPrefix} &cSomething went wrong while gathering ${ign}'s data!\n&cPlease report this in the discord server!`);
+                errorHandler("Error while getting profile data", error.message, "chatCommands.js", `User: ${ign} | Type: ${type}`);
+            }
         });
 
     const processData = (memberData, name) => {
@@ -44,7 +55,7 @@ function processStats(memberData) {
         memberData.inventory?.equipment_contents?.data
     ];
 
-    inventoryData.forEach((data, index) => {
+    inventoryData.forEach((data) => {
         const items = decompress(data);
 
         if (!items) {

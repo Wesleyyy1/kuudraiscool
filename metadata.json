@@ -1,11 +1,12 @@
 {
   "name": "kuudraiscool",
-  "creator": "Wesleygame",
+  "creator": "Wesley & Anthony",
   "description": "kuudra is very cool",
   "entry": "index.js",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "requires": [
-    "requestV2",
-    "Vigilance"
+    "Vigilance",
+    "axios",
+    "PogData"
   ]
 }
