@@ -1,4 +1,5 @@
-import { @Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, @SliderProperty, Color } from "Vigilance";
+import { @Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, @SliderProperty, @SelectorProperty, Color } from "Vigilance";
+const currentVers = JSON.parse(FileLib.read("kuudraiscool", "metadata.json")).version;
 
 @Vigilant("kuudraiscool/data", "kuudraiscool", {
     getCategoryComparator: () => (a, b) => {
@@ -123,6 +124,73 @@ class Settings {
     })
     barbKey = true;
 
+    // Kuudra - Autokick
+
+    @SwitchProperty({
+        name: "AutoKick",
+        description: "Automatically kicks people who do not meet the set requirements. \n&4&lUSE AT YOUR OWN RISK!",
+        category: "Kuudra",
+        subcategory: "AutoKick"
+    })
+    kuudraAutoKick = false;
+
+    @SliderProperty({
+        name: "Minimum Lifeline level",
+        description: "Set the minimum level of lineline.",
+        category: "Kuudra",
+        subcategory: "AutoKick",
+        min: 0,
+        max: 70
+    })
+    minLifelineLevel = 0;
+
+    @SliderProperty({
+        name: "Minimum Mana pool level",
+        description: "Set the minimum level of mana pool.",
+        category: "Kuudra",
+        subcategory: "AutoKick",
+        min: 0,
+        max: 70
+    })
+    minManapoolLevel = 0;
+
+    @TextProperty({
+        name: "Minimum T5 Completions",
+        description: "Set the minimum for T5 Completions.",
+        category: "Kuudra",
+        subcategory: "AutoKick",
+        placeholder: "0",
+    })
+    minT5Completions = "0";
+
+    @TextProperty({
+        name: "Minimum Magical Power",
+        description: "Set the minimum for magical power.",
+        category: "Kuudra",
+        subcategory: "AutoKick",
+        placeholder: "0",
+    })
+    minMagicalPower = "0";
+
+    @SliderProperty({
+        name: "Minimum Chimera level",
+        description: "Set the minimum chimera level for ragnarok axe.",
+        category: "Kuudra",
+        subcategory: "AutoKick",
+        min: 0,
+        max: 5
+    })
+    minChimeraLevel = 0;
+
+    @SelectorProperty({
+        name: "Minimum Terror tier",
+        description: "Sets the minimum terror armor tier",
+        category: "Kuudra",
+        subcategory: "AutoKick",
+        options: ["Infernal", "Fiery", "Burning", "Hot", "Basic"]
+    })
+    minTerrorTier = 4;
+
     // Chat commands
 
     @SwitchProperty({
@@ -207,10 +275,10 @@ class Settings {
     constructor() {
         this.initialize(this);
 
-        this.setCategoryDescription("General", "&akuudraiscool&r &7- by &dWesley &7& &dAnthony");
-        this.setCategoryDescription("Kuudra", "&akuudraiscool&r &7- by &dWesley &7& &dAnthony");
-        this.setCategoryDescription("Chat Commands", "&akuudraiscool&r &7- by &dWesley &7& &dAnthony");
-        this.setCategoryDescription("Credits", "&akuudraiscool&r &7- by &dWesley &7& &dAnthony");
+        this.setCategoryDescription("General", `&akuudraiscool v${currentVers}&r &7- by &dWesley &7& &dAnthony`);
+        this.setCategoryDescription("Kuudra", `&akuudraiscool v${currentVers}&r &7- by &dWesley &7& &dAnthony`);
+        this.setCategoryDescription("Chat Commands", `&akuudraiscool v${currentVers}&r &7- by &dWesley &7& &dAnthony`);
+        this.setCategoryDescription("Credits", `&akuudraiscool v${currentVers}&r &7- by &dWesley &7& &dAnthony`);
 
         this.addDependency("Kuudra Profit Compact", "Kuudra Profit");
         this.addDependency("Move Kuudra Profit GUI", "Kuudra Profit");
@@ -219,6 +287,13 @@ class Settings {
         this.addDependency("Ignore teeth value", "Kuudra Profit");
         this.addDependency("Use sell order price", "Kuudra Profit");
         this.addDependency("(TEMP) Key type", "Kuudra Profit");
+
+        this.addDependency("Minimum Lifeline level", "AutoKick");
+        this.addDependency("Minimum Mana pool level", "AutoKick");
+        this.addDependency("Minimum T5 Completions", "AutoKick");
+        this.addDependency("Minimum Magical Power", "AutoKick");
+        this.addDependency("Minimum Chimera level", "AutoKick");
+        this.addDependency("Minimum Terror tier", "AutoKick");
 
         this.addDependency("Party Commands", "Chat Commands");
         this.addDependency("Dm Commands", "Chat Commands");

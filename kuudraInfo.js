@@ -10,10 +10,12 @@ import {
     showInvalidReasonMsg,
     showMissingRolesMsg,
     capitalizeEachWord,
-    kicPrefix
+    kicPrefix,
+    delay,
 } from "./utils/generalUtils.js";
 import { getLevel } from "./utils/petLevelUtils.js";
 import Party from "./utils/Party.js";
+import AutoKick from "./utils/autoKick.js";
 
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
@@ -36,8 +38,8 @@ const ITEM_IDS = {
 const equipmentTypes = [
     { type: "NECKLACE", key: "necklace" },
     { type: "CLOAK", key: "cloak" },
-    { type: ["BELT", "GAUNTLET"], key: "belt" },
-    { type: ["GLOVES", "BRACELET"], key: "bracelet" }
+    { type: "BELT", key: "belt" },
+    { type: ["GLOVES", "BRACELET", "GAUNTLET"], key: "bracelet" }
 ];
 
 let comps = {};
@@ -102,7 +104,7 @@ function setDefaults() {
             strong: 0,
             fero: 0
         },
-    
+
         chestplate: {
             name: "&4No chestplate",
             lore: "&4No chestplate",
@@ -114,7 +116,7 @@ function setDefaults() {
             strong: 0,
             fero: 0
         },
-    
+
         leggings: {
             name: "&4No leggings",
             lore: "&4No leggings",
@@ -126,7 +128,7 @@ function setDefaults() {
             strong: 0,
             fero: 0
         },
-        
+
         boots: {
             name: "&4No boots",
             lore: "&4No boots",
@@ -427,7 +429,7 @@ function checkItem(id, searchLore, displayLore, attributes, name, reforge, encha
 
 function checkRagnarockAxe(displayLore, reforge, enchants, gemstone) {
     const currentItem = items.ragnarock;
-    
+
     const chimeraLevel = enchants && enchants.ultimate_chimera ? parseInt(enchants.ultimate_chimera) : 0;
     if (chimeraLevel > currentItem.chimera) {
         updateRagnarockAxe(displayLore, 1, chimeraLevel);
@@ -654,7 +656,7 @@ function updateItem(slot, name, displayLore, attributes, enchants, gemstone, pri
     item.lore = displayLore;
     item.prefix = getColorData("gemstonechecker", gemstone);
     item.priority = priority;
-    
+
     updateLLMP(attributes, item);
     updateEnchants(enchants, item);
 }
@@ -784,7 +786,7 @@ function finalizeData(currentProfile, uuid) {
     }
 
     const bankBalance = currentProfile.banking?.balance;
-    
+
     if (bankBalance) {
         oneBilBank = bankBalance ? bankBalance > 950000000 ? "&a" : "&c" : "&c";
         goldenDragonLore += `&8* &aBank: &f${fixNumber(bankBalance) || "&cAPI OFF"}\n`;
@@ -792,7 +794,7 @@ function finalizeData(currentProfile, uuid) {
         oneBilBank = "&c";
         goldenDragonLore += `&8* &aBank: &cAPI OFF\n`;
     }
-    
+
     goldenDragonLore += `&8* &aPurse: &f${fixNumber(currentProfile.members[uuid].currencies?.coin_purse) || 0}\n`;
     const gold = fixNumber(currentProfile?.members?.[uuid]?.collection?.GOLD_INGOT) || "&cAPI OFF";
     goldenDragonLore += `&8* &aGold: &f${gold}`;
@@ -800,7 +802,7 @@ function finalizeData(currentProfile, uuid) {
 
 function apiOff() {
     goldenDragon = goldenDragonLore = hyperion = hyperionLore = duplex = duplexLore = extraReaper = extraTerminator = extraFireveil = extraHamRadio = "&cAPI OFF";
-    
+
     armor.helmet.name = armor.helmet.lore = "&cAPI OFF";
     armor.chestplate.name = armor.chestplate.lore = "&cAPI OFF";
     armor.leggings.name = armor.leggings.lore = "&cAPI OFF";
@@ -832,28 +834,43 @@ function generateLLMPLore(type) {
     return { total, lore };
 }
 
+function getColor(type, value){
+    switch (type) {
+        case "lifeline":
+            return value < 42 ? "&4" : value < 58 ? "&e" : value < 70 ? "&2" : value === 70 ? "&3" : "&f";
+        case "manapool":
+            return value < 42 ? "&4" : value < 58 ? "&e" : value < 70 ? "&2" : value === 70 ? "&3" : "&f";
+        case "runs":
+            return value < 500 ? "&4" : value < 1000 ? "&e" : value < 5000 ? "&2" : "&3";
+        case "mp":
+            return value < 1350 ? "&4" : value < 1600 ? "&e" : value < 1701 ? "&2" : "&3";
+        default:
+          return "&f"
+    }
+}
+
 function displayMessage(name, manually) {
     const playerMessage = new TextComponent(`&2&m-----&f[- &2${name} &7[Lvl ${(comps.score / 100) | 0}] &f-]&2&m-----\n`)
         .setHoverValue(`&a&lKuudra score: &f${comps.score.toFixed()}`)
         .setClick("run_command", `/pv ${name}`);
 
     const lifeline = generateLLMPLore("ll");
-    const lifelineMessage = new TextComponent(`&aLifeline: &f${lifeline.total} (+&c${(lifeline.total * 2.5).toFixed(1)}%&f)\n`)
+    const lifelineMessage = new TextComponent(`&aLifeline: &f`+getColor("lifeline", lifeline.total)+`${lifeline.total} &f(+&c${(lifeline.total * 2.5).toFixed(1)}%&f)\n`)
         .setHoverValue(lifeline.lore)
         .setClick("run_command", `/ct copy Lifeline: ${lifeline.total}`);
 
     const manaPool = generateLLMPLore("mp");
-    const manaPoolMessage = new TextComponent(`&aMana Pool: &f${manaPool.total} (+&b${(manaPool.total * 20).toFixed(1)} intel&f)\n`)
+    const manaPoolMessage = new TextComponent(`&aMana Pool: &f`+getColor("manapool", manaPool.total)+`${manaPool.total} &f(+&b${(manaPool.total * 20).toFixed(1)} intel&f)\n`)
         .setHoverValue(manaPool.lore)
         .setClick("run_command", `/ct copy Mana pool: ${manaPool.total}`);
 
     const runsLore = `&2&lCompletions: &r\n\n&6Basic: &f${comps.basic}\n&6Hot: &f${comps.hot}\n&6Burning: &f${comps.burning}\n&6Fiery: &f${comps.fiery}\n&6Infernal: &f${comps.infernal}`;
-    const runsMessage = new TextComponent(`&aRuns: &f${comps.infernal} (${comps.total})\n`)
+    const runsMessage = new TextComponent(`&aRuns: &f`+getColor("runs", comps.infernal)+`${comps.infernal} &f(${comps.total})\n`)
         .setHoverValue(runsLore)
         .setClick("run_command", `/ct copy Infernal runs: ${comps.infernal}`);
 
     const mpLore = `&a&lMP Breakdown:\n\n&aSelected Power: &f&l${mp.selectedPower}\n&aTuning: ${mp.tuningPoints}`;
-    const mpMessage = new TextComponent(`&aMagical Power: &f${mp.magicalPower}\n`)
+    const mpMessage = new TextComponent(`&aMagical Power: &f`+getColor("mp", mp.magicalPower)+`${mp.magicalPower}\n`)
         .setHoverValue(mpLore)
         .setClick("run_command", `/ct copy Magical Power: ${mp.magicalPower}`);
 
@@ -912,12 +929,16 @@ function displayMessage(name, manually) {
     message.addTextComponent(terrorBootsMessage);
     message.addTextComponent(goldenDragonMessage);
     message.addTextComponent("&2&m----------------------------&r");
-    
+
     if (!manually && Party.leader == Player.getName()) {
         message.addTextComponent(kickMessage);
     }
-    
+
     ChatLib.chat(message);
+
+    if(Settings.kuudraAutoKick && !manually && armor.chestplate.lore != "&cAPI OFF"){
+        delay(() => AutoKick(lifeline.total, manaPool.total, comps.infernal, mp.magicalPower, items.ragnarock.chimera, armor.chestplate.priority, armor.leggings.priority, armor.boots.priority,  name), 1000)
+    }
 }
 
 export default showKuudraInfo;
