@@ -1,4 +1,5 @@
 import { onWorldJoin, onWorldLeave, delay, setRegisters } from "./generalUtils.js";
+import { kicData } from "./data.js";
 
 class WorldUtil {
     constructor() {
@@ -23,6 +24,7 @@ class WorldUtil {
 
         const TABLIST = TabList.getNames()
         const areaIdx = TABLIST.findIndex(e => e.match(/(Area|Dungeon):/g));
+        const factionIdx = TABLIST.findIndex(e => e.match(/(Mage|Barbarian) Reputation/g));
 
         if (~areaIdx) {
             this.world = TABLIST[areaIdx].removeFormatting().split(": ").slice(-1).toString()
@@ -30,6 +32,11 @@ class WorldUtil {
 
             const spawn = World.spawn
             this.spawn = [spawn.getX(), spawn.getY(), spawn.getZ()]
+
+            if (~factionIdx && this.world === "Crimson Isle") {
+                kicData.faction = TABLIST[factionIdx].removeFormatting().split(" ")[0].toString().toUpperCase()
+                kicData.save()
+            }
 
             delay(() => setRegisters(), 500);
         }
@@ -58,6 +65,10 @@ class WorldUtil {
 
     toString() {
         return `${this.world} | ${this.server}`
+    }
+
+    getTier() {
+        return this.tier | 0
     }
 }
 

@@ -1,4 +1,4 @@
-import { fixNumber, errorHandler } from "./utils/generalUtils.js";
+import { fixNumber, errorHandler, formatTimeShort } from "./utils/generalUtils.js";
 import Settings from "./settings/config.js";
 
 let inOverview = false;
@@ -123,14 +123,6 @@ function unregisterHandlers() {
     inOverview = false;
 }
 
-function formatTime(time) {
-    if (!time) return 0;
-    const minutes = Math.floor(time / 60000);
-    const seconds = Math.floor((time % 60000) / 1000);
-    const milliseconds = Math.floor((time % 1000) / 10);
-    return `${minutes}:${seconds}.${milliseconds.toString().padStart(2, "0")}`;
-}
-
 register("command", () => {
     if (!inOverview) return;
     ChatLib.chat("&cCanceled the run overview");
@@ -141,7 +133,7 @@ function calculateTime(start, end) {
     if (start === 0 || end === 0) {
         return 0;
     }
-    return formatTime(end - start);
+    return formatTimeShort(end - start, true);
 }
 
 register("chat", (msg) => {

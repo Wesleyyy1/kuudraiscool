@@ -2,7 +2,7 @@ import axios from "axios";
 import Settings from "./settings/config.js";
 import { decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg, kicPrefix, fixNumber } from "./utils/generalUtils.js";
 
-function getCommand(ign, type) {
+function getCommand(context, ign, type) {
     if (!isKeyValid()) return showInvalidReasonMsg();
     if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
 
@@ -35,18 +35,18 @@ function getCommand(ign, type) {
     const processData = (memberData, name) => {
         if (type === "runs") {
             const runs = memberData.nether_island_player_data?.kuudra_completed_tiers?.infernal || 0;
-            ChatLib.command(`pc ${runs} runs`);
+            ChatLib.command(`${context} ${runs} runs`);
         } else if (type === "stats") {
-            processStats(memberData);
+            processStats(memberData, context);
         } else if (type === "rtca") {
-            rtca(memberData, name);
+            rtca(memberData, name, context);
         } else if (type === "cata") {
-            getDungeonData(memberData, name);
+            getDungeonData(memberData, name, context);
         }
     };
 }
 
-function getDungeonData(memberData, name){
+function getDungeonData(memberData, name, context){
 
     // get cata lvl
     const xpChart = [50, 75, 110, 160, 230, 330, 470, 670, 950, 1340, 1890, 2665, 3760, 5260, 7380, 10300, 14400, 20000, 27600, 38000, 52500, 71500, 97000, 132000, 180000, 243000, 328000, 445000, 600000, 800000, 1065000, 1410000, 1900000, 2500000, 3300000, 4300000, 5600000, 7200000, 9200000, 12000000, 15000000, 19000000, 24000000, 30000000, 38000000, 48000000, 60000000, 75000000, 93000000, 116250000];
@@ -164,12 +164,12 @@ function getDungeonData(memberData, name){
 
     const secrets = fixNumber(memberData?.dungeons?.secrets)
     
-    ChatLib.command(`pc ${name}'s Cata: ${cata} - PB: ${pb} - MP: ${mp} - Secrets: ${secrets}`)
+    ChatLib.command(`${context} ${name}'s Cata: ${cata} - PB: ${pb} - MP: ${mp} - Secrets: ${secrets}`)
     
 
 }
 
-function processStats(memberData) {
+function processStats(memberData, context) {
     let lifeline = 0;
     let manaPool = 0;
 
@@ -219,10 +219,10 @@ function processStats(memberData) {
     });
 
     const mp = memberData.accessory_bag_storage?.highest_magical_power || 0;
-    ChatLib.command(`pc Lifeline: ${lifeline} | Mana pool: ${manaPool} | Magical power: ${mp}`);
+    ChatLib.command(`${context} Lifeline: ${lifeline} | Mana pool: ${manaPool} | Magical power: ${mp}`);
 };
 
-function rtca(memberData, name) {
+function rtca(memberData, name, context) {
     const TOTAL_XP = 569809640;
     const SEL_CLASS_XP = 360000;
     const UNSEL_CLASS_XP = 90000;
@@ -258,7 +258,7 @@ function rtca(memberData, name) {
     const totalRuns = Object.values(runs).reduce((a, b) => a + b, 0);
     const totalHours = Math.round((totalRuns * AVG_RUN_TIME_MINUTES) / 60);
 
-    ChatLib.command(`pc ${name} H: ${runs.healer} - M: ${runs.mage} - B: ${runs.berserk} - A: ${runs.archer} - T: ${runs.tank} (${totalHours}h)`);
+    ChatLib.command(`${context} ${name} H: ${runs.healer} - M: ${runs.mage} - B: ${runs.berserk} - A: ${runs.archer} - T: ${runs.tank} (${totalHours}h)`);
 }
 
 export default getCommand;

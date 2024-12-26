@@ -75,6 +75,10 @@ export default class ScalableGui {
         this.message = message;
     }
 
+    setExample(example) {
+        this.example = example;
+    }
+
     calculateTextDimensions(text, scale) {
         const lines = text.split("\n");
         let maxWidth = 0;

@@ -3,10 +3,11 @@
   "creator": "Wesley & Anthony",
   "description": "kuudra is very cool",
   "entry": "index.js",
-  "version": "2.0.1",
+  "version": "dev-2.0.2",
   "requires": [
     "Vigilance",
     "axios",
-    "PogData"
+    "PogData",
+    "HypixelModAPI"
   ]
 }

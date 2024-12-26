@@ -5,14 +5,17 @@ import searchItem from "./searchItem.js";
 import showKuudraInfo from "./kuudraInfo.js";
 import Party from "./utils/Party.js";
 import { checkUpdate } from "./utils/updateChecker.js";
-import { apPartyCommand } from "./kuudra-prices/attributePrices.js";
+import { apChatCommand } from "./kuudra/attributePrices.js";
 import { checkApiKey, kicPrefix, getDiscord, setRegisters, delay } from "./utils/generalUtils.js";
 import "./runOverview.js";
-import "./kuudra-prices/attributePrices.js";
+import "./kuudra/attributePrices.js";
 import "./mvpEmoji.js";
 import "./utils/World.js";
-import "./kuudra-prices/kuudraProfit.js";
-import "./utils/autoKick.js"
+import "./kuudra/kuudraProfit.js";
+import "./kuudra/kicAuction.js";
+
+// DEV
+//import "./dev/dev.js";
 
 let firstChecks = false;
 const playername = Player.getName()
@@ -52,7 +55,7 @@ const handleCommand = (context, commandInfo) => {
     if (command === ".ap" || command === ".attributeprice") {
         let attribute = args[0] || null;
         let lvl = args[1] || null;
-        apPartyCommand(attribute, lvl, context);
+        apChatCommand(attribute, lvl, context);
     } else if (command === ".kic") {
         ChatLib.command(`${context} [KIC] > ${getDiscord()}`);
     } else if (command === ".kick" && Party.leader == Player.getName()){
@@ -60,7 +63,7 @@ const handleCommand = (context, commandInfo) => {
         delay(() => kickCommand(p), 1000);
     } else {
         let ign = args[0] || Player.getName();
-        getCommand(ign, command.substring(1));
+        getCommand(context, ign, command.substring(1));
     }
 };
 
@@ -135,6 +138,7 @@ kicCommandsMsg.addTextComponent(new TextComponent("&8* &a/kic settings\n").setHo
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a/apikey <KIC api-key>\n").setHoverValue("&7Change/set your api key\n&7&o(Use your KIC api key, not Hypixel)"));
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a/kuudra [player]\n").setHoverValue("&7Checks kuudra info\n&7Example: /kuudra rainbode"));
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a/ap <attribute> [level] <attribute> [level]\n").setHoverValue("&7Checks the auctionhouse for current attribute prices\n&7Example: /ap ll mp"));
+kicCommandsMsg.addTextComponent(new TextComponent("&8* &a/ka <attribute> [level] <attribute> [level]\n").setHoverValue("&7Opens a custom auction house GUI with current attribute prices\n&7Example: /ka ll mp"));
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a/doogans\n").setHoverValue("&7Checks your entire party for soulflow and arrows"));
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a/kuudraprofit edit/reset\n").setHoverValue("&7Change the position of the profit calc"));
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a/runoverviewpreview\n").setHoverValue("&7Shows the current kuudra runoverview (if in run)"));
@@ -148,7 +152,9 @@ kicCommandsMsg.addTextComponent(new TextComponent("&8* &a .rtca [player]\n").set
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a .ap <attribute> [level]\n").setHoverValue(`&a&lAttribute Price\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .ap mf 5\n&9Party &8> &b[MVP&c+&b] ${playername}&f: &rMagic Find 5 > Helmet: 5.40M - Cp: 5.22M - Legs: 5.00M - Boots: 4.85M - Neck: 6.00M - Cloak: 20.00M - Belt: 20.00M - Brace: 19.00M`));
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a .kick <player>\n").setHoverValue(`&a&lKick a player\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .kick SuuerSindre\n&9&m-----------------------------------------------------\n&b[MVP&r&c+&r&b] SuuerSindre &r&ehas been removed from the party.\n&9&m-----------------------------------------------------`));
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a .cata [player]\n\n").setHoverValue(`&a&lCata Info\n\n&9Party &8> &b[MVP&0+&b] Wesleygame&f: .cata Wesleygame\n&9Party &8> &b[MVP&0+&b] Wesleygame&f: &rWesleygame's Cata: 48.77 - PB: 05:37:20 - MP: 1404 - Secrets: 28.51K&r`))
-kicCommandsMsg.addTextComponent(new TextComponent("&2[] = optional &7| &2<> = required\n").setHoverValue("e"));
+kicCommandsMsg.addTextComponent(new TextComponent("&2[] = optional &7| &2<> = required\n"));
+
+const kicCmdList = ["help", "kuudra", "apikey", "t1", "t2", "t3", "t4", "t5", "settings", "checkapikey"];
 
 // Register main kuudraiscool command
 register("command", (...args) => {
@@ -190,7 +196,11 @@ register("command", (...args) => {
             ChatLib.chat(kicCommandsMsg);
             break;
     }
-}).setName("kuudraiscool", true).setAliases("kic", "ki").setTabCompletions("kuudra", "apikey", "t1", "t2", "t3", "t4", "t5", "settings", "checkapikey");
+}).setTabCompletions((args) => {
+    if (args.length > 1) return [];
+    let lastArg = args[args.length - 1].toLowerCase();
+    return kicCmdList.filter(cmd => cmd.toLowerCase().startsWith(lastArg));
+}).setName("kuudraiscool", true).setAliases("kic", "ki");
 
 // Register chat event for party data
 register("chat", (msg) => {

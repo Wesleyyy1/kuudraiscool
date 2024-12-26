@@ -15,7 +15,7 @@ import {
 } from "./utils/generalUtils.js";
 import { getLevel } from "./utils/petLevelUtils.js";
 import Party from "./utils/Party.js";
-import AutoKick from "./utils/autoKick.js";
+import AutoKick from "./kuudra/autoKick.js";
 
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
@@ -936,7 +936,7 @@ function displayMessage(name, manually) {
 
     ChatLib.chat(message);
 
-    if(Settings.kuudraAutoKick && !manually && armor.chestplate.lore != "&cAPI OFF"){
+    if(Settings.superSecretSettings && Settings.kuudraAutoKick && !manually && armor.chestplate.lore != "&cAPI OFF"){
         delay(() => AutoKick(lifeline.total, manaPool.total, comps.infernal, mp.magicalPower, items.ragnarock.chimera, armor.chestplate.priority, armor.leggings.priority, armor.boots.priority,  name), 1000)
     }
 }

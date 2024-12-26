@@ -1,5 +1,6 @@
 import axios from "axios";
 import Settings from "../settings/config.js";
+import { COLORS } from "./constants.js";
 
 const ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
 const Base64 = Java.type("java.util.Base64");
@@ -12,9 +13,62 @@ let invalidReason = "";
 let roles = [];
 let discordUrl = "https://discord.gg/gsz58gazAK";
 const kicPrefix = "&7[&a&lKIC&r&7]&r";
+const kicDebugPrefix = "&7[&2&lKIC-DEBUG&r&7]&r";
 let registers = [];
 let worldJoin = [];
 let worldLeave = [];
+
+function kicDebugMsg(msg) {
+    if (Settings.kicDebug) {
+        ChatLib.chat(`${kicDebugPrefix} &c${msg}`);
+    }
+}
+
+function getColorCode(setting) {
+    if (typeof setting === "number" && setting >= 0 && setting < Object.keys(COLORS).length) {
+        return COLORS[Object.keys(COLORS)[setting]];
+    }
+    return COLORS.WHITE;
+}
+
+function formatTimeShort(timeInMs, showMs = true) {
+    if (!timeInMs) return 0;
+    const minutes = Math.floor(timeInMs / 60000);
+    const seconds = Math.floor((timeInMs % 60000) / 1000);
+    const milliseconds = Math.floor((timeInMs % 1000) / 10);
+    const msMSg = `.${milliseconds.toString().padStart(2, "0")}`;
+    return `${minutes}:${seconds}${showMs ? msMSg : ""}`;
+}
+
+function formatTimeMain(seconds, fixed = 0, units = 4) {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = (seconds % 60).toFixed(fixed);
+  
+    const timeParts = [];
+  
+    if (days > 0 && units > 0) {
+      timeParts.push(`${days}d`);
+      units--;
+    }
+  
+    if ((hours > 0 || days > 0) && units > 0) {
+      timeParts.push(`${hours.toString().padStart(days > 0 ? 2 : 1, "0")}h`);
+      units--;
+    }
+  
+    if ((minutes > 0 || hours > 0 || days > 0) && units > 0) {
+      timeParts.push(`${minutes.toString().padStart(hours > 0 || days > 0 ? 2 : 1, "0")}m`);
+      units--;
+    }
+  
+    if (units > 0) {
+      timeParts.push(`${remainingSeconds.toString().padStart(minutes > 0 || hours > 0 || days > 0 ? 2 : 1, "0")}s`);
+    }
+  
+    return timeParts.join("");
+}
 
 function fixNumber(labelValue) {
     if (!labelValue) return 0;
@@ -291,11 +345,14 @@ register("serverDisconnect", () => {
 })
 
 export {
+    getColorCode,
     fixNumber,
     decompress,
     getColorData,
     capitalizeEachWord,
     formatTime,
+    formatTimeShort,
+    formatTimeMain,
     errorHandler,
     setVersion,
     checkApiKey,
@@ -310,5 +367,6 @@ export {
     registerWhen,
     setRegisters,
     onWorldJoin,
-    onWorldLeave
+    onWorldLeave,
+    kicDebugMsg
 };
