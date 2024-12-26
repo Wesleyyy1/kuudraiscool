@@ -1,7 +1,7 @@
 import Settings from "../settings/config.js";
 import SkullTextures from "./skullTextures";
 import { capitalizeEachWord, kicPrefix, errorHandler, delay } from "../utils/generalUtils";
-import { getPriceData, attributes } from "../kuudra/priceUtils";
+import { getPriceData, attributes } from "./priceUtils";
 
 const InventoryBasic = Java.type("net.minecraft.inventory.InventoryBasic");
 const GuiChest = Java.type("net.minecraft.client.gui.inventory.GuiChest");
