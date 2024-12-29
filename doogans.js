@@ -20,6 +20,7 @@ function checkParty() {
     };
 
     Party.members.forEach(player => {
+        console.log(player);
         axios.get(`https://api.sm0kez.com/hypixel/profile/${player}/selected`, {
             headers: {
                 "User-Agent": "Mozilla/5.0 (ChatTriggers)",
@@ -32,7 +33,7 @@ function checkParty() {
                 if (data.success) {
                     processPlayerData(data);
                 } else {
-                    msgData.messages.push(`&a${player} &f-> &7INVALID`);
+                    msgData.messages.push(`&a${data.name} &f-> &7INVALID`);
                     msgData.checked++;
                 }
 
@@ -43,7 +44,7 @@ function checkParty() {
                 msgData.checked++;
                 checkCompleted();
                 if (!error.isAxiosError || error.code === 500) {
-                    errorHandler(`Error while getting profile data for ${player}`, error.message, "doogans.js", `User: ${player}`);
+                    errorHandler(`Error while getting profile data for ${player}`, error.message, "doogans.js", `UUID: ${player}`);
                 }
             });
     });
@@ -108,4 +109,12 @@ function checkCompleted() {
     }
 }
 
-export default checkParty;
+register("chat", (msg) => {
+    if (msg.includes("Team Score:") && !msg.startsWith("Party >") && !msg.startsWith("Guild >")) {
+        checkParty();
+    }
+}).setCriteria("${msg}");
+
+register("command", () => {
+    checkParty();
+}).setName("doogans", true);

@@ -18,6 +18,11 @@ let registers = [];
 let worldJoin = [];
 let worldLeave = [];
 
+function arraysEqual(arr1, arr2) {
+    if (arr1.length !== arr2.length) return false;
+    return arr1.every((value, index) => value === arr2[index]);
+}
+
 function kicDebugMsg(msg) {
     if (Settings.kicDebug) {
         ChatLib.chat(`${kicDebugPrefix} &c${msg}`);
@@ -368,5 +373,6 @@ export {
     setRegisters,
     onWorldJoin,
     onWorldLeave,
-    kicDebugMsg
+    kicDebugMsg,
+    arraysEqual
 };

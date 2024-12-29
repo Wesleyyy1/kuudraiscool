@@ -936,4 +936,12 @@ function displayMessage(name, manually) {
     }
 }
 
-export default showKuudraInfo;
+register("chat", (player) => {
+    if (!Settings.partyfinder || player === Player.getName()) return;
+    showKuudraInfo(player, false);
+}).setCriteria(/^Party Finder > (.+) joined the group! (.+)$/);
+
+register("command", (...args) => {
+    const ign = args[0] || Player.getName();
+    showKuudraInfo(ign, true);
+}).setName("kuudra", true);

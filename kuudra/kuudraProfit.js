@@ -122,8 +122,8 @@ const profitExample = `${kicPrefix} &a&lChest profit\n\n&aTotal: +4.48M\n\n&6Inf
 const profitGui = new ScalableGui("kuudraProfit", "kuudraProfit", ["Kuudra"], isPaidChest, profitExample, true);
 profitGui.setCommand("kuudraprofit");
 
-const rerollMsg = "&c&lREROLL THIS FUCKING CHEST YOU STUPID MORON";
-const rerollGui = new ScalableGui("kuudraReroll", "kuudraRerollNotifier", ["Kuudra", "all"], shouldReroll, rerollMsg, true);
+const rerollMsg = "&c&lREROLL THIS CHEST!";
+const rerollGui = new ScalableGui("kuudraReroll", "kuudraRerollNotifier", ["Kuudra"], shouldReroll, rerollMsg, true);
 rerollGui.setMessage(rerollMsg);
 rerollGui.setCommand("kuudrarerollnotifier");
 

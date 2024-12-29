@@ -9,7 +9,8 @@ import {
     showMissingRolesMsg,
     getColorData,
     capitalizeEachWord,
-    kicPrefix
+    kicPrefix,
+    arraysEqual
 } from "./utils/generalUtils.js";
 import { getLevel } from "./utils/petLevelUtils.js";
 
@@ -65,7 +66,7 @@ function generateItemList(memberData) {
             let name = display.getString("Name");
             let lore = display.toObject()["Lore"] || [];
 
-            const existingIndex = itemList.findIndex(item => item.name.includes(name));
+            const existingIndex = itemList.findIndex(item => (item.name === name && arraysEqual(item.lore, lore)));
             if (existingIndex !== -1) {
                 itemList[existingIndex].count += count;
             } else {
@@ -174,4 +175,11 @@ function displaySearchResults(list, search, name) {
     ChatLib.chat(message);
 }
 
-export default searchItem;
+register("command", (...args) => {
+    if (args[0] && args[1]) {
+        const query = args.slice(1).join(" ");
+        searchItem(args[0], query);
+    } else {
+        ChatLib.chat(`${kicPrefix} &cUse /lf <player> <query> to search a player for an item!`);
+    }
+}).setName("lf", true);

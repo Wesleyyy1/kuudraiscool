@@ -7,7 +7,7 @@ import {
     showInvalidReasonMsg,
     showMissingRolesMsg,
     kicPrefix
-} from "../utils/generalUtils.js";
+} from "./generalUtils.js";
 
 export function getPriceData(arg1, arg2, arg3, arg4, cmd, callback) {
     if (!isKeyValid()) return showInvalidReasonMsg();

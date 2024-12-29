@@ -9,7 +9,7 @@ import {
     getRoles,
     kicPrefix
 } from "../utils/generalUtils.js";
-import { getPriceData, attributes } from "./priceUtils.js";
+import { getPriceData, attributes } from "../utils/priceUtils.js";
 
 const categories = ["armor", "equipment", "fishing_armor", "shard"];
 

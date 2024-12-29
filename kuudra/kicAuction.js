@@ -1,7 +1,7 @@
 import Settings from "../settings/config.js";
 import SkullTextures from "./skullTextures";
 import {capitalizeEachWord, delay, errorHandler, kicPrefix} from "../utils/generalUtils";
-import {attributes, getPriceData} from "./priceUtils";
+import {attributes, getPriceData} from "../utils/priceUtils";
 
 const InventoryBasic = Java.type("net.minecraft.inventory.InventoryBasic");
 const GuiChest = Java.type("net.minecraft.client.gui.inventory.GuiChest");
@@ -560,14 +560,6 @@ register('guiMouseClick', (x, y, button, gui, event) => {
 
         const position = slot.field_75222_d;
         const inventoryName = Player.getContainer().getName();
-
-        if (position === 8) {
-            if (lastDataCall !== null && (Date.now() - lastDataCall.date) > 150000) {
-                refreshData(lastDataCall.arg1, lastDataCall.arg2, lastDataCall.arg3, lastDataCall.arg4, false);
-            }
-            
-            return;
-        }
 
         if (inventoryName === "§aKIC-Auction") {
             switch (position) {

@@ -465,6 +465,20 @@ class Settings {
         this.addDependency("Dm Commands", "Chat Commands");
 
         this.addDependency("Default Attribute Level", "Use a default attribute level");
+
+        this.registerListener("Minimum T5 Completions", newValue => {
+            const sanitizedValue = newValue.replace(/[^0-9]/g, "");
+            if (sanitizedValue !== newValue) {
+                Settings.minT5Completions = sanitizedValue;
+            }
+        });
+
+        this.registerListener("Minimum Magical Power", newValue => {
+            const sanitizedValue = newValue.replace(/[^0-9]/g, "");
+            if (sanitizedValue !== newValue) {
+                Settings.minMagicalPower = sanitizedValue;
+            }
+        });
     }
 }
 
