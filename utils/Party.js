@@ -1,154 +1,77 @@
-// ------------------------------------
-// ----- Credits: UnclaimedBloom6 -----
-// ------------------------------------
-
-const partySpamMessages = [
-    /.+ has disbanded the party!/,
-    /(.+) invited (.+) to the party! They have 60 seconds to accept./,
-    /-----------------------------------------------------/,
-    /Party [Members|Leader:|Members:]+.+/,
-    /You are not currently in a party./,
-    /^$/
-]
-
-let hidingPartySpam = false
-
-const hidePartySpam = (ms) => {
-    hidingPartySpam = true
-    setTimeout(() => {
-        hidingPartySpam = false
-    }, ms);
-}
-
-const stripRank = (rankedPlayer) => rankedPlayer.replace(/\[[\w+\+-]+] /, "").trim()
+import { HypixelModAPI } from "../../HypixelModAPI/index";
+import { delay } from "./generalUtils";
 
 export default new class Party {
-	constructor() {
-		this.members = {}
-		this.leader = null
-		this.memberJoined = [
-			/^(.+) &r&ejoined the party.&r$/,
-			/^(.+) &r&einvited &r.+ &r&eto the party! They have &r&c60 &r&eseconds to accept.&r$/,
-			/^&eYou have joined &r(.+)'[s]? &r&eparty!&r$/,
-			/^&dParty Finder &r&f> &r(.+) &r&ejoined the dungeon group! \(&r&b.+&r&e\)&r$/
-		]
-		this.memberLeft = [
-			/^(.+) &r&ehas been removed from the party.&r$/,
-			/^(.+) &r&ehas left the party.&r$/,
-			/^(.+) was removed from your party because they disconnected.$/,
-            /^Kicked (.+) because they were offline.$/
-		]
-		this.partyDisbanded = [
-			/^.+ &r&ehas disbanded the party!&r$/,
-			/^&cThe party was disbanded because all invites expired and the party was empty&r$/,
-			/^&eYou left the party.&r$/,
-			/^&6Party Members \(\d+\)&r$/,
-            /^You are not currently in a party\.$/,
-            /^You have been kicked from the party by .+$/,
-            /^The party was disbanded because the party leader disconnected\.$/
-		]
-		this.leaderMessages = [
-			/^&eParty Leader: &r(.+) &r&a●&r$/,
-			/^&eYou have joined &r(.+)'s* &r&eparty!&r$/,
-            /^&eThe party was transferred to &r(.+) &r&eby &r.+&r$/
-		]
+    constructor() {
+        this.members = [];
+        this.leader = null;
+        this.updated = false;
+
+        this.partyDisbanded = [
+            /^.+ has disbanded the party!$/,
+            /^The party was disbanded because (.+)$/,
+            /^You left the party.$/,
+            /^You are not currently in a party.$/,
+            /^You have been kicked from the party by .+$/
+        ];
+
+        this.updateMsgs = [
+            /^You have joined (.+)'s* party!$/,
+            /^The party was transferred to (.+) by .+$/,
+            /^(.+) has promoted (.+) to Party Leader$/,
+            /^(.+) joined the party.$/,
+            /^You have joined (.+)'s? party!$/,
+            /^(.+) has been removed from the party.$/,
+            /^(.+) has left the party.$/,
+            /^(.+) was removed from your party because they disconnected.$/,
+            /^Kicked (.+) because they were offline.$/,
+            /^Party Finder > (.+) joined the .+$/
+        ];
+
+        HypixelModAPI.on("partyInfo", (partyInfo) => {
+            this.updated = true;
+            this.clearPartyData();
+            Object.keys(partyInfo).forEach(key => {
+                this.members.push(key);
+                if (partyInfo[key] === "LEADER") {
+                    this.leader = key;
+                }
+            });
+        });
 
         register("chat", (event) => {
-            let formatted = ChatLib.getChatMessage(event, true)
-            let unformatted = formatted.removeFormatting()
-            this.memberJoined.forEach(regex => {
-                let match = formatted.match(regex)
-                if (match) this.addMember(match[1])
-            })
-            this.memberLeft.forEach(regex => {
-                let match = formatted.match(regex)
-                if (match) this.removeMember(match[1])
-            })
-            this.leaderMessages.forEach(regex => {
-                let match = formatted.match(regex)
-                if (match) this.makeLeader(match[1])
-            })
+            let msg = ChatLib.getChatMessage(event, true).removeFormatting();
+
+            this.updateMsgs.forEach(regex => {
+                if (msg.match(regex)) this.updatePartyData();
+            });
+
             this.partyDisbanded.forEach(regex => {
-                let match = formatted.match(regex)
-                if (match) this.disbandParty()
-            })
-
-            // Joined a party
-            if (/&eYou'll be partying with: .+/.test(formatted)) {
-                let players = formatted.match(/&eYou'll be partying with: (.+)/)[1].split("&e, ")
-                for (let p of players) this.addMember(p)
-            }
-
-            // Party List shown in chat
-            if (/^&eParty .+: (.+)/.test(formatted)) {
-                let match = formatted.match(/^&eParty .+: &r(.+)/)
-                let players = match[1].split(new RegExp("&r&a ● &r|&r&c ● &r| &r&a●&r| &r&c●&r"))
-                for (i in players) {
-                    if (players[i].replace(new RegExp(" ", "g"), "") !== "") this.addMember(players[i])
-                }
-            }
-
-            // You make a party in party finder
-            if (unformatted == "Party Finder > Your party has been queued in the dungeon finder!" || unformatted == "Party Finder > Your party has been queued in the party finder!") {
-                setTimeout(() => {
-                    hidePartySpam(1000)
-                    ChatLib.command("pl")
-                }, 250);
-            }
-
-            // Creating a party
-            if (Object.keys(this.members).length == 1) {
-                let match = formatted.match(/(.+) &r&einvited &r.+ &r&eto the party! They have &r&c60 &r&eseconds to accept.&r/)
-                if (match) this.makeLeader(match[1])
-            }
-
-            // Joining a party
-            if (/&eYou have joined &r.+'s &r&eparty!&r/.test(formatted)) {
-                setTimeout(() => {
-                    hidePartySpam(1000)
-                    ChatLib.command("pl")
-                }, 250);
-            }
-
-            // Party leader left
-            let match = formatted.match(/&eThe party was transferred to &r(.+) &r&ebecause &r(.+) &r&eleft&r/)
-            if (match) {
-                if (stripRank(match[2].removeFormatting()) == Player.getName()) this.disbandParty()
-                else {
-                    this.makeLeader(match[1])
-                    this.removeMember(match[2])
-                }
-            }
+                if (msg.match(regex)) this.clearPartyData();
+            });
         })
-	}
-
-    checkParty() {
-        setTimeout(() => {
-            hidePartySpam(1000)
-            ChatLib.command("pl")
-        }, 250);
     }
 
-	addMember(player) {
-		this.members[stripRank(player.removeFormatting())] = player
-	}
+    updatePartyData() {
+        this.updated = false;
 
-	removeMember(player) {
-		delete this.members[stripRank(player.removeFormatting())]
-	}
+        delay(() => { // Check for skytils sending requests to mod api after every party member join/leave
+            if (!this.updated) {
+                HypixelModAPI.requestPartyInfo();
+            }
+        }, 1000);
+    }
 
-	makeLeader(player) {
-		this.leader = stripRank(player.removeFormatting())
-	}
+    clearPartyData() {
+        this.leader = null;
+        this.members = [];
+    }
 
-	disbandParty() {
-		this.members = {}
-		this.leader = null
-	}
+    inParty() {
+        return this.members.length !== 0;
+    }
+
+    amILeader() {
+        return this.leader === Player.getUUID();
+    }
 }
-
-register("chat", (e) => {
-    if (!hidingPartySpam) return
-    let unformatted = ChatLib.getChatMessage(e, false)
-    if (partySpamMessages.some(a => unformatted.match(a))) return cancel(e)
-})

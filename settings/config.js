@@ -1,18 +1,10 @@
-import { @Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, @SliderProperty, @SelectorProperty, Color } from "Vigilance";
+import { @Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, @SliderProperty, @SelectorProperty } from "../../Vigilance/index.js";
 const currentVers = JSON.parse(FileLib.read("kuudraiscool", "metadata.json")).version;
-import { COLORS } from "../utils/constants";
-const colorKeys = Object.keys(COLORS);
 
-@Vigilant("kuudraiscool/data", "kuudraiscool", {
+@Vigilant("kuudraiscool/data", "Settings", {
     getCategoryComparator: () => (a, b) => {
-        const categories = ["General", "Kuudra", "Chat Commands", "Overlay", "Colors", "Attributes", "Super Secret", "Dev", "Credits"];
+        const categories = ["General", "Kuudra", "Chat Commands", "Overlay", "Super Secret", "Dev", "Credits"];
         return categories.indexOf(a.name) - categories.indexOf(b.name);
-    },
-    getSubcategoryComparator: () => (a, b) => {
-        const subcategories = ["Kuudra", "Chest Profit", "Profit Tracker", "Reroll Display", "AP&KA", "AutoKick", "Auto Paid Chest", "Profit Tracker Colors"];
-
-        return subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) -
-            subcategories.indexOf(b.getValue()[0].attributesExt.subcategory);
     }
 })
 class Settings {
@@ -50,7 +42,7 @@ class Settings {
     @SwitchProperty({
         name: "Party Finder",
         description: "Toggle Party Finder stats.",
-        subcategory: "Kuudra",
+        subcategory: "1. Kuudra",
         category: "Kuudra",
     })
     partyfinder = true;
@@ -58,7 +50,7 @@ class Settings {
     @SwitchProperty({
         name: "Run Overview",
         description: "Toggle the Run Overview display.",
-        subcategory: "Kuudra",
+        subcategory: "1. Kuudra",
         category: "Kuudra",
     })
     runoverview = true;
@@ -69,7 +61,7 @@ class Settings {
         name: "Kuudra Profit",
         description: "Toggle Kuudra Profit display.",
         category: "Kuudra",
-        subcategory: "Chest Profit"
+        subcategory: "2. Chest Profit"
     })
     kuudraProfit = false;
 
@@ -77,7 +69,7 @@ class Settings {
         name: "Move Kuudra Profit GUI",
         description: "Click to edit the GUI location.",
         category: "Kuudra",
-        subcategory: "Chest Profit",
+        subcategory: "2. Chest Profit",
         placeholder: "Click!"
     })
     kuudraProfitGui() {
@@ -88,7 +80,7 @@ class Settings {
         name: "Kuudra Profit Compact",
         description: "Display the profit in a compact layout.",
         category: "Kuudra",
-        subcategory: "Chest Profit"
+        subcategory: "2. Chest Profit"
     })
     kuudraProfitCompact = true;
 
@@ -96,7 +88,7 @@ class Settings {
         name: "Minimum God Roll",
         description: "Set the minimum value for an attribute combination to be tracked as a godroll (in millions).",
         category: "Kuudra",
-        subcategory: "Chest Profit",
+        subcategory: "2. Chest Profit",
         min: 0,
         max: 350
     })
@@ -106,7 +98,7 @@ class Settings {
         name: "Ignore essence value",
         description: "Exclude the value of essence from profit calculations.",
         category: "Kuudra",
-        subcategory: "Chest Profit"
+        subcategory: "2. Chest Profit"
     })
     ignoreEssence = false;
 
@@ -114,7 +106,7 @@ class Settings {
         name: "Ignore teeth value",
         description: "Exclude the value of teeth from profit calculations (based on Tabasco 3 books).",
         category: "Kuudra",
-        subcategory: "Chest Profit"
+        subcategory: "2. Chest Profit"
     })
     ignoreTeeth = false;
 
@@ -122,7 +114,7 @@ class Settings {
         name: "Use sell order price",
         description: "Calculate profit based on the sell order price (ON) or the instant sell price (OFF).",
         category: "Kuudra",
-        subcategory: "Chest Profit"
+        subcategory: "2. Chest Profit"
     })
     sellOrderPrice = true;
 
@@ -132,7 +124,7 @@ class Settings {
         name: "Kuudra Profit Tracker",
         description: "Toggle Kuudra Profit Tracker display.",
         category: "Kuudra",
-        subcategory: "Profit Tracker"
+        subcategory: "3. Profit Tracker"
     })
     kuudraProfitTracker = false;
 
@@ -140,7 +132,7 @@ class Settings {
         name: "Move Kuudra Profit Tracker GUI",
         description: "Click to edit the GUI location.",
         category: "Kuudra",
-        subcategory: "Profit Tracker",
+        subcategory: "3. Profit Tracker",
         placeholder: "Click!"
     })
     kuudraProfitTrackerGui() {
@@ -151,11 +143,22 @@ class Settings {
         name: "Reset Profit Tracker Data",
         description: "Click to reset the data.",
         category: "Kuudra",
-        subcategory: "Profit Tracker",
+        subcategory: "3. Profit Tracker",
         placeholder: "Click!"
     })
     kuudraResetProfitTracker() {
         ChatLib.command("kicresetprofittracker", true)
+    }
+
+    @ButtonProperty({
+        name: "Customize Colors",
+        description: "Click to open the customize colors settings.",
+        category: "Kuudra",
+        subcategory: "3. Profit Tracker",
+        placeholder: "Click!"
+    })
+    kuudraProfitTrackerColor() {
+        ChatLib.command("kic customize", true)
     }
 
     // Kuudra - Reroll Display
@@ -164,7 +167,7 @@ class Settings {
         name: "Reroll Notifier",
         description: "Shows a message when you should reroll a chest. (Price of a kismet > total profit of the first 2 slots).",
         category: "Kuudra",
-        subcategory: "Reroll Display"
+        subcategory: "4. Reroll Display"
     })
     kuudraRerollNotifier = true;
 
@@ -172,7 +175,7 @@ class Settings {
         name: "Move Reroll Notifier GUI",
         description: "Click to edit the GUI location.",
         category: "Kuudra",
-        subcategory: "Reroll Display",
+        subcategory: "4. Reroll Display",
         placeholder: "Click!"
     })
     kuudraRerollNotifierGui() {
@@ -185,7 +188,7 @@ class Settings {
         name: "Auctions per item in /ap and /ka",
         description: "The max amount of auctions to show per item.",
         category: "Kuudra",
-        subcategory: "AP&KA",
+        subcategory: "5. AP&KA",
         min: 1,
         max: 28
     })
@@ -195,7 +198,7 @@ class Settings {
         name: "Auto re-open GUI after buying an item",
         description: "Automatically opens up the KIC-Auction GUI whenever you buy an item from it.",
         category: "Kuudra",
-        subcategory: "AP&KA"
+        subcategory: "5. AP&KA"
     })
     openKAGUIAgain = false;
 
@@ -203,7 +206,7 @@ class Settings {
         name: "Use a default attribute level",
         description: "Use a default attribute level when opening kic auction without a level parameter.",
         category: "Kuudra",
-        subcategory: "AP&KA"
+        subcategory: "5. AP&KA"
     })
     kaUseDefaultAttributeLvl = false;
 
@@ -211,7 +214,7 @@ class Settings {
         name: "Default Attribute Level",
         description: "The attribute level to be used when opening kic auction without a level parameter.",
         category: "Kuudra",
-        subcategory: "AP&KA",
+        subcategory: "5. AP&KA",
         min: 1,
         max: 10
     })
@@ -223,7 +226,7 @@ class Settings {
         name: "AutoKick",
         description: "Automatically kicks people who do not meet the set requirements.\n&4&lUSE AT YOUR OWN RISK!",
         category: "Kuudra",
-        subcategory: "AutoKick"
+        subcategory: "6. AutoKick"
     })
     kuudraAutoKick = false;
 
@@ -231,7 +234,7 @@ class Settings {
         name: "Minimum Lifeline level",
         description: "Set the minimum level of lineline.",
         category: "Kuudra",
-        subcategory: "AutoKick",
+        subcategory: "6. AutoKick",
         min: 0,
         max: 70
     })
@@ -241,7 +244,7 @@ class Settings {
         name: "Minimum Mana pool level",
         description: "Set the minimum level of mana pool.",
         category: "Kuudra",
-        subcategory: "AutoKick",
+        subcategory: "6. AutoKick",
         min: 0,
         max: 70
     })
@@ -251,7 +254,7 @@ class Settings {
         name: "Minimum T5 Completions",
         description: "Set the minimum for T5 Completions.",
         category: "Kuudra",
-        subcategory: "AutoKick",
+        subcategory: "6. AutoKick",
         placeholder: "0",
     })
     minT5Completions = "0";
@@ -260,7 +263,7 @@ class Settings {
         name: "Minimum Magical Power",
         description: "Set the minimum for magical power.",
         category: "Kuudra",
-        subcategory: "AutoKick",
+        subcategory: "6. AutoKick",
         placeholder: "0",
     })
     minMagicalPower = "0";
@@ -269,7 +272,7 @@ class Settings {
         name: "Minimum Chimera level",
         description: "Set the minimum chimera level for ragnarok axe.",
         category: "Kuudra",
-        subcategory: "AutoKick",
+        subcategory: "6. AutoKick",
         min: 0,
         max: 5
     })
@@ -279,7 +282,7 @@ class Settings {
         name: "Minimum Terror tier",
         description: "Sets the minimum terror armor tier",
         category: "Kuudra",
-        subcategory: "AutoKick",
+        subcategory: "6. AutoKick",
         options: ["Infernal", "Fiery", "Burning", "Hot", "Basic"]
     })
     minTerrorTier = 4;
@@ -288,7 +291,7 @@ class Settings {
         name: "AutoKick Trimonu users",
         description: "Automatically kicks people who use Trimonu.\n&4&lUSE AT YOUR OWN RISK!",
         category: "Kuudra",
-        subcategory: "AutoKick"
+        subcategory: "6. AutoKick"
     })
     kuudraAutoKickTrimonu = false;
 
@@ -298,15 +301,26 @@ class Settings {
         name: "Auto reroll Paid Chest",
         description: "Automatically reroll the Paid Chest if the profit is less than a kismet feather.\n&4&lUSE AT YOUR OWN RISK!",
         category: "Kuudra",
-        subcategory: "Auto Paid Chest"
+        subcategory: "7. Auto Paid Chest"
     })
     kuudraAutoReroll = false;
+
+    @ButtonProperty({
+        name: "Customize Failsafes",
+        description: "Click to open the customize failsafe settings.",
+        category: "Kuudra",
+        subcategory: "7. Auto Paid Chest",
+        placeholder: "Click!"
+    })
+    kuudraAutoRerollFailsafes() {
+        ChatLib.command("kic customize", true)
+    }
 
     @SwitchProperty({
         name: "Auto buy Paid Chest",
         description: "Automatically buy the paid chest if it is profit.\n&4&lUSE AT YOUR OWN RISK!",
         category: "Kuudra",
-        subcategory: "Auto Paid Chest"
+        subcategory: "7. Auto Paid Chest"
     })
     kuudraAutoBuy = false;
 
@@ -349,309 +363,6 @@ class Settings {
     })
     drawBackground = true;
 
-    // Colors
-
-    @SelectorProperty({
-        name: "Profit Color",
-        category: "Colors",
-        subcategory: "Profit Tracker Colors",
-        options: colorKeys
-    })
-    ProfitTrackerColorProfit = colorKeys.indexOf("LIGHT_PURPLE");
-
-    @SelectorProperty({
-        name: "Chests Color",
-        category: "Colors",
-        subcategory: "Profit Tracker Colors",
-        options: colorKeys
-    })
-    ProfitTrackerColorChests = colorKeys.indexOf("LIGHT_PURPLE");
-
-    @SelectorProperty({
-        name: "Average Color",
-        category: "Colors",
-        subcategory: "Profit Tracker Colors",
-        options: colorKeys
-    })
-    ProfitTrackerColorAverage = colorKeys.indexOf("LIGHT_PURPLE");
-
-    @SelectorProperty({
-        name: "Time Color",
-        category: "Colors",
-        subcategory: "Profit Tracker Colors",
-        options: colorKeys
-    })
-    ProfitTrackerColorTime = colorKeys.indexOf("LIGHT_PURPLE");
-
-    @SelectorProperty({
-        name: "Rate Color",
-        category: "Colors",
-        subcategory: "Profit Tracker Colors",
-        options: colorKeys
-    })
-    ProfitTrackerColorRate = colorKeys.indexOf("LIGHT_PURPLE");
-
-    // Attributes
-
-    @SwitchProperty({
-        name: "Arachno",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    arachno = false;
-
-    @SwitchProperty({
-        name: "Attack Speed",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    attackSpeed = false;
-
-    @SwitchProperty({
-        name: "Blazing",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    blazing = false;
-
-    @SwitchProperty({
-        name: "Combo",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    combo = false;
-
-    @SwitchProperty({
-        name: "Elite",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    elite = false;
-
-    @SwitchProperty({
-        name: "Ender",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    ender = false;
-
-    @SwitchProperty({
-        name: "Ignition",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    ignition = false;
-
-    @SwitchProperty({
-        name: "Life Recovery",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    lifeRecovery = false;
-
-    @SwitchProperty({
-        name: "Mana Steal",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    manaSteal = false;
-
-    @SwitchProperty({
-        name: "Midas Touch",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    midasTouch = false;
-
-    @SwitchProperty({
-        name: "Undead",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    undead = false;
-
-    @SwitchProperty({
-        name: "Warrior",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    warrior = false;
-
-    @SwitchProperty({
-        name: "Deadeye",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    deadeye = false;
-
-    @SwitchProperty({
-        name: "Arachno Resistance",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    arachnoResistance = false;
-
-    @SwitchProperty({
-        name: "Blazing Resistance",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    blazingResistance = false;
-
-    @SwitchProperty({
-        name: "Breeze",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    breeze = false;
-
-    @SwitchProperty({
-        name: "Dominance",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    dominance = false;
-
-    @SwitchProperty({
-        name: "Ender Resistance",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    enderResistance = false;
-
-    @SwitchProperty({
-        name: "Experience",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    experience = false;
-
-    @SwitchProperty({
-        name: "Fortitude",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    fortitude = false;
-
-    @SwitchProperty({
-        name: "Life Regeneration",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    lifeRegeneration = false;
-
-    @SwitchProperty({
-        name: "Lifeline",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    lifeline = false;
-
-    @SwitchProperty({
-        name: "Magic Find",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    magicFind = false;
-
-    @SwitchProperty({
-        name: "Mana Pool",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    manaPool = false;
-
-    @SwitchProperty({
-        name: "Mana Regeneration",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    manaRegeneration = false;
-
-    @SwitchProperty({
-        name: "Vitality",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    vitality = false;
-
-    @SwitchProperty({
-        name: "Speed",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    speed = false;
-
-    @SwitchProperty({
-        name: "Undead Resistance",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    undeadResistance = false;
-
-    @SwitchProperty({
-        name: "Veteran",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    veteran = false;
-
-    @SwitchProperty({
-        name: "Blazing Fortune",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    blazingFortune = false;
-
-    @SwitchProperty({
-        name: "Fishing Experience",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    fishingExperience = false;
-
-    @SwitchProperty({
-        name: "Infection",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    infection = false;
-
-    @SwitchProperty({
-        name: "Double Hook",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    doubleHook = false;
-
-    @SwitchProperty({
-        name: "Fisherman",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    fisherman = false;
-
-    @SwitchProperty({
-        name: "Fishing Speed",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    fishingSpeed = false;
-
-    @SwitchProperty({
-        name: "Hunter",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    hunter = false;
-
-    @SwitchProperty({
-        name: "Trophy Hunter",
-        category: "Attributes",
-        subcategory: "Failsafe"
-    })
-    trophyHunter = false;
-
     // Super Secret
 
     @SwitchProperty({
@@ -668,6 +379,12 @@ class Settings {
         category: "Dev"
     })
     kicDebug = false;
+
+    @SwitchProperty({
+        name: "Enable KIC chat",
+        category: "Dev"
+    })
+    kicChat = false;
 
     // Credits
 
@@ -712,11 +429,6 @@ class Settings {
         this.setCategoryDescription("Super Secret", `&akuudraiscool v${currentVers}&r &7- by &dWesley &7& &dAnthony &7- &4&lUSE AT YOUR OWN RISK!`);
         this.setCategoryDescription("Credits", `&akuudraiscool v${currentVers}&r &7- by &dWesley &7& &dAnthony`);
 
-        this.setCategoryDescription("Colors", `&akuudraiscool v${currentVers}&r &7- by &dWesley &7& &dAnthony`);
-        this.setCategoryDescription("Attributes", `&akuudraiscool v${currentVers}&r &7- by &dWesley &7& &dAnthony`);
-
-        this.setSubcategoryDescription("Attributes", "Failsafe", "&aAttributes that should never be rerolled");
-
         this.addDependency("Kuudra Profit Compact", "Kuudra Profit");
         this.addDependency("Move Kuudra Profit GUI", "Kuudra Profit");
         this.addDependency("Minimum God Roll", "Kuudra Profit");
@@ -731,7 +443,11 @@ class Settings {
 
         this.addDependency("Move Kuudra Profit Tracker GUI", "Kuudra Profit Tracker");
         this.addDependency("Reset Profit Tracker Data", "Kuudra Profit Tracker");
+        this.addDependency("Customize Colors", "Kuudra Profit Tracker");
+
         this.addDependency("Move Reroll Notifier GUI", "Reroll Notifier");
+
+        this.addDependency("Customize Failsafes", "Auto reroll Paid Chest");
 
         this.addDependency("AutoKick", "Enable Super Secret Settings");
         this.addDependency("AutoKick Trimonu users", "Enable Super Secret Settings");
@@ -742,12 +458,6 @@ class Settings {
         this.addDependency("Minimum Chimera level", "AutoKick");
         this.addDependency("Minimum Terror tier", "AutoKick");
 
-        this.addDependency("Profit Color", "Kuudra Profit Tracker");
-        this.addDependency("Chests Color", "Kuudra Profit Tracker");
-        this.addDependency("Average Color", "Kuudra Profit Tracker");
-        this.addDependency("Time Color", "Kuudra Profit Tracker");
-        this.addDependency("Rate Color", "Kuudra Profit Tracker");
-
         this.addDependency("Auto reroll Paid Chest", "Enable Super Secret Settings");
         this.addDependency("Auto buy Paid Chest", "Enable Super Secret Settings");
 
@@ -755,44 +465,6 @@ class Settings {
         this.addDependency("Dm Commands", "Chat Commands");
 
         this.addDependency("Default Attribute Level", "Use a default attribute level");
-
-        this.addDependency("Arachno", "Auto reroll Paid Chest");
-        this.addDependency("Attack Speed", "Auto reroll Paid Chest");
-        this.addDependency("Blazing", "Auto reroll Paid Chest");
-        this.addDependency("Combo", "Auto reroll Paid Chest");
-        this.addDependency("Elite", "Auto reroll Paid Chest");
-        this.addDependency("Ender", "Auto reroll Paid Chest");
-        this.addDependency("Ignition", "Auto reroll Paid Chest");
-        this.addDependency("Life Recovery", "Auto reroll Paid Chest");
-        this.addDependency("Mana Steal", "Auto reroll Paid Chest");
-        this.addDependency("Midas Touch", "Auto reroll Paid Chest");
-        this.addDependency("Undead", "Auto reroll Paid Chest");
-        this.addDependency("Warrior", "Auto reroll Paid Chest");
-        this.addDependency("Deadeye", "Auto reroll Paid Chest");
-        this.addDependency("Arachno Resistance", "Auto reroll Paid Chest");
-        this.addDependency("Blazing Resistance", "Auto reroll Paid Chest");
-        this.addDependency("Breeze", "Auto reroll Paid Chest");
-        this.addDependency("Dominance", "Auto reroll Paid Chest");
-        this.addDependency("Ender Resistance", "Auto reroll Paid Chest");
-        this.addDependency("Experience", "Auto reroll Paid Chest");
-        this.addDependency("Fortitude", "Auto reroll Paid Chest");
-        this.addDependency("Life Regeneration", "Auto reroll Paid Chest");
-        this.addDependency("Lifeline", "Auto reroll Paid Chest");
-        this.addDependency("Magic Find", "Auto reroll Paid Chest");
-        this.addDependency("Mana Pool", "Auto reroll Paid Chest");
-        this.addDependency("Mana Regeneration", "Auto reroll Paid Chest");
-        this.addDependency("Vitality", "Auto reroll Paid Chest");
-        this.addDependency("Speed", "Auto reroll Paid Chest");
-        this.addDependency("Undead Resistance", "Auto reroll Paid Chest");
-        this.addDependency("Veteran", "Auto reroll Paid Chest");
-        this.addDependency("Blazing Fortune", "Auto reroll Paid Chest");
-        this.addDependency("Fishing Experience", "Auto reroll Paid Chest");
-        this.addDependency("Infection", "Auto reroll Paid Chest");
-        this.addDependency("Double Hook", "Auto reroll Paid Chest");
-        this.addDependency("Fisherman", "Auto reroll Paid Chest");
-        this.addDependency("Fishing Speed", "Auto reroll Paid Chest");
-        this.addDependency("Hunter", "Auto reroll Paid Chest");
-        this.addDependency("Trophy Hunter", "Auto reroll Paid Chest");
     }
 }
 

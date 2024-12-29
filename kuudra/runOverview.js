@@ -1,5 +1,5 @@
-import { fixNumber, errorHandler, formatTimeShort } from "./utils/generalUtils.js";
-import Settings from "./settings/config.js";
+import { fixNumber, errorHandler, formatTimeShort } from "../utils/generalUtils.js";
+import Settings from "../settings/config.js";
 
 let inOverview = false;
 let rawStartTime, rawEndTime, startTime, endTime;

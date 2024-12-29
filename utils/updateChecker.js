@@ -42,7 +42,7 @@ export function checkUpdate() {
             }, 500);
         })
         .catch(error => {
-            if (!error.isAxiosError || error.code == 500) {
+            if (!error.isAxiosError || error.code === 500) {
                 errorHandler("Error while checking for update", error, "updateChecker.js", null);
             }
         });

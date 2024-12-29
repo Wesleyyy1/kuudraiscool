@@ -32,10 +32,10 @@ export default class ScalableGui {
             if (!this.gui.isOpen() && condition()) {
                 this.renderOverlay(this.message, this.getX(), this.getY(), this.getScale(), false);
             }
-        }), () => Settings[this.setting] && (this.requires.has(World.world) || this.requires.has("all")));
+        }), () => World.isSkyblock() && Settings[this.setting] && (this.requires.has(World.world) || this.requires.has("all")));
 
         this.gui.registerScrolled((mx, my, dir) => {
-            if (dir == 1) this.subObj.scale += 0.02;
+            if (dir === 1) this.subObj.scale += 0.02;
             else this.subObj.scale -= 0.02;
             kicData.save();
         });

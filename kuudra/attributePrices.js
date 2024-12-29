@@ -63,6 +63,10 @@ let activeCategory = null;
 let cheapest = false;
 let currentIndex = {};
 let apPartyLastRan = Date.now() - 2000;
+let currentItem = null;
+let currentItemPrice = null;
+let currentTotal = null;
+let currentLine = null;
 
 register("command", (arg1, arg2, arg3, arg4) => {
     getPriceData(arg1, arg2, arg3, arg4, "ap", (data) => {
@@ -112,74 +116,6 @@ function apnavigate(direction, type, maxIndex, msgid) {
     }
 }
 
-// UNFINISHED
-/* register("command", (arg1, arg2, arg3, arg4) => {
-    if (!arg1 || !arg2 || !arg3 || !arg4) {
-        ChatLib.chat("&cAll arguments are required.");
-        return;
-    }
-
-    const startlvl = parseInt(arg3);
-    const endlvl = parseInt(arg4);
-
-    if (isNaN(startlvl) || isNaN(endlvl)) {
-        ChatLib.chat("&cLevels must be numbers.");
-        return;
-    }
-
-    if (startlvl < 1 || startlvl > 10 || endlvl < 1 || endlvl > 10) {
-        ChatLib.chat("&cLevels must be between 1 and 10.");
-        return;
-    }
-
-    if (startlvl >= endlvl) {
-        ChatLib.chat("&cEnd level must be greater than start level.");
-        return;
-    }
-
-    // Your command logic here
-    let requestBody = {};
-    requestBody.attribute = arg1;
-    requestBody.item = arg2;
-    requestBody.start_level = startlvl;
-    requestBody.end_level = endlvl;
-
-    axios.post("https://api.sm0kez.com/crimson/attribute/upgrade", {
-        headers: {
-            "User-Agent": "Mozilla/5.0 (ChatTriggers)",
-            "API-Key": Settings.apikey
-        },
-        body: requestBody,
-        parseBody: true
-    })
-        .then(response => {
-            showUpgradeMsg(response.data, startlvl, endlvl);
-        })
-        .catch(error => {
-            if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
-                ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
-            } else if (error.isAxiosError && error.code != 500) {
-                if (error.code == 429) {
-                    ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
-                } else {
-                    ChatLib.chat(`${kicPrefix} &cYou've reached the usage limit for this feature. It can only be used once every 10 minutes. Please try again later.`);
-                }
-            } else {
-                ChatLib.chat(`${kicPrefix} &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
-                errorHandler("Error while getting prices", error.message, "attributePrices.js");
-            }
-        });
-}).setTabCompletions((args) => {
-    if (args.length === 1) {
-        let lastArg = args[0].toLowerCase();
-        return attributes.filter(attr => attr.startsWith(lastArg));
-    } else if (args.length === 2) {
-        let lastArg = args[1].toLowerCase();
-        return itemTypesArray.filter(item => item.startsWith(lastArg));
-    }
-    return [];
-}).setName("attributeupgrade", true).setAliases("au"); */
-
 function initializeCurrentIndex() {
     currentIndex = {};
 
@@ -221,7 +157,7 @@ function showPrices(messageId) {
             dataSource = priceData.shards;
         }
 
-        if (dataSource === null || dataSource == [] || dataSource == {} || dataSource.length === 0) {
+        if (dataSource === null || dataSource === [] || dataSource === {} || dataSource.length === 0) {
             const itemText = new TextComponent(`\n&6- &cNo auctions found!\n`);
             message.addTextComponent(itemText);
         } else {
@@ -300,33 +236,6 @@ function showPrices(messageId) {
         ChatLib.chat(message);
     }
 }
-
-// UNFINISHED
-/* function showUpgradeMsg(data, start, end) {
-    const message = new Message();
-    message.addTextComponent(new TextComponent(`\n${kicPrefix} &6Cheapest way to upgrade &b${capitalizeEachWord(data.attribute.replaceAll("_", " "))}&6 on your &2${capitalizeEachWord(data.item.replaceAll("_", " "))}&6 from &e${start} &6to &e${end}&6.`));
-
-    const timeAgo = formatTime(Math.abs(data.timestamp - Date.now()));
-    message.addTextComponent(new TextComponent(`\n&6Total price: &e${fixNumber(data.totalCost)}&6. Last refresh was &e${timeAgo}&6.\n`));
-
-    Object.entries(data.levels).forEach(([lvl, items]) => {
-        const totalCost = items.reduce((sum, item) => sum + item.price, 0);
-        message.addTextComponent(new TextComponent(`\n&bUpgrade to §3${lvl} &b| §3${fixNumber(totalCost)}\n`));
-        items.forEach(item => {
-            message.addTextComponent(
-                new TextComponent(`&6- &9${capitalizeEachWord(item.itemId.replaceAll("_", " "))} &6for &e${fixNumber(item.price)}\n`)
-                    .setClick("run_command", `/viewauction ${item.uuid}`)
-            );
-        });
-    });
-
-    ChatLib.chat(message);
-} */
-
-let currentItem = null;
-let currentItemPrice = null;
-let currentTotal = null;
-let currentLine = null;
 
 register("command", (uuid, type, price, maxIndex, msgid) => {
     ChatLib.command(`viewauction ${uuid}`);
@@ -427,7 +336,7 @@ export function apChatCommand(attribute, lvl, chat) {
         ChatLib.command(`${chat} ${attributeText.replace("Mending", "Vitality")} > Helmet: ${fixNumber(prices.helmets)} - Cp: ${fixNumber(prices.chestplates)} - Legs: ${fixNumber(prices.leggings)} - Boots: ${fixNumber(prices.boots)} - Neck: ${fixNumber(prices.necklaces)} - Cloak: ${fixNumber(prices.cloaks)} - Belt: ${fixNumber(prices.belts)} - Brace: ${fixNumber(prices.bracelets)}`);
     })
     .catch(error => {
-        if (!error.isAxiosError || error.code == 500) {
+        if (!error.isAxiosError || error.code === 500) {
             errorHandler("Error while getting prices for party command", error.message, "attributePrices.js", `Attribute: ${attribute} | Lvl: ${lvl}`);
         }
     });

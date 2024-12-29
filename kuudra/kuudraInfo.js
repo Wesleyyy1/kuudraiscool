@@ -1,4 +1,4 @@
-import Settings from "./settings/config.js";
+import Settings from "../settings/config.js";
 import axios from "axios";
 import {
     decompress,
@@ -11,11 +11,10 @@ import {
     showMissingRolesMsg,
     capitalizeEachWord,
     kicPrefix,
-    delay,
-} from "./utils/generalUtils.js";
-import { getLevel } from "./utils/petLevelUtils.js";
-import Party from "./utils/Party.js";
-import AutoKick from "./kuudra/autoKick.js";
+} from "../utils/generalUtils.js";
+import { getLevel } from "../utils/petLevelUtils.js";
+import Party from "../utils/Party.js";
+import autoKick from "./autoKick.js";
 
 const ITEM_IDS = {
     WITHER_BLADES: new Set(["HYPERION", "VALKYRIE", "ASTRAEA", "SCYLLA"]),
@@ -208,7 +207,7 @@ function showKuudraInfo(playername, manually) {
         .catch(error => {
             if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
                 ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
-            } else if (error.isAxiosError && error.code != 500) {
+            } else if (error.isAxiosError && error.code !== 500) {
                 ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
             } else {
                 ChatLib.chat(`${kicPrefix} &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
@@ -418,9 +417,9 @@ function checkItem(id, searchLore, displayLore, attributes, name, reforge, encha
         checkDeployable(id, name);
     } else if (id === ITEM_IDS.FIRE_VEIL_WAND) {
         extraFireveil = name;
-    } else if (id == ITEM_IDS.TITANIUM_DRILL_4 || id == ITEM_IDS.DIVAN_DRILL) {
+    } else if (id === ITEM_IDS.TITANIUM_DRILL_4 || id === ITEM_IDS.DIVAN_DRILL) {
         checkDrill(id, displayLore);
-    } else if (id == ITEM_IDS.BLAZETEKK_HAM_RADIO) {
+    } else if (id === ITEM_IDS.BLAZETEKK_HAM_RADIO) {
         extraHamRadio = name;
     } else {
         checkArmor(id, displayLore, attributes, name, reforge, enchants, gemstone);
@@ -433,22 +432,18 @@ function checkRagnarockAxe(displayLore, reforge, enchants, gemstone) {
     const chimeraLevel = enchants && enchants.ultimate_chimera ? parseInt(enchants.ultimate_chimera) : 0;
     if (chimeraLevel > currentItem.chimera) {
         updateRagnarockAxe(displayLore, 1, chimeraLevel);
-        return;
     } else if (chimeraLevel === currentItem.chimera) {
         if (reforge && reforge.includes("withered")) {
             if (currentItem.priority > 2) {
                 updateRagnarockAxe(displayLore, 2, chimeraLevel);
-                return;
             }
         } else if (gemstone && gemstone.length > 0) {
             if (currentItem.priority > 3) {
                 updateRagnarockAxe(displayLore, 3, chimeraLevel);
-                return;
             }
         } else {
             if (currentItem.priority > 4) {
                 updateRagnarockAxe(displayLore, 4, chimeraLevel);
-                return;
             }
         }
     }
@@ -815,7 +810,7 @@ function apiOff() {
 
 function generateLLMPLore(type) {
     let total = 0;
-    let lore = `&a&l${type == "ll" ? "Lifeline" : "Mana Pool"} Breakdown:\n\n`;
+    let lore = `&a&l${type === "ll" ? "Lifeline" : "Mana Pool"} Breakdown:\n\n`;
 
     const items = { ...equipment, ...armor };
 
@@ -930,14 +925,14 @@ function displayMessage(name, manually) {
     message.addTextComponent(goldenDragonMessage);
     message.addTextComponent("&2&m----------------------------&r");
 
-    if (!manually && Party.leader == Player.getName()) {
+    if (!manually && Party.amILeader()) {
         message.addTextComponent(kickMessage);
     }
 
     ChatLib.chat(message);
 
-    if(Settings.superSecretSettings && Settings.kuudraAutoKick && !manually && armor.chestplate.lore != "&cAPI OFF"){
-        delay(() => AutoKick(lifeline.total, manaPool.total, comps.infernal, mp.magicalPower, items.ragnarock.chimera, armor.chestplate.priority, armor.leggings.priority, armor.boots.priority,  name), 1000)
+    if (Settings.superSecretSettings && Settings.kuudraAutoKick && !manually && armor.chestplate.lore !== "&cAPI OFF") {
+        autoKick(lifeline.total, manaPool.total, comps.infernal, mp.magicalPower, items.ragnarock.chimera, armor.chestplate.priority, armor.leggings.priority, armor.boots.priority, name)
     }
 }
 

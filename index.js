@@ -2,20 +2,22 @@ import Settings from "./settings/config.js";
 import getCommand from "./chatCommands.js";
 import checkParty from "./doogans.js";
 import searchItem from "./searchItem.js";
-import showKuudraInfo from "./kuudraInfo.js";
+import showKuudraInfo from "./kuudra/kuudraInfo.js";
 import Party from "./utils/Party.js";
 import { checkUpdate } from "./utils/updateChecker.js";
 import { apChatCommand } from "./kuudra/attributePrices.js";
 import { checkApiKey, kicPrefix, getDiscord, setRegisters, delay } from "./utils/generalUtils.js";
-import "./runOverview.js";
+import "./kuudra/runOverview.js";
 import "./kuudra/attributePrices.js";
 import "./mvpEmoji.js";
 import "./utils/World.js";
 import "./kuudra/kuudraProfit.js";
 import "./kuudra/kicAuction.js";
+import CustomizeSettings from "./settings/customizeConfig.js";
 
 // DEV
 //import "./dev/dev.js";
+import "./ws/ws.js";
 
 let firstChecks = false;
 const playername = Player.getName()
@@ -25,18 +27,18 @@ const firstChecksReg = register("worldLoad", () => {
         if (firstChecks) return;
         checkUpdate();
         checkApiKey();
-        Party.checkParty();
+        Party.updatePartyData();
         setRegisters();
         firstChecks = true;
         firstChecksReg.unregister();
-    }, 3000);
+    }, 2000);
 })
 
 // Register chat event for party finder
 register("chat", (player) => {
-    if (!Settings.partyfinder || player == Player.getName()) return;
+    if (!Settings.partyfinder || player === Player.getName()) return;
     showKuudraInfo(player, false);
-}).setCriteria(/^Party Finder > (.+) joined the group! ((.+))$/);
+}).setCriteria(/^Party Finder > (.+) joined the group! (.+)$/);
 
 const parseCommand = (message) => {
     const startIdx = message.indexOf(": ") + 2;
@@ -58,7 +60,7 @@ const handleCommand = (context, commandInfo) => {
         apChatCommand(attribute, lvl, context);
     } else if (command === ".kic") {
         ChatLib.command(`${context} [KIC] > ${getDiscord()}`);
-    } else if (command === ".kick" && Party.leader == Player.getName()){
+    } else if (command === ".kick" && Party.amILeader()){
         const p = args[0] || "suuersindre"
         delay(() => kickCommand(p), 1000);
     } else {
@@ -154,7 +156,7 @@ kicCommandsMsg.addTextComponent(new TextComponent("&8* &a .kick <player>\n").set
 kicCommandsMsg.addTextComponent(new TextComponent("&8* &a .cata [player]\n\n").setHoverValue(`&a&lCata Info\n\n&9Party &8> &b[MVP&0+&b] Wesleygame&f: .cata Wesleygame\n&9Party &8> &b[MVP&0+&b] Wesleygame&f: &rWesleygame's Cata: 48.77 - PB: 05:37:20 - MP: 1404 - Secrets: 28.51K&r`))
 kicCommandsMsg.addTextComponent(new TextComponent("&2[] = optional &7| &2<> = required\n"));
 
-const kicCmdList = ["help", "kuudra", "apikey", "t1", "t2", "t3", "t4", "t5", "settings", "checkapikey"];
+const kicCmdList = ["help", "kuudra", "apikey", "t1", "t2", "t3", "t4", "t5", "settings", "checkapikey", "customize"];
 
 // Register main kuudraiscool command
 register("command", (...args) => {
@@ -189,6 +191,9 @@ register("command", (...args) => {
         case "settings":
             Settings.openGUI();
             break;
+        case "customize":
+            CustomizeSettings.openGUI();
+            break;
         case "checkapikey":
             checkApiKey(null, true);
             break;
@@ -213,18 +218,16 @@ register("command", () => {
     checkParty();
 }).setName("doogans", true);
 
-Settings.registerListener("Minimum T5 Completions", () => {
-    if (isNaN(Settings.minT5Completions)) {
-        delay(() => resetSettingsString(false), 2000);
-        ChatLib.chat("t5")
+Settings.registerListener("Minimum T5 Completions", newValue => {
+    const sanitizedValue = newValue.replace(/[^0-9]/g, "");
+    if (sanitizedValue !== newValue) {
+        Settings.minT5Completions = sanitizedValue;
     }
 })
-Settings.registerListener("Minimum Magical Power", () => {
-    if (isNaN(Settings.minMagicalPower)) {
-        delay(() => resetSettingsString(true), 2000);
-        ChatLib.chat("mp")
+
+Settings.registerListener("Minimum Magical Power", newValue => {
+    const sanitizedValue = newValue.replace(/[^0-9]/g, "");
+    if (sanitizedValue !== newValue) {
+        Settings.minMagicalPower = sanitizedValue;
     }
 })
-function resetSettingsString(type){
-    type ? Settings.minMagicalPower = "0" : Settings.minT5Completions = "0";
-}

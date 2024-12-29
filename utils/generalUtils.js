@@ -199,7 +199,7 @@ function setVersion(version) {
 }
 
 function setDiscord(discord) {
-    discord = discord;
+    discordUrl = discord;
 }
 
 function getDiscord() {
@@ -327,21 +327,21 @@ register("worldLoad", () => {
     let i = worldJoin.length;
     while (i--) {
         worldJoin[i]();
-    };
+    }
 })
 
 register("worldUnload", () => {
     let i = worldLeave.length;
     while (i--) {
         worldLeave[i]();
-    };
+    }
 })
 
 register("serverDisconnect", () => {
     let i = worldLeave.length;
     while (i--) {
         worldLeave[i]();
-    };
+    }
 })
 
 export {

@@ -30,18 +30,15 @@ const emojiList = {
     ":yey:": "ヽ (◕◡◕) ﾉ",
 };
 
+const emojiRegex = new RegExp(Object.keys(emojiList).map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+
 register("MessageSent", (message, event) => {
     if (!Settings.emojis) return;
-    let msg = message;
 
-    for (let key in emojiList) {
-        if (msg.includes(key)) {
-            msg = msg.replaceAll(key, emojiList[key]);
-        }
-    }
+    const replacedMessage = message.replace(emojiRegex, match => emojiList[match]);
 
-    if (msg !== message) {
+    if (replacedMessage !== message) {
         cancel(event);
-        ChatLib.say(msg);
+        ChatLib.say(replacedMessage);
     }
 });

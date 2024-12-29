@@ -1,5 +1,6 @@
 import axios from "axios";
 import Settings from "../settings/config.js";
+import CustomizeSettings from "../settings/customizeConfig.js";
 import { 
     fixNumber,
     errorHandler,
@@ -127,42 +128,42 @@ rerollGui.setMessage(rerollMsg);
 rerollGui.setCommand("kuudrarerollnotifier");
 
 const profitTrackerExample = `${kicPrefix} &a&lProfit Tracker\n\n` +
-    `${getColorCode(Settings.ProfitTrackerColorProfit)}&lProfit: &r${getColorCode(Settings.ProfitTrackerColorProfit)}400.48M\n` +
-    `${getColorCode(Settings.ProfitTrackerColorChests)}&lChests: &r${getColorCode(Settings.ProfitTrackerColorChests)}5 chests\n` +
-    `${getColorCode(Settings.ProfitTrackerColorAverage)}&lAverage: &r${getColorCode(Settings.ProfitTrackerColorAverage)}80.97M/Chest\n` +
-    `${getColorCode(Settings.ProfitTrackerColorTime)}&lTime: &r${getColorCode(Settings.ProfitTrackerColorTime)}10m40s\n` +
-    `${getColorCode(Settings.ProfitTrackerColorRate)}&lRate: &r${getColorCode(Settings.ProfitTrackerColorRate)}2.25B/hr`;
+    `${getColorCode(CustomizeSettings.ProfitTrackerColorProfit)}&lProfit: &r${getColorCode(CustomizeSettings.ProfitTrackerColorProfit)}400.48M\n` +
+    `${getColorCode(CustomizeSettings.ProfitTrackerColorChests)}&lChests: &r${getColorCode(CustomizeSettings.ProfitTrackerColorChests)}5 chests\n` +
+    `${getColorCode(CustomizeSettings.ProfitTrackerColorAverage)}&lAverage: &r${getColorCode(CustomizeSettings.ProfitTrackerColorAverage)}80.97M/Chest\n` +
+    `${getColorCode(CustomizeSettings.ProfitTrackerColorTime)}&lTime: &r${getColorCode(CustomizeSettings.ProfitTrackerColorTime)}10m40s\n` +
+    `${getColorCode(CustomizeSettings.ProfitTrackerColorRate)}&lRate: &r${getColorCode(CustomizeSettings.ProfitTrackerColorRate)}2.25B/hr`;
 
 const profitTrackerGui = new ScalableGui("kuudraProfitTracker", "kuudraProfitTracker", ["Kuudra", "Crimson Isle"], () => true, profitTrackerExample, true);
 profitTrackerGui.setCommand("kuudraprofittracker");
 updateProfitTracker();
 
-Settings.registerListener("Profit Color", v => {
-    Settings.ProfitTrackerColorProfit = v;
+CustomizeSettings.registerListener("Profit Color", v => {
+    CustomizeSettings.ProfitTrackerColorProfit = v;
     profitTrackerGui.setExample(profitTrackerExample);
     updateProfitTracker();
 });
 
-Settings.registerListener("Chests Color", v => {
-    Settings.ProfitTrackerColorChests = v;
+CustomizeSettings.registerListener("Chests Color", v => {
+    CustomizeSettings.ProfitTrackerColorChests = v;
     profitTrackerGui.setExample(profitTrackerExample);
     updateProfitTracker();
 });
 
-Settings.registerListener("Average Color", v => {
-    Settings.ProfitTrackerColorAverage = v;
+CustomizeSettings.registerListener("Average Color", v => {
+    CustomizeSettings.ProfitTrackerColorAverage = v;
     profitTrackerGui.setExample(profitTrackerExample);
     updateProfitTracker();
 });
 
-Settings.registerListener("Time Color", v => {
-    Settings.ProfitTrackerColorTime = v;
+CustomizeSettings.registerListener("Time Color", v => {
+    CustomizeSettings.ProfitTrackerColorTime = v;
     profitTrackerGui.setExample(profitTrackerExample);
     updateProfitTracker();
 });
 
-Settings.registerListener("Rate Color", v => {
-    Settings.ProfitTrackerColorRate = v;
+CustomizeSettings.registerListener("Rate Color", v => {
+    CustomizeSettings.ProfitTrackerColorRate = v;
     profitTrackerGui.setExample(profitTrackerExample);
     updateProfitTracker();
 });
@@ -216,7 +217,7 @@ function updateProfitTracker() {
         kicData.kuudraProfitTrackerData.time += elapsedTime;
         kicData.save();
 
-        kicDebugMsg(`Updating profit tracker with Profit: +${totalProfit}, Chests: +1, time: +${elapsedTime}`);
+        kicDebugMsg(`Updating profit tracker with Profit: +${fixNumber(totalProfit)}, Chests: +1, time: +${elapsedTime}`);
     }
 
     const { profit, chests, time } = kicData.kuudraProfitTrackerData;
@@ -236,333 +237,337 @@ function updateProfitTracker() {
 }
 
 register("packetReceived", (packet, event) => {
-    if (World.world !== "Kuudra" || !Settings.kuudraProfit) return;
-    const player = Player.getPlayer();
-    const container = Player.getContainer();
-    if (!player || !container) return;
+    try {
+        if (World.world !== "Kuudra" || !Settings.kuudraProfit) return;
+        const player = Player.getPlayer();
+        const container = Player.getContainer();
+        if (!player || !container) return;
 
-    const containerName = container.getName().removeFormatting();
-    if (!containerName || containerName !== "Paid Chest") return;
-    profitGui.setMessage("&aChecking prices...");
+        const containerName = container.getName().removeFormatting();
+        if (!containerName || containerName !== "Paid Chest") return;
+        profitGui.setMessage("&aChecking prices...");
 
-    const maxSlot = container.getSize() - 36;
-    const itemsList = packet.func_148910_d().slice(0, maxSlot);
+        const maxSlot = container.getSize() - 36;
+        const itemsList = packet.func_148910_d().slice(0, maxSlot);
 
-    const itemsToUpdate = [];
-    const itemsWithoutUpdate = [];
-    kuudraTier = "UNKNOWN";
-    canReroll = false;
-    rerolled = false;
-    rerollPriceChecked = {
-        checked: false,
-        reroll: false
-    };
-    dontReroll = false;
-    shouldBuy = false;
-    totalProfit = 0;
-    generateFailsafeList();
+        const itemsToUpdate = [];
+        const itemsWithoutUpdate = [];
+        kuudraTier = "UNKNOWN";
+        canReroll = false;
+        rerolled = false;
+        rerollPriceChecked = {
+            checked: false,
+            reroll: false
+        };
+        dontReroll = false;
+        shouldBuy = false;
+        totalProfit = 0;
+        generateFailsafeList();
 
-    itemsList.forEach(itemStack => {
-        if (!itemStack) return;
+        itemsList.forEach(itemStack => {
+            if (!itemStack) return;
 
-        const item = new Item(itemStack);
-        if (item.getID() === 160) return;
+            const item = new Item(itemStack);
+            if (item.getID() === 160) return;
 
-        const itemNBTTag = item.getNBT().getCompoundTag("tag");
+            const itemNBTTag = item.getNBT().getCompoundTag("tag");
 
-        const display = itemNBTTag.getCompoundTag("display");
-        const itemName = display.getString("Name");
-        const lore = display.toObject()["Lore"];
+            const display = itemNBTTag.getCompoundTag("display");
+            const itemName = display.getString("Name");
+            const lore = display.toObject()["Lore"];
 
-        if (!itemName) return;
+            if (!itemName) return;
 
-        if (itemName.removeFormatting().toLowerCase().includes("crimson essence")) {
-            const match = itemName.removeFormatting().toLowerCase().match(/x(\d+)/);
-            const count = match ? parseInt(match[1], 10) : 0;
-            bazaarItems["ESSENCE_CRIMSON"] = {
-                name: "&dCrimson Essence",
-                itemId: "ESSENCE_CRIMSON",
-                buyPrice: "Loading...",
-                sellPrice: "Loading...",
-                count: count,
-                time: Date.now()
-            };
-            itemsToUpdate.push("ESSENCE_CRIMSON");
-
-            return;
-        }
-
-        if (!lore) return;
-
-        const lowerLore = lore.join(",").toLowerCase();
-        const extraAttr = itemNBTTag.getCompoundTag("ExtraAttributes");
-
-        if (itemName.removeFormatting().toLowerCase().includes("reroll kuudra chest")) {
-            if (lowerLore.includes("you already rerolled this chest!")) {
-                rerolled = true;
-            } else {
-                canReroll = true;
-
-                bazaarItems["KISMET_FEATHER"] = {
-                    calcIgnore: true,
-                    name: "&9Kismet Feather",
-                    itemId: "KISMET_FEATHER",
+            if (itemName.removeFormatting().toLowerCase().includes("crimson essence")) {
+                const match = itemName.removeFormatting().toLowerCase().match(/x(\d+)/);
+                const count = match ? parseInt(match[1], 10) : 0;
+                bazaarItems["ESSENCE_CRIMSON"] = {
+                    name: "&dCrimson Essence",
+                    itemId: "ESSENCE_CRIMSON",
                     buyPrice: "Loading...",
                     sellPrice: "Loading...",
+                    count: count,
                     time: Date.now()
                 };
-                itemsToUpdate.push("KISMET_FEATHER");
-            }
+                itemsToUpdate.push("ESSENCE_CRIMSON");
 
-            return;
-        }
-
-        if (!extraAttr || extraAttr.hasNoTags()) return;
-
-        const itemId = extraAttr.getString("id");
-        if (!itemId) return;
-
-        dontRerollIds.forEach(id => {
-            if (itemId.includes(id)) {
-                dontReroll = true;
                 return;
             }
-        });
 
-        if (lowerLore.includes("soulbound")) return;
+            if (!lore) return;
 
-        if (itemId === "KUUDRA_TEETH") {
-            const count = item.getStackSize() || 0;
-            bazaarItems[itemId] = {
-                name: "&5Kuudra Teeth",
-                itemId: itemId,
-                buyPrice: "Loading...",
-                sellPrice: "Loading...",
-                count: count,
-                time: Date.now()
-            };
-            itemsToUpdate.push(itemId);
-            
-            return;
-        }
+            const lowerLore = lore.join(",").toLowerCase();
+            const extraAttr = itemNBTTag.getCompoundTag("ExtraAttributes");
 
-        const uuid = extraAttr.getString("uuid");
-        if (!uuid) return;
-
-        if (itemId.includes("ULTIMATE_INFERNO")) {
-            if (!bazaarItems[uuid]) {
-                bazaarItems[uuid] = {
-                    name: "&d&lInferno 1",
-                    itemId: "ENCHANTMENT_ULTIMATE_INFERNO_1",
-                    buyPrice: "Loading...",
-                    sellPrice: "Loading...",
-                    time: Date.now()
-                };
-                itemsToUpdate.push(uuid);
-            } else {
-                if ((Date.now() - bazaarItems[uuid].time) > 300000) {
-                    itemsToUpdate.push(uuid);
+            if (itemName.removeFormatting().toLowerCase().includes("reroll kuudra chest")) {
+                if (lowerLore.includes("you already rerolled this chest!")) {
+                    rerolled = true;
                 } else {
-                    itemsWithoutUpdate.push(uuid);
+                    canReroll = true;
+
+                    bazaarItems["KISMET_FEATHER"] = {
+                        calcIgnore: true,
+                        name: "&9Kismet Feather",
+                        itemId: "KISMET_FEATHER",
+                        buyPrice: "Loading...",
+                        sellPrice: "Loading...",
+                        time: Date.now()
+                    };
+                    itemsToUpdate.push("KISMET_FEATHER");
                 }
-            }
-            return;
-        }
 
-        if (itemId.includes("ULTIMATE_FATAL_TEMPO")) {
-            if (!bazaarItems[uuid]) {
-                bazaarItems[uuid] = {
-                    name: "&d&lFatal Tempo 1",
-                    itemId: "ENCHANTMENT_ULTIMATE_FATAL_TEMPO_1",
-                    buyPrice: "Loading...",
-                    sellPrice: "Loading...",
-                    time: Date.now()
-                };
-                itemsToUpdate.push(uuid);
-            } else {
-                if ((Date.now() - bazaarItems[uuid].time) > 300000) {
-                    itemsToUpdate.push(uuid);
-                } else {
-                    itemsWithoutUpdate.push(uuid);
+                return;
+            }
+
+            if (!extraAttr || extraAttr.hasNoTags()) return;
+
+            const itemId = extraAttr.getString("id");
+            if (!itemId) return;
+
+            dontRerollIds.forEach(id => {
+                if (itemId.includes(id)) {
+                    dontReroll = true;
                 }
-            }
-            return;
-        }
+            });
 
-        if (itemId === "ENCHANTED_BOOK") {
-            const enchants = extraAttr.getTag("enchantments");
-            if (!enchants) return;
-        
-            const parsedEnchants = parseNbt(enchants.toString());
-            const [enchant, lvl] = Object.entries(parsedEnchants)[0] || [];
-        
-            if (!enchant || !lvl) return;
-        
-            const enchantName = `&7${capitalizeEachWord(enchant.replaceAll("_", " "))} ${lvl}`;
-            const enchantItemId = `ENCHANTMENT_${enchant.toUpperCase()}_${lvl}`;
-        
-            if (!bazaarItems[uuid]) {
-                bazaarItems[uuid] = {
-                    name: enchantName,
-                    itemId: enchantItemId,
-                    buyPrice: "Loading...",
-                    sellPrice: "Loading...",
-                    time: Date.now()
-                };
-                itemsToUpdate.push(uuid);
-            } else {
-                const timeElapsed = Date.now() - bazaarItems[uuid].time;
-                (timeElapsed > 300000 ? itemsToUpdate : itemsWithoutUpdate).push(uuid);
-            }
-            return;
-        }
+            if (lowerLore.includes("soulbound")) return;
 
-        if (itemId === "MANDRAA" || itemId === "KUUDRA_MANDIBLE") {
-            if (!bazaarItems[uuid]) {
-                bazaarItems[uuid] = {
-                    name: itemName,
+            if (itemId === "KUUDRA_TEETH") {
+                const count = item.getStackSize() || 0;
+                bazaarItems[itemId] = {
+                    name: "&5Kuudra Teeth",
                     itemId: itemId,
                     buyPrice: "Loading...",
                     sellPrice: "Loading...",
+                    count: count,
                     time: Date.now()
                 };
-                itemsToUpdate.push(uuid);
-            } else {
-                if ((Date.now() - bazaarItems[uuid].time) > 300000) {
+                itemsToUpdate.push(itemId);
+
+                return;
+            }
+
+            const uuid = extraAttr.getString("uuid");
+            if (!uuid) return;
+
+            if (itemId.includes("ULTIMATE_INFERNO")) {
+                if (!bazaarItems[uuid]) {
+                    bazaarItems[uuid] = {
+                        name: "&d&lInferno 1",
+                        itemId: "ENCHANTMENT_ULTIMATE_INFERNO_1",
+                        buyPrice: "Loading...",
+                        sellPrice: "Loading...",
+                        time: Date.now()
+                    };
                     itemsToUpdate.push(uuid);
                 } else {
-                    itemsWithoutUpdate.push(uuid);
+                    if ((Date.now() - bazaarItems[uuid].time) > 300000) {
+                        itemsToUpdate.push(uuid);
+                    } else {
+                        itemsWithoutUpdate.push(uuid);
+                    }
                 }
+                return;
             }
-            return;
-        }
 
-        const attributes = extraAttr.getTag("attributes");
-        if (attributes !== null && itemId !== "HOLLOW_WAND") {
-            const parsedAttributes = parseNbt(attributes.toString());
-            
-            if (!attributesItems[uuid]) {
-                attributesItems[uuid] = {
+            if (itemId.includes("ULTIMATE_FATAL_TEMPO")) {
+                if (!bazaarItems[uuid]) {
+                    bazaarItems[uuid] = {
+                        name: "&d&lFatal Tempo 1",
+                        itemId: "ENCHANTMENT_ULTIMATE_FATAL_TEMPO_1",
+                        buyPrice: "Loading...",
+                        sellPrice: "Loading...",
+                        time: Date.now()
+                    };
+                    itemsToUpdate.push(uuid);
+                } else {
+                    if ((Date.now() - bazaarItems[uuid].time) > 300000) {
+                        itemsToUpdate.push(uuid);
+                    } else {
+                        itemsWithoutUpdate.push(uuid);
+                    }
+                }
+                return;
+            }
+
+            if (itemId === "ENCHANTED_BOOK") {
+                const enchants = extraAttr.getTag("enchantments");
+                if (!enchants) return;
+
+                const parsedEnchants = parseNbt(enchants.toString());
+                const [enchant, lvl] = Object.entries(parsedEnchants)[0] || [];
+
+                if (!enchant || !lvl) return;
+
+                const enchantName = `&7${capitalizeEachWord(enchant.replaceAll("_", " "))} ${lvl}`;
+                const enchantItemId = `ENCHANTMENT_${enchant.toUpperCase()}_${lvl}`;
+
+                if (!bazaarItems[uuid]) {
+                    bazaarItems[uuid] = {
+                        name: enchantName,
+                        itemId: enchantItemId,
+                        buyPrice: "Loading...",
+                        sellPrice: "Loading...",
+                        time: Date.now()
+                    };
+                    itemsToUpdate.push(uuid);
+                } else {
+                    const timeElapsed = Date.now() - bazaarItems[uuid].time;
+                    (timeElapsed > 300000 ? itemsToUpdate : itemsWithoutUpdate).push(uuid);
+                }
+                return;
+            }
+
+            if (itemId === "MANDRAA" || itemId === "KUUDRA_MANDIBLE") {
+                if (!bazaarItems[uuid]) {
+                    bazaarItems[uuid] = {
+                        name: itemName,
+                        itemId: itemId,
+                        buyPrice: "Loading...",
+                        sellPrice: "Loading...",
+                        time: Date.now()
+                    };
+                    itemsToUpdate.push(uuid);
+                } else {
+                    if ((Date.now() - bazaarItems[uuid].time) > 300000) {
+                        itemsToUpdate.push(uuid);
+                    } else {
+                        itemsWithoutUpdate.push(uuid);
+                    }
+                }
+                return;
+            }
+
+            const attributes = extraAttr.getTag("attributes");
+            if (attributes !== null && itemId !== "HOLLOW_WAND") {
+                const parsedAttributes = parseNbt(attributes.toString());
+
+                if (!attributesItems[uuid]) {
+                    attributesItems[uuid] = {
+                        name: itemName,
+                        itemId: itemId,
+                        attributes: parsedAttributes,
+                        price: "Loading...",
+                        time: Date.now()
+                    };
+                    if (itemId === "ATTRIBUTE_SHARD") {
+                        const [attribute, lvl] = Object.entries(parsedAttributes)[0] || [];
+                        if (attribute && lvl) {
+                            attributesItems[uuid].name = `&b${capitalizeEachWord(attribute.replaceAll("_", " "))} ${lvl}`;
+                        }
+                    }
+                    itemsToUpdate.push(uuid);
+                } else {
+                    if (JSON.stringify(attributesItems[uuid].attributes) !== JSON.stringify(parsedAttributes)) {
+                        attributesItems[uuid].attributes = parsedAttributes;
+                        itemsToUpdate.push(uuid);
+                    } else if ((Date.now() - attributesItems[uuid].time) > 300000) {
+                        itemsToUpdate.push(uuid);
+                    } else {
+                        itemsWithoutUpdate.push(uuid);
+                    }
+                }
+
+                return;
+            }
+
+            if (!auctionItems[uuid]) {
+                auctionItems[uuid] = {
                     name: itemName,
                     itemId: itemId,
-                    attributes: parsedAttributes,
                     price: "Loading...",
                     time: Date.now()
                 };
-                if (itemId === "ATTRIBUTE_SHARD") {
-                    const [attribute, lvl] = Object.entries(parsedAttributes)[0] || [];
-                    if (attribute && lvl) {
-                        attributesItems[uuid].name = `&b${capitalizeEachWord(attribute.replaceAll("_", " "))} ${lvl}`;
-                    }
-                }
                 itemsToUpdate.push(uuid);
             } else {
-                if (JSON.stringify(attributesItems[uuid].attributes) !== JSON.stringify(parsedAttributes)) {
-                    attributesItems[uuid].attributes = parsedAttributes;
-                    itemsToUpdate.push(uuid);
-                } else if ((Date.now() - attributesItems[uuid].time) > 300000) {
+                if ((Date.now() - auctionItems[uuid].time) > 300000) {
                     itemsToUpdate.push(uuid);
                 } else {
                     itemsWithoutUpdate.push(uuid);
                 }
             }
+        });
 
-            return;
-        }
+        kuudraTier = tiers[getKuudraTier()];
 
-        if (!auctionItems[uuid]) {
-            auctionItems[uuid] = {
-                name: itemName,
-                itemId: itemId,
-                price: "Loading...",
-                time: Date.now()
+        kicDebugMsg(`Kuudra tier used for profit calc: ${kuudraTier}, index: ${getKuudraTier()}`);
+
+        if (kuudraTier !== "UNKNOWN") {
+            const updateBazaarItem = (keyType) => {
+                const itemId = kuudraData.KEY[keyType];
+                const uuid = `KEY_${keyType}_${kuudraTier}`;
+
+                if (!bazaarItems[uuid]) {
+                    bazaarItems[uuid] = {
+                        calcIgnore: true,
+                        name: kuudraData[kuudraTier].key.name,
+                        itemId: itemId,
+                        buyPrice: "Loading...",
+                        sellPrice: "Loading...",
+                        count: kuudraData[kuudraTier].key.items,
+                        basePrice: kuudraData[kuudraTier].key.coins,
+                        time: Date.now()
+                    };
+                    itemsToUpdate.push(uuid);
+                } else {
+                    const timeElapsed = Date.now() - bazaarItems[uuid].time;
+                    (timeElapsed > 300000 ? itemsToUpdate : itemsWithoutUpdate).push(uuid);
+                }
             };
-            itemsToUpdate.push(uuid);
-        } else {
-            if ((Date.now() - auctionItems[uuid].time) > 300000) {
-                itemsToUpdate.push(uuid);
-            } else {
-                itemsWithoutUpdate.push(uuid);
-            }
-        }
-    });
 
-    kuudraTier = tiers[getKuudraTier()];
+            updateBazaarItem("BARBARIAN");
+            updateBazaarItem("MAGE");
 
-    kicDebugMsg(`Kuudra tier used for profit calc: ${kuudraTier}, index: ${getKuudraTier()}`);
-
-    if (kuudraTier !== "UNKNOWN") {
-        const updateBazaarItem = (keyType) => {
-            const itemId = kuudraData.KEY[keyType];
-            const uuid = `KEY_${keyType}_${kuudraTier}`;
-
-            if (!bazaarItems[uuid]) {
-                bazaarItems[uuid] = {
+            if (!bazaarItems["CORRUPTED_NETHER_STAR"]) {
+                bazaarItems["CORRUPTED_NETHER_STAR"] = {
                     calcIgnore: true,
-                    name: kuudraData[kuudraTier].key.name,
-                    itemId: itemId,
+                    name: "&dNether Star",
+                    itemId: "CORRUPTED_NETHER_STAR",
                     buyPrice: "Loading...",
                     sellPrice: "Loading...",
-                    count: kuudraData[kuudraTier].key.items,
-                    basePrice: kuudraData[kuudraTier].key.coins,
+                    count: 2,
                     time: Date.now()
                 };
-                itemsToUpdate.push(uuid);
-            } else {
-                const timeElapsed = Date.now() - bazaarItems[uuid].time;
-                (timeElapsed > 300000 ? itemsToUpdate : itemsWithoutUpdate).push(uuid);
-            }
-        };
-    
-        updateBazaarItem("BARBARIAN");
-        updateBazaarItem("MAGE");
-
-        if (!bazaarItems["CORRUPTED_NETHER_STAR"]) {
-            bazaarItems["CORRUPTED_NETHER_STAR"] = {
-                calcIgnore: true,
-                name: "&dNether Star",
-                itemId: "CORRUPTED_NETHER_STAR",
-                buyPrice: "Loading...",
-                sellPrice: "Loading...",
-                count: 2,
-                time: Date.now()
-            };
-            itemsToUpdate.push("CORRUPTED_NETHER_STAR");
-        } else {
-            if ((Date.now() - bazaarItems["CORRUPTED_NETHER_STAR"].time) > 300000) {
                 itemsToUpdate.push("CORRUPTED_NETHER_STAR");
             } else {
-                itemsWithoutUpdate.push("CORRUPTED_NETHER_STAR");
-            }
-        }
-    }
-
-    const itemsToUpdateFiltered = [...new Set(itemsToUpdate)];
-    const itemsWithoutUpdateFiltered = [...new Set(itemsWithoutUpdate)];
-
-    if (itemsToUpdateFiltered.length < 0 && itemsWithoutUpdateFiltered.length < 0) return;
-
-    fetchItemPrices(itemsToUpdateFiltered, function () {
-        updateOverlay(itemsToUpdateFiltered.concat(itemsWithoutUpdateFiltered), kuudraTier);
-        kicDebugMsg(`Total profit: ${fixNumber(totalProfit)}`);
-        if (Settings.superSecretSettings && !chestOpened) {
-            if (Settings.kuudraAutoReroll && shouldReroll()) {
-                if (Settings.kuudraAutoBuy) {
-                    delay(() => click(31), 500);
-                    delay(() => click(50), 500);
-                    ChatLib.chat(`${kicPrefix} &aAuto rerolled & auto bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
+                if ((Date.now() - bazaarItems["CORRUPTED_NETHER_STAR"].time) > 300000) {
+                    itemsToUpdate.push("CORRUPTED_NETHER_STAR");
                 } else {
-                    delay(() => click(50), 500);
-                    ChatLib.chat(`${kicPrefix} &aAuto rerolled the paid chest!`);
+                    itemsWithoutUpdate.push("CORRUPTED_NETHER_STAR");
                 }
-            } else if (Settings.kuudraAutoBuy && shouldBuy && !rerolled) {
-                delay(() => click(31), 500);
-                chestOpened = true;
-                ChatLib.chat(`${kicPrefix} &aAuto bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
-                updateProfitTracker();
             }
         }
-    });
+
+        const itemsToUpdateFiltered = [...new Set(itemsToUpdate)];
+        const itemsWithoutUpdateFiltered = [...new Set(itemsWithoutUpdate)];
+
+        if (itemsToUpdateFiltered.length < 0 && itemsWithoutUpdateFiltered.length < 0) return;
+
+        fetchItemPrices(itemsToUpdateFiltered, function () {
+            updateOverlay(itemsToUpdateFiltered.concat(itemsWithoutUpdateFiltered), kuudraTier);
+            kicDebugMsg(`Total profit: ${fixNumber(totalProfit)}, Chest Opened: ${chestOpened}, Should Buy: ${shouldBuy}`);
+            if (Settings.superSecretSettings && !chestOpened) {
+                kicDebugMsg(`Should reroll value check. isPaidChest: ${isPaidChest()}, dontReroll: ${dontReroll}, rerollPriceChecked.checked: ${rerollPriceChecked?.checked}, rerollPriceChecked.reroll: ${rerollPriceChecked?.reroll}, canReroll: ${canReroll}, rerolled: ${rerolled}, chestOpened: ${chestOpened}`);
+                if (Settings.kuudraAutoReroll && shouldReroll()) {
+                    if (Settings.kuudraAutoBuy) {
+                        delay(() => click(31), 500);
+                        delay(() => click(50), 750);
+                        ChatLib.chat(`${kicPrefix} &aAuto rerolled & auto bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
+                    } else {
+                        delay(() => click(50), 500);
+                        ChatLib.chat(`${kicPrefix} &aAuto rerolled the paid chest!`);
+                    }
+                } else if (Settings.kuudraAutoBuy && shouldBuy && !rerolled) {
+                    delay(() => click(31), 500);
+                    chestOpened = true;
+                    ChatLib.chat(`${kicPrefix} &aAuto bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
+                    updateProfitTracker();
+                }
+            }
+        });
+    } catch (error) {
+        errorHandler("Error while getting kuudra chest profit", error.message, "kuudraProfit.js")
+    }
 }).setFilteredClass(net.minecraft.network.play.server.S30PacketWindowItems);
 
 function parseNbt(string) {
@@ -636,7 +641,7 @@ function fetchItemPrices(uuidsToUpdate, callback) {
         .catch(error => {
             if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
                 ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
-            } else if (!error.isAxiosError || error.code == 500) {
+            } else if (!error.isAxiosError || error.code === 500) {
                 errorHandler("Error while getting prices for items", error.message, "kuudraProfit.js", null);
             }
             callback();
@@ -842,10 +847,10 @@ function generateFailsafeList() {
     };
 
     dontRerollAttributes = Object.keys(attributesMap)
-        .filter(key => Settings[key])
+        .filter(key => CustomizeSettings[key])
         .map(key => attributesMap[key]);
 
-    if (Settings.vitality) {
+    if (CustomizeSettings.vitality) {
         dontRerollAttributes.push("mending");
     }
 }

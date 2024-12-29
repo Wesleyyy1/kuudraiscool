@@ -36,7 +36,7 @@ function searchItem(playername, search) {
         .catch(error => {
             if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
                 ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
-            } else if (error.isAxiosError && error.code != 500) {
+            } else if (error.isAxiosError && error.code !== 500) {
                 ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
             } else {
                 ChatLib.chat(`${kicPrefix} &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);

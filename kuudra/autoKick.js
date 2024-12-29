@@ -25,9 +25,9 @@ export default function autoKick(lifeline, manapool, runs, magicalpower, ragnaro
 }
 
 register("chat", function (username, event) {
-    if (Settings.superSecretSettings && Settings.kuudraAutoKickTrimonu && username !== Player.getName() && Party.leader === Player.getName()) {
+    if (Settings.superSecretSettings && Settings.kuudraAutoKickTrimonu && username !== Player.getName() && Party.amILeader()) {
         ChatLib.chat(`${kicPrefix} &c${username} &2has been autokicked for using Trimonu!`);
         ChatLib.command(`pc ${username} kicked for using Trimonu`);
         delay(() => ChatLib.command(`p kick ${username}`), 1000);
     }
-}).setCriteria(/Party > (?:\[[^\]]+\]\s*)?(\w+).*?: .*?✯ Opened.*/);
+}).setCriteria(/Party > (?:\[[^\]]+]\s*)?(\w+).*?: .*?✯ Opened.*/);

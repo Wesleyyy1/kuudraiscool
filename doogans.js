@@ -9,8 +9,7 @@ function checkParty() {
     if (!isKeyValid()) return showInvalidReasonMsg();
     if (!getRoles().includes("DEFAULT")) return showMissingRolesMsg();
 
-    const party = Object.keys(Party.members);
-    if (party.length == 0) {
+    if (!Party.inParty()) {
         ChatLib.chat(`${kicPrefix} &cYou are currently not in a party!`);
         return;
     }
@@ -20,7 +19,7 @@ function checkParty() {
         checked: 0
     };
 
-    party.forEach(player => {
+    Party.members.forEach(player => {
         axios.get(`https://api.sm0kez.com/hypixel/profile/${player}/selected`, {
             headers: {
                 "User-Agent": "Mozilla/5.0 (ChatTriggers)",
@@ -43,7 +42,7 @@ function checkParty() {
                 msgData.messages.push(`&a${player} &f-> &7ERROR`);
                 msgData.checked++;
                 checkCompleted();
-                if (!error.isAxiosError || error.code == 500) {
+                if (!error.isAxiosError || error.code === 500) {
                     errorHandler(`Error while getting profile data for ${player}`, error.message, "doogans.js", `User: ${player}`);
                 }
             });
@@ -89,12 +88,12 @@ function processPlayerData(data) {
 }
 
 function checkCompleted() {
-    if (msgData.checked == Object.keys(Party.members).length) {
+    if (msgData.checked === Party.members.length) {
         const msg = new Message();
 
         msg.addTextComponent("&2&m-----&f[- &2doogans &f-]&2&m-----\n");
 
-        if (msgData.messages.length == 0) {
+        if (msgData.messages.length === 0) {
             msg.addTextComponent("&aAll party members have sufficient soulflow and arrows!");
         } else {
             msg.addTextComponent("&cThe following members have issues:\n\n");

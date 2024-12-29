@@ -50,7 +50,6 @@ class WorldUtil {
         this.findWorld()
     }
 
-
     isSkyblock() {
         return Boolean(this.world)
     }

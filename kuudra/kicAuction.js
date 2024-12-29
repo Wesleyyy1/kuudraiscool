@@ -1,7 +1,7 @@
 import Settings from "../settings/config.js";
 import SkullTextures from "./skullTextures";
-import { capitalizeEachWord, kicPrefix, errorHandler, delay } from "../utils/generalUtils";
-import { getPriceData, attributes } from "./priceUtils";
+import {capitalizeEachWord, delay, errorHandler, kicPrefix} from "../utils/generalUtils";
+import {attributes, getPriceData} from "./priceUtils";
 
 const InventoryBasic = Java.type("net.minecraft.inventory.InventoryBasic");
 const GuiChest = Java.type("net.minecraft.client.gui.inventory.GuiChest");
@@ -206,8 +206,7 @@ function ArmorAH() {
     items[3] = categoryItems[activeArmorCategory].setLore(categoryLore).itemStack;
 
     let typeLore = armorCheapest ? armorTypes.map(type => `&7&m${capitalizeEachWord(type)}`) : createLore(activeArmorType, armorTypes);
-    const typeChangeIcon = new Item('minecraft:comparator').setName(armorCheapest ? "&7&l&mChange type" : "&6&lChange type").setLore(typeLore).itemStack;
-    items[5] = typeChangeIcon;
+    items[5] = new Item('minecraft:comparator').setName(armorCheapest ? "&7&l&mChange type" : "&6&lChange type").setLore(typeLore).itemStack;
 
     let pieceType = activeArmorCategory === "boots" || activeArmorCategory === "leggings" ? activeArmorCategory : activeArmorCategory.slice(0, -1);
 
@@ -253,12 +252,10 @@ function EquipmentAH() {
     items[49] = back;
 
     let categoryLore = createLore(activeEquipmentCategory, Object.keys(equipmentCategories));
-    const equipmentCategoryIcon = new Item('minecraft:nether_star').setName("&6&lCategory").setLore(categoryLore).itemStack;
-    items[3] = equipmentCategoryIcon;
+    items[3] = new Item('minecraft:nether_star').setName("&6&lCategory").setLore(categoryLore).itemStack;
 
     let typeLore = createLore(activeEquipmentType, equipmentCategories[activeEquipmentCategory]);
-    const typeChangeIcon = new Item('minecraft:comparator').setName("&6&lChange type").setLore(typeLore).itemStack;
-    items[5] = typeChangeIcon;
+    items[5] = new Item('minecraft:comparator').setName("&6&lChange type").setLore(typeLore).itemStack;
 
     let equipmentTypeID = textToID(activeEquipmentType);
     let equipmentData = priceData.equipment[activeEquipmentCategory][equipmentTypeID].slice();
@@ -294,8 +291,7 @@ function FishingAH() {
     items[3] = categoryItems[activeFishingCategory].setLore(categoryLore).itemStack;
 
     let typeLore = createLore(activeFishingType, fishingTypes);
-    const typeChangeIcon = new Item('minecraft:comparator').setName("&6&lChange type").setLore(typeLore).itemStack;
-    items[5] = typeChangeIcon;
+    items[5] = new Item('minecraft:comparator').setName("&6&lChange type").setLore(typeLore).itemStack;
 
     let pieceType = activeFishingCategory === "boots" || activeFishingCategory === "leggings" ? activeFishingCategory : activeFishingCategory.slice(0, -1);
     let fishingData = priceData.armor[activeFishingCategory][`${textToID(activeFishingType)}_${pieceType}`].slice();
