@@ -227,11 +227,11 @@ function updateProfitTracker() {
 
     profitTrackerGui.setMessage(
         `${kicPrefix} &a&lProfit Tracker\n\n` +
-        `${getColorCode(Settings.ProfitTrackerColorProfit)}&lProfit: &r${getColorCode(Settings.ProfitTrackerColorProfit)}${fixNumber(profit)}\n` +
-        `${getColorCode(Settings.ProfitTrackerColorChests)}&lChests: &r${getColorCode(Settings.ProfitTrackerColorChests)}${chests} chests\n` +
-        `${getColorCode(Settings.ProfitTrackerColorAverage)}&lAverage: &r${getColorCode(Settings.ProfitTrackerColorAverage)}${fixNumber(average)}/Chest\n` +
-        `${getColorCode(Settings.ProfitTrackerColorTime)}&lTime: &r${getColorCode(Settings.ProfitTrackerColorTime)}${formatTimeMain(time / 1000)}\n` +
-        `${getColorCode(Settings.ProfitTrackerColorRate)}&lRate: &r${getColorCode(Settings.ProfitTrackerColorRate)}${fixNumber(rate)}/hr`
+        `${getColorCode(CustomizeSettings.ProfitTrackerColorProfit)}&lProfit: &r${getColorCode(CustomizeSettings.ProfitTrackerColorProfit)}${fixNumber(profit)}\n` +
+        `${getColorCode(CustomizeSettings.ProfitTrackerColorChests)}&lChests: &r${getColorCode(CustomizeSettings.ProfitTrackerColorChests)}${chests} chests\n` +
+        `${getColorCode(CustomizeSettings.ProfitTrackerColorAverage)}&lAverage: &r${getColorCode(CustomizeSettings.ProfitTrackerColorAverage)}${fixNumber(average)}/Chest\n` +
+        `${getColorCode(CustomizeSettings.ProfitTrackerColorTime)}&lTime: &r${getColorCode(CustomizeSettings.ProfitTrackerColorTime)}${formatTimeMain(time / 1000)}\n` +
+        `${getColorCode(CustomizeSettings.ProfitTrackerColorRate)}&lRate: &r${getColorCode(CustomizeSettings.ProfitTrackerColorRate)}${fixNumber(rate)}/hr`
     );
     totalProfit = 0;
 }
