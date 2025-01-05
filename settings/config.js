@@ -386,6 +386,12 @@ class Settings {
     })
     kicChat = false;
 
+    @SwitchProperty({
+        name: "Enable Container Value Overlay",
+        category: "Dev"
+    })
+    containerValue = false;
+
     // Credits
 
     @ButtonProperty({

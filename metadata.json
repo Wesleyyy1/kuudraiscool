@@ -8,7 +8,6 @@
     "Vigilance",
     "axios",
     "PogData",
-    "HypixelModAPI",
-    "WebSocket"
+    "HypixelModAPI"
   ]
 }

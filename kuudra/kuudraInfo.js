@@ -10,7 +10,7 @@ import {
     showInvalidReasonMsg,
     showMissingRolesMsg,
     capitalizeEachWord,
-    kicPrefix,
+    kicPrefix, calculateMagicalPower,
 } from "../utils/generalUtils.js";
 import { getLevel } from "../utils/petLevelUtils.js";
 import Party from "../utils/Party.js";
@@ -222,7 +222,7 @@ function processKuudraData(response, manually) {
     const netherData = memberData.nether_island_player_data;
     const inventory = memberData.inventory;
 
-    processMagicalPower(memberData, netherData);
+    processMagicalPower(memberData);
     processRuns(netherData);
     processReputation(netherData);
     processGoldenDragon(memberData.pets_data.pets);
@@ -670,13 +670,9 @@ function processRuns(netherData) {
     }
 }
 
-function processMagicalPower(memberData, netherData) {
-    let maxMp = 0;
-    let totalMp = 0;
-
+function processMagicalPower(memberData) {
     const accessoryBag = memberData.accessory_bag_storage;
     if (accessoryBag) {
-        maxMp = accessoryBag.highest_magical_power || 0;
         const checkTuning = accessoryBag.tuning?.slot_0 || 0;
 
         mp.selectedPower = capitalizeEachWord(accessoryBag.selected_power.replaceAll("_", " ")) || "&fNONE";
@@ -686,67 +682,7 @@ function processMagicalPower(memberData, netherData) {
         mp.tuningPoints = "&4API OFF";
     }
 
-    const talismanBag = memberData.inventory?.bag_contents?.talisman_bag;
-    const hasConsumedPrism = memberData.rift?.access?.consumed_prism;
-    let hasAbicase = false;
-    const talismanIds = new Set();
-
-    if (talismanBag) {
-        const talismans = decompress(talismanBag.data);
-        if (!talismans) return;
-
-        for (let i = 0; i < talismans.func_74745_c(); i++) {
-            let talisman = talismans.func_150305_b(i);
-            if (!talisman) continue;
-
-            let tag = new NBTTagCompound(talisman).getCompoundTag("tag");
-            if (tag.hasNoTags()) continue;
-
-            let id = tag.getCompoundTag("ExtraAttributes").getString("id");
-            if (talismanIds.has(id)) continue;
-            talismanIds.add(id);
-
-            let display = tag.getCompoundTag("display");
-            let searchLore = (display.toObject()["Lore"] || []).join(" ").removeFormatting();
-
-            if (id === "ABICASE") {
-                hasAbicase = true;
-            }
-
-            if (searchLore.includes("UNCOMMON")) {
-                totalMp += 5;
-            } else if (searchLore.includes("COMMON")) {
-                totalMp += 3;
-            } else if (searchLore.includes("RARE")) {
-                totalMp += 8;
-            } else if (searchLore.includes("EPIC")) {
-                totalMp += 12;
-            } else if (searchLore.includes("LEGENDARY")) {
-                totalMp += (id === "HEGEMONY_ARTIFACT") ? 32 : 16;
-            } else if (searchLore.includes("MYTHIC")) {
-                totalMp += (id === "HEGEMONY_ARTIFACT") ? 44 : 22;
-            } else if (searchLore.includes("VERY SPECIAL")) {
-                totalMp += 5;
-            } else if (searchLore.includes("SPECIAL")) {
-                totalMp += 3;
-            }
-        }
-
-        if (hasConsumedPrism) {
-            totalMp += 11;
-        }
-
-        if (hasAbicase) {
-            const activeContacts = netherData.abiphone.active_contacts;
-            if (activeContacts) {
-                totalMp += Math.floor(activeContacts.length / 2);
-            }
-        }
-
-        mp.magicalPower = totalMp > maxMp ? maxMp : totalMp;
-    } else {
-        mp.magicalPower = maxMp;
-    }
+    mp.magicalPower = calculateMagicalPower(memberData);
 }
 
 function processGoldenDragon(pets) {

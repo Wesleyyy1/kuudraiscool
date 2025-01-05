@@ -1,9 +1,19 @@
 import axios from "axios";
 import Settings from "./settings/config.js";
-import { fixNumber, decompress, errorHandler, isKeyValid, getRoles, showInvalidReasonMsg, showMissingRolesMsg, kicPrefix } from "./utils/generalUtils.js";
+import {
+    decompress,
+    errorHandler,
+    fixNumber,
+    getRoles,
+    isKeyValid,
+    kicDebugMsg,
+    kicPrefix,
+    showInvalidReasonMsg,
+    showMissingRolesMsg
+} from "./utils/generalUtils.js";
 import Party from "./utils/Party.js";
 
-let msgData = {};
+let messages = [];
 
 function checkParty() {
     if (!isKeyValid()) return showInvalidReasonMsg();
@@ -14,40 +24,46 @@ function checkParty() {
         return;
     }
 
-    msgData = {
-        messages: [],
-        checked: 0
-    };
+    messages = [];
 
-    Party.members.forEach(player => {
-        console.log(player);
-        axios.get(`https://api.sm0kez.com/hypixel/profile/${player}/selected`, {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (ChatTriggers)",
-                "API-Key": Settings.apikey
+    let checked = 0;
+
+    kicDebugMsg(`Checking players (${Party.members.length || 0}): ${Party.members.join(", ") || ""}`);
+
+    Party.members.forEach((player) => {
+        fetchPlayerData(player, (message) => {
+            if (message) messages.push(message);
+            checked++;
+
+            if (checked === Party.members.length) {
+                displayResults();
+            }
+        });
+    });
+}
+
+function fetchPlayerData(player, callback) {
+    axios.get(`https://api.sm0kez.com/hypixel/profile/${player}/selected`, {
+        headers: {
+            "User-Agent": "Mozilla/5.0 (ChatTriggers)",
+            "API-Key": Settings.apikey,
+        },
+    })
+        .then((response) => {
+            const data = response.data;
+
+            if (data.success) {
+                callback(processPlayerData(data));
+            } else {
+                callback(`&a${data.name} &f-> &7INVALID`);
             }
         })
-            .then(response => {
-                const data = response.data;
-
-                if (data.success) {
-                    processPlayerData(data);
-                } else {
-                    msgData.messages.push(`&a${data.name} &f-> &7INVALID`);
-                    msgData.checked++;
-                }
-
-                checkCompleted();
-            })
-            .catch(error => {
-                msgData.messages.push(`&a${player} &f-> &7ERROR`);
-                msgData.checked++;
-                checkCompleted();
-                if (!error.isAxiosError || error.code === 500) {
-                    errorHandler(`Error while getting profile data for ${player}`, error.message, "doogans.js", `UUID: ${player}`);
-                }
-            });
-    });
+        .catch((error) => {
+            callback(`&a${player} &f-> &7ERROR`);
+            if (!error.isAxiosError || error.code === 500) {
+                errorHandler(`Error while getting profile data for ${player}`, error.message, "doogans.js", `UUID: ${player}`);
+            }
+        });
 }
 
 function processPlayerData(data) {
@@ -56,61 +72,59 @@ function processPlayerData(data) {
 
     const quiverData = memberData.inventory?.bag_contents?.quiver?.data;
     const soulflow = memberData.item_data?.soulflow || 0;
-    let arrows = 0;
-    let quiver = null;
 
-    if (data) {
-        quiver = decompress(quiverData);
-        if (quiver) {
-            for (let i = 0; i < quiver.func_74745_c(); i++) {
-                const item = quiver.func_150305_b(i);
-                if (item) {
-                    arrows += new NBTTagCompound(item).getByte("Count") || 1;
-                }
+    let arrows = 0;
+    if (quiverData) {
+        const quiver = decompress(quiverData);
+        for (let i = 0; i < quiver.func_74745_c(); i++) {
+            const item = quiver.func_150305_b(i);
+            if (item) {
+                arrows += new NBTTagCompound(item).getByte("Count") || 1;
             }
         }
     }
 
-    if (!soulflow || !quiverData || !quiver) {
-        msgData.messages.push(`&a${name} &f-> &7API OFF`);
-        msgData.checked++;
-        return;
+    if (!soulflow || !quiverData) {
+        return `&a${name} &f-> &7API OFF`;
     }
 
-    let enoughArrows = arrows >= 433 || !arrows ? true : `GET ARROWS (&c${(arrows / 2880 * 100).toFixed(2)}%&7)`;
-    let enoughSoulflow = soulflow >= 501 ? true : `GET SOULFLOW (&c${fixNumber(soulflow)}&7)`;
-
-    if (enoughArrows !== true || enoughSoulflow !== true) {
-        msgData.messages.push(`&a${name} &f-> &7${[enoughArrows, enoughSoulflow].filter(msg => msg !== true).join(" + ")}`);
-        msgData.checked++;
-    } else {
-        msgData.checked++;
+    const issues = [];
+    if (arrows < 433) {
+        issues.push(`GET ARROWS (&c${(arrows / 2880 * 100).toFixed(2)}%&7)`);
     }
+    if (soulflow < 501) {
+        issues.push(`GET SOULFLOW (&c${fixNumber(soulflow)}&7)`);
+    }
+
+    if (issues.length > 0) {
+        return `&a${name} &f-> &7${issues.join(" + ")}`;
+    }
+
+    return null;
 }
 
-function checkCompleted() {
-    if (msgData.checked === Party.members.length) {
-        const msg = new Message();
+function displayResults() {
+    const msg = new Message();
+    msg.addTextComponent("&2&m------&f[- &2doogans &f-]&2&m------\n");
 
-        msg.addTextComponent("&2&m-----&f[- &2doogans &f-]&2&m-----\n");
-
-        if (msgData.messages.length === 0) {
-            msg.addTextComponent("&aAll party members have sufficient soulflow and arrows!");
-        } else {
-            msg.addTextComponent("&cThe following members have issues:\n\n");
-            msgData.messages.forEach(message => {
-                msg.addTextComponent(new TextComponent(`${message}\n`).setClick("run_command", `/ct copy ${ChatLib.removeFormatting(message)}`));
-            });
-        }
-
-        msg.addTextComponent("&2&m-----------------------");
-
-        ChatLib.chat(msg);
+    if (messages.length === 0) {
+        msg.addTextComponent("&aAll party members have sufficient soulflow and arrows!");
+    } else {
+        msg.addTextComponent("&cThe following members have issues:\n\n");
+        messages.forEach((message) => {
+            msg.addTextComponent(
+                new TextComponent(`${message}\n`).setClick("run_command", `/ct copy ${ChatLib.removeFormatting(message)}`)
+            );
+        });
     }
+
+    msg.addTextComponent("&2&m-----------------------");
+    ChatLib.chat(msg);
 }
 
 register("chat", (msg) => {
-    if (msg.includes("Team Score:") && !msg.startsWith("Party >") && !msg.startsWith("Guild >")) {
+    const unformatted = ChatLib.removeFormatting(msg).trim();
+    if (unformatted.startsWith("Team Score:")) {
         checkParty();
     }
 }).setCriteria("${msg}");

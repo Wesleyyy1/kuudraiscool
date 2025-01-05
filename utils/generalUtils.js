@@ -25,6 +25,7 @@ function arraysEqual(arr1, arr2) {
 
 function kicDebugMsg(msg) {
     if (Settings.kicDebug) {
+        console.log(`[KIC-DEBUG] ${msg}`);
         ChatLib.chat(`${kicDebugPrefix} &c${msg}`);
     }
 }
@@ -349,6 +350,104 @@ register("serverDisconnect", () => {
     }
 })
 
+const removeUnicode = (string) => typeof(string) !== "string" ? "" : string.replace(/[^\u0000-\u007F]/g, "");
+
+const getMatchFromLines = (regex, list, type) => {
+    const match = list.find(line => regex.test(line))?.match(regex);
+    if (!match) return null;
+    switch (type) {
+        case "int":
+            return parseInt(match[1], 10);
+        case "float":
+            return parseFloat(match[1]);
+        default:
+            return match[1];
+    }
+}
+
+function calculateMagicalPower(memberData) {
+    try {
+        let maxMp = 0;
+        let totalMp = 0;
+
+        const accessoryBag = memberData.accessory_bag_storage;
+        if (accessoryBag) {
+            maxMp = accessoryBag.highest_magical_power || 0;
+        }
+
+        const talismanBag = memberData.inventory?.bag_contents?.talisman_bag;
+        const hasConsumedPrism = memberData.rift?.access?.consumed_prism;
+        let hasAbicase = false;
+        const talismanIds = new Set();
+
+        if (talismanBag) {
+            const talismans = decompress(talismanBag.data);
+            if (!talismans) return;
+
+            for (let i = 0; i < talismans.func_74745_c(); i++) {
+                let talisman = talismans.func_150305_b(i);
+                if (!talisman) continue;
+
+                let tag = new NBTTagCompound(talisman).getCompoundTag("tag");
+                if (tag.hasNoTags()) continue;
+
+                let id = tag.getCompoundTag("ExtraAttributes").getString("id");
+                if (talismanIds.has(id)) continue;
+                talismanIds.add(id);
+
+                let display = tag.getCompoundTag("display");
+                let searchLore = (display.toObject()["Lore"] || []).join(" ").removeFormatting();
+
+                if (id === "ABICASE") {
+                    hasAbicase = true;
+                }
+
+                if (searchLore.includes("UNCOMMON")) {
+                    totalMp += 5;
+                } else if (searchLore.includes("COMMON")) {
+                    totalMp += 3;
+                } else if (searchLore.includes("RARE")) {
+                    totalMp += 8;
+                } else if (searchLore.includes("EPIC")) {
+                    totalMp += 12;
+                } else if (searchLore.includes("LEGENDARY")) {
+                    totalMp += (id === "HEGEMONY_ARTIFACT") ? 32 : 16;
+                } else if (searchLore.includes("MYTHIC")) {
+                    totalMp += (id === "HEGEMONY_ARTIFACT") ? 44 : 22;
+                } else if (searchLore.includes("VERY SPECIAL")) {
+                    totalMp += 5;
+                } else if (searchLore.includes("SPECIAL")) {
+                    totalMp += 3;
+                }
+            }
+
+            if (hasConsumedPrism) {
+                totalMp += 11;
+            }
+
+            if (hasAbicase) {
+                const activeContacts = memberData.nether_island_player_data.abiphone.active_contacts;
+                if (activeContacts) {
+                    totalMp += Math.floor(activeContacts.length / 2);
+                }
+            }
+
+            return totalMp > maxMp ? maxMp : totalMp;
+        } else {
+            return maxMp;
+        }
+    } catch (error) {
+        return 0;
+    }
+}
+
+const extractUsernameFromMsg = (context) => {
+    const usernameMatch = context.match(
+        /(?:Party > (?:\[[^\]]+]\s*)?|From (?:\[[^\]]+]\s*)?)(\w+).*?:/
+    );
+    return usernameMatch ? usernameMatch[1] : Player.getName();
+};
+
 export {
     getColorCode,
     fixNumber,
@@ -374,5 +473,9 @@ export {
     onWorldJoin,
     onWorldLeave,
     kicDebugMsg,
-    arraysEqual
+    arraysEqual,
+    removeUnicode,
+    getMatchFromLines,
+    calculateMagicalPower,
+    extractUsernameFromMsg
 };

@@ -21,6 +21,11 @@ export const kicData = new PogObject("kuudraiscool", {
         chests: 0,
         time: 0
     },
+    containerValue: {
+        x: 50,
+        y: 50,
+        scale: 1
+    },
     faction: "MAGE"
 }, "data/data.json");
 kicData.autosave(5);

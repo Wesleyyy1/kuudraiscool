@@ -1,4 +1,4 @@
-import { onWorldJoin, onWorldLeave, delay, setRegisters } from "./generalUtils.js";
+import {onWorldJoin, onWorldLeave, delay, setRegisters, removeUnicode, getMatchFromLines} from "./generalUtils.js";
 import { kicData } from "./data.js";
 
 class WorldUtil {
@@ -10,12 +10,20 @@ class WorldUtil {
         onWorldLeave(() => {
             this.reset()
         })
+
+        register("tick", (ticks) => {
+            if (ticks%10 || !this.inSkyblock()) return;
+            let scoreboard = Scoreboard?.getLines()?.map(a => a.getName()).map(a => ChatLib.removeFormatting(a));
+
+            this.subArea = removeUnicode(getMatchFromLines(/ ⏣ (.+)/, scoreboard)).replace(/ \(.+\)/, "");
+        })
     }
 
     reset() {
         this.world = undefined
         this.server = undefined
         this.spawn = undefined
+        this.subArea = undefined
     }
 
     findWorld(tries = 10) {
@@ -50,7 +58,7 @@ class WorldUtil {
         this.findWorld()
     }
 
-    isSkyblock() {
+    inSkyblock() {
         return Boolean(this.world)
     }
 
@@ -58,8 +66,8 @@ class WorldUtil {
         return (world === this.world)
     }
 
-    worldIs(world) {
-        return world.includes(this.world)
+    subAreaIs(subArea) {
+        return (subArea === this.subArea)
     }
 
     toString() {

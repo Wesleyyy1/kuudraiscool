@@ -134,7 +134,11 @@ const profitTrackerExample = `${kicPrefix} &a&lProfit Tracker\n\n` +
     `${getColorCode(CustomizeSettings.ProfitTrackerColorTime)}&lTime: &r${getColorCode(CustomizeSettings.ProfitTrackerColorTime)}10m40s\n` +
     `${getColorCode(CustomizeSettings.ProfitTrackerColorRate)}&lRate: &r${getColorCode(CustomizeSettings.ProfitTrackerColorRate)}2.25B/hr`;
 
-const profitTrackerGui = new ScalableGui("kuudraProfitTracker", "kuudraProfitTracker", ["Kuudra", "Crimson Isle"], () => true, profitTrackerExample, true);
+function checkSubArea() {
+    return World.world !== "Crimson Isle" || World.subArea === "Forgotten Skull";
+}
+
+const profitTrackerGui = new ScalableGui("kuudraProfitTracker", "kuudraProfitTracker", ["Kuudra", "Crimson Isle"], checkSubArea, profitTrackerExample, true, true);
 profitTrackerGui.setCommand("kuudraprofittracker");
 updateProfitTracker();
 
@@ -297,7 +301,6 @@ register("packetReceived", (packet, event) => {
             if (!lore) return;
 
             const lowerLore = lore.join(",").toLowerCase();
-            const extraAttr = itemNBTTag.getCompoundTag("ExtraAttributes");
 
             if (itemName.removeFormatting().toLowerCase().includes("reroll kuudra chest")) {
                 if (lowerLore.includes("you already rerolled this chest!")) {
@@ -319,6 +322,7 @@ register("packetReceived", (packet, event) => {
                 return;
             }
 
+            const extraAttr = itemNBTTag.getCompoundTag("ExtraAttributes");
             if (!extraAttr || extraAttr.hasNoTags()) return;
 
             const itemId = extraAttr.getString("id");

@@ -6,11 +6,12 @@ import World from "./World.js";
 const instruct = "Use scroll to scale, click the button to reset, and drag to move the overlay.";
 
 export default class ScalableGui {
-    constructor(pogSubObj, setting, requires, condition, example, overGui = false) {
+    constructor(pogSubObj, setting, requires, condition, example, overGui = false, alwaysRender = false) {
         this.subObj = kicData[pogSubObj];
         this.setting = setting;
         this.example = example;
         this.overGui = overGui;
+        this.alwaysRender = alwaysRender;
         this.requires = new Set(requires);
 
         this.gui = new Gui();
@@ -28,11 +29,12 @@ export default class ScalableGui {
             this.renderTrigger.unregister();
         });
 
-        registerWhen(register(this.overGui ? "guiRender" : "renderOverlay", () => {
-            if (!this.gui.isOpen() && condition()) {
-                this.renderOverlay(this.message, this.getX(), this.getY(), this.getScale(), false);
-            }
-        }), () => World.isSkyblock() && Settings[this.setting] && (this.requires.has(World.world) || this.requires.has("all")));
+        if (this.alwaysRender) {
+            this.registerGuiRenderer(condition);
+            this.registerOverlayRenderer(condition);
+        } else {
+            this.registerConditionalRenderer(condition);
+        }
 
         this.gui.registerScrolled((mx, my, dir) => {
             if (dir === 1) this.subObj.scale += 0.02;
@@ -45,6 +47,40 @@ export default class ScalableGui {
             this.subObj.y = my;
             kicData.save();
         });
+    }
+
+    registerGuiRenderer(condition) {
+        registerWhen(
+            register("guiRender", () => {
+                if (!this.gui.isOpen() && this.message !== "" && condition()) {
+                    this.renderOverlay(this.message, this.getX(), this.getY(), this.getScale(), false);
+                }
+            }),
+            () => World.inSkyblock() && Settings[this.setting] && (this.requires.has(World.world) || this.requires.has("all"))
+        );
+    }
+
+    registerOverlayRenderer(condition) {
+        registerWhen(
+            register("renderOverlay", () => {
+                if (!this.gui.isOpen() && this.message !== "" && condition()) {
+                    this.renderOverlay(this.message, this.getX(), this.getY(), this.getScale(), false);
+                }
+            }),
+            () => World.inSkyblock() && Settings[this.setting] && (this.requires.has(World.world) || this.requires.has("all"))
+        );
+    }
+
+    registerConditionalRenderer(condition) {
+        const renderType = this.overGui ? "guiRender" : "renderOverlay";
+        registerWhen(
+            register(renderType, () => {
+                if (!this.gui.isOpen() && this.message !== "" && condition()) {
+                    this.renderOverlay(this.message, this.getX(), this.getY(), this.getScale(), false);
+                }
+            }),
+            () => World.inSkyblock() && Settings[this.setting] && (this.requires.has(World.world) || this.requires.has("all"))
+        );
     }
 
     renderOverlay(text, x, y, scale, isExample = false) {

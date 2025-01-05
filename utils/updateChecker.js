@@ -20,7 +20,7 @@ export function checkUpdate() {
             const data = response.data;
 
             if (!data || !data.version || !data.downloadUrl) return;
-            if (currentVers == data.version) return;
+            if (currentVers === data.version) return;
 
             setDiscord(data.discord);
 

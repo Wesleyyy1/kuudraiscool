@@ -50,7 +50,6 @@ let activeEquipmentType = "Molten Necklace";
 let activeFishingCategory = "helmets";
 let activeFishingType = "magma lord";
 let lastDataCall = null;
-let customWindowId = null;
 let lastSection = null;
 let currentItem = null;
 let currentItemPrice = null;
@@ -85,8 +84,7 @@ function openGui(title, items) {
     updateInventory(title, items);
 
     lastGui = new GuiChest(Player.getPlayer().field_71071_by, inventory);
-    customWindowId = Math.floor(priceData.timestamp / 10000) || 28492857;
-    lastGui.field_147002_h.field_75152_c = customWindowId;
+    lastGui.field_147002_h.field_75152_c = -1;
 
     GuiHandler.openGui(lastGui);
 }
@@ -550,8 +548,7 @@ register("command", (arg1, arg2, arg3, arg4) => {
 register('guiMouseClick', (x, y, button, gui, event) => {
     if (lastGui === null ||
         inventory === null ||
-        Client.getMinecraft().field_71462_r !== lastGui ||
-        Player.getContainer().getWindowId() !== customWindowId) return;
+        Client.getMinecraft().field_71462_r !== lastGui) return;
     try {
         cancel(event);
 
@@ -636,7 +633,6 @@ register("guiKey", (char, keyCode, gui, event) => {
     if (lastGui !== null &&
         inventory !== null &&
         Client.getMinecraft().field_71462_r === lastGui &&
-        Player.getContainer().getWindowId() === customWindowId &&
         keyCode !== Keyboard.KEY_ESCAPE &&
         keyCode !== Keyboard.KEY_E) {
         cancel(event);
@@ -662,7 +658,7 @@ register("chat", function (item, price, event) {
                     purchaseHistory.uuids = [currentItemUuid];
                 }
                 if (Settings.openKAGUIAgain) {
-                    delay(() => KICAH, 500);
+                    delay(() => KICAH(), 250);
                 }
             }
         }
@@ -684,7 +680,7 @@ register("chat", function (event) {
         purchaseHistory.uuids = [currentItemUuid];
     }
     if (Settings.openKAGUIAgain) {
-        delay(() => KICAH, 500);
+        delay(() => KICAH(), 250);
     }
 
     currentItem = null;
