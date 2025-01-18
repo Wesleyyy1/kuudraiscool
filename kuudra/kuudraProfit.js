@@ -223,12 +223,47 @@ register("command", (...args) => {
     }
 
     const profitAmount = parseShorthandNumber(args[0]);
+    const updatedProfit = kicData.kuudraProfitTrackerData.profit + profitAmount;
 
-    kicData.kuudraProfitTrackerData.profit += profitAmount;
+    if (updatedProfit > Number.MAX_SAFE_INTEGER) {
+        kicData.kuudraProfitTrackerData.profit = Number.MAX_SAFE_INTEGER;
+        ChatLib.chat(`${kicPrefix} &cProfit tracker was capped at the maximum allowed value.`);
+    } else if (updatedProfit < -Number.MAX_SAFE_INTEGER) {
+        kicData.kuudraProfitTrackerData.profit = -Number.MAX_SAFE_INTEGER;
+        ChatLib.chat(`${kicPrefix} &cProfit tracker was capped at the minimum allowed value.`);
+    } else {
+        kicData.kuudraProfitTrackerData.profit = updatedProfit;
+        ChatLib.chat(`${kicPrefix} &aProfit tracker was updated! Added ${fixNumber(profitAmount)} to the total.`);
+    }
+
     kicData.save();
     updateProfitTracker();
-    ChatLib.chat(`${kicPrefix} &aProfit tracker was updated! Added ${fixNumber(profitAmount)} to the total.`);
 }).setName("addprofit", true);
+
+register("command", (...args) => {
+    if (!args[0] || args.length !== 1) {
+        ChatLib.chat(`${kicPrefix} &cPlease provide a single numeric value.`);
+        return;
+    }
+
+    const profitAmount = parseShorthandNumber(args[0]);
+
+    const updatedProfit = kicData.kuudraProfitTrackerData.profit - profitAmount;
+
+    if (updatedProfit > Number.MAX_SAFE_INTEGER) {
+        kicData.kuudraProfitTrackerData.profit = Number.MAX_SAFE_INTEGER;
+        ChatLib.chat(`${kicPrefix} &cProfit tracker was capped at the maximum allowed value.`);
+    } else if (updatedProfit < -Number.MAX_SAFE_INTEGER) {
+        kicData.kuudraProfitTrackerData.profit = -Number.MAX_SAFE_INTEGER;
+        ChatLib.chat(`${kicPrefix} &cProfit tracker was capped at the minimum allowed value.`);
+    } else {
+        kicData.kuudraProfitTrackerData.profit = updatedProfit;
+        ChatLib.chat(`${kicPrefix} &aProfit tracker was updated! Removed ${fixNumber(profitAmount)} from the total.`);
+    }
+
+    kicData.save();
+    updateProfitTracker();
+}).setName("removeprofit", true);
 
 register("command", () => {
     kicData.kuudraProfitTrackerData.profit = 0;
@@ -249,7 +284,18 @@ function updateProfitTracker() {
     if (chestOpened && totalProfit > 0 && runStartTime && runEndTime) {
         const elapsedTime = runEndTime - runStartTime;
 
-        kicData.kuudraProfitTrackerData.profit += totalProfit;
+        const updatedProfit = kicData.kuudraProfitTrackerData.profit + totalProfit;
+
+        if (updatedProfit > Number.MAX_SAFE_INTEGER) {
+            kicData.kuudraProfitTrackerData.profit = Number.MAX_SAFE_INTEGER;
+            kicDebugMsg(`Profit capped: Maximum positive profit value reached.`);
+        } else if (updatedProfit < -Number.MAX_SAFE_INTEGER) {
+            kicData.kuudraProfitTrackerData.profit = -Number.MAX_SAFE_INTEGER;
+            kicDebugMsg(`Profit capped: Maximum negative profit value reached.`);
+        } else {
+            kicData.kuudraProfitTrackerData.profit = updatedProfit;
+        }
+
         kicData.kuudraProfitTrackerData.chests++;
         kicData.kuudraProfitTrackerData.time += elapsedTime;
         kicData.save();
