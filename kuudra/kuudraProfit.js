@@ -1,24 +1,25 @@
 import axios from "axios";
 import Settings from "../settings/config.js";
 import CustomizeSettings from "../settings/customizeConfig.js";
-import { 
-    fixNumber,
-    errorHandler,
-    isKeyValid,
-    getRoles,
-    showInvalidReasonMsg,
-    showMissingRolesMsg,
+import {
     capitalizeEachWord,
-    kicPrefix,
     delay,
-    registerWhen,
+    errorHandler,
+    fixNumber,
     formatTimeMain,
     getColorCode,
-    kicDebugMsg
+    getRoles,
+    isKeyValid,
+    kicDebugMsg,
+    kicPrefix,
+    parseShorthandNumber,
+    registerWhen,
+    showInvalidReasonMsg,
+    showMissingRolesMsg
 } from "../utils/generalUtils.js";
 import ScalableGui from "../utils/ScalableGui.js";
 import World from "../utils/World.js";
-import { kicData } from "../utils/data.js";
+import {kicData} from "../utils/data.js";
 
 const kuudraData = {
     KEY: {
@@ -85,7 +86,16 @@ let runEndTime = 0;
 let kuudraTier = "UNKNOWN";
 
 const click = (slot) => {
-    Player.getContainer().click(slot);
+    const container = Player.getContainer();
+    if (!container) return;
+    const containerSize = container.getSize();
+    if (slot < 0 || slot >= containerSize) return;
+    if (container.getName()?.removeFormatting() !== "Paid Chest") return;
+    kicDebugMsg(`Slot: ${slot} is a valid slot!`);
+    if (slot === 31) {
+        chestOpened = true;
+    }
+    container.click(slot);
 }
 
 function isPaidChest() {
@@ -93,6 +103,9 @@ function isPaidChest() {
 }
 
 function shouldReroll() {
+    if (Settings.superSecretSettings && Settings.kuudraAutoReroll && Settings.kuudraAutoRerollT5Only && kuudraTier !== "INFERNAL") {
+        return false;
+    }
     return (
         isPaidChest() &&
         !dontReroll &&
@@ -105,10 +118,10 @@ function shouldReroll() {
 }
 
 function getKuudraTier() {
-    const zoneLine = Scoreboard?.getLines()?.find((line) => 
+    const zoneLine = Scoreboard?.getLines()?.find((line) =>
         line.getName().startsWith(" §7⏣") || line.getName().startsWith(" §5ф")
     );
-    
+
     const zone = zoneLine ? zoneLine.getName().removeFormatting().substring(3) : "None";
 
     if (zone === "None") {
@@ -118,7 +131,13 @@ function getKuudraTier() {
     return parseInt(zone.charAt(zone.length - 2)) || 0;
 }
 
-const profitExample = `${kicPrefix} &a&lChest profit\n\n&aTotal: +4.48M\n\n&6Infernal Kuudra Key &7x1 &f= &c-3.87M\n&6Crimson Chestplate &7x1 &f= &a+4.30M\n&7Ferocious Mana 5 &7x1 &f= &a+1.53M\n&dCrimson Essence &7x1600 &f= &a+2.52M`;
+const profitExample = `${kicPrefix} &a&lChest profit\n\n` +
+    `&eTotal Profit: &a+4.48M\n\n` +
+    `&c-3.87M &7|&r &6Infernal Kuudra Key\n` +
+    `&a+4.30M &7|&r &6Crimson Chestplate &7[&bBreeze 5&7] &7[&bMagic Find 4&7]\n` +
+    `&a+1.53M &7|&r &7Ferocious Mana 5\n` +
+    `&a+2.52M &7|&r &dCrimson Essence &ex1600`;
+
 const profitGui = new ScalableGui("kuudraProfit", "kuudraProfit", ["Kuudra"], isPaidChest, profitExample, true);
 profitGui.setCommand("kuudraprofit");
 
@@ -197,6 +216,20 @@ registerWhen(
     () => World.world === "Kuudra" && Settings.kuudraProfitTracker
 );
 
+register("command", (...args) => {
+    if (!args[0] || args.length !== 1) {
+        ChatLib.chat(`${kicPrefix} &cPlease provide a single numeric value.`);
+        return;
+    }
+
+    const profitAmount = parseShorthandNumber(args[0]);
+
+    kicData.kuudraProfitTrackerData.profit += profitAmount;
+    kicData.save();
+    updateProfitTracker();
+    ChatLib.chat(`${kicPrefix} &aProfit tracker was updated! Added ${fixNumber(profitAmount)} to the total.`);
+}).setName("addprofit", true);
+
 register("command", () => {
     kicData.kuudraProfitTrackerData.profit = 0;
     kicData.kuudraProfitTrackerData.chests = 0;
@@ -224,7 +257,7 @@ function updateProfitTracker() {
         kicDebugMsg(`Updating profit tracker with Profit: +${fixNumber(totalProfit)}, Chests: +1, time: +${elapsedTime}`);
     }
 
-    const { profit, chests, time } = kicData.kuudraProfitTrackerData;
+    const {profit, chests, time} = kicData.kuudraProfitTrackerData;
 
     const average = chests ? profit / chests : 0;
     const rate = time ? (profit / time) * 3600000 : 0;
@@ -249,7 +282,7 @@ register("packetReceived", (packet, event) => {
 
         const containerName = container.getName().removeFormatting();
         if (!containerName || containerName !== "Paid Chest") return;
-        profitGui.setMessage("&aChecking prices...");
+        profitGui.setMessage("");
 
         const maxSlot = container.getSize() - 36;
         const itemsList = packet.func_148910_d().slice(0, maxSlot);
@@ -267,6 +300,7 @@ register("packetReceived", (packet, event) => {
         shouldBuy = false;
         totalProfit = 0;
         generateFailsafeList();
+        profitGui.setMessage("&aChecking prices...");
 
         itemsList.forEach(itemStack => {
             if (!itemStack) return;
@@ -454,12 +488,6 @@ register("packetReceived", (packet, event) => {
                         price: "Loading...",
                         time: Date.now()
                     };
-                    if (itemId === "ATTRIBUTE_SHARD") {
-                        const [attribute, lvl] = Object.entries(parsedAttributes)[0] || [];
-                        if (attribute && lvl) {
-                            attributesItems[uuid].name = `&b${capitalizeEachWord(attribute.replaceAll("_", " "))} ${lvl}`;
-                        }
-                    }
                     itemsToUpdate.push(uuid);
                 } else {
                     if (JSON.stringify(attributesItems[uuid].attributes) !== JSON.stringify(parsedAttributes)) {
@@ -551,21 +579,24 @@ register("packetReceived", (packet, event) => {
             updateOverlay(itemsToUpdateFiltered.concat(itemsWithoutUpdateFiltered), kuudraTier);
             kicDebugMsg(`Total profit: ${fixNumber(totalProfit)}, Chest Opened: ${chestOpened}, Should Buy: ${shouldBuy}`);
             if (Settings.superSecretSettings && !chestOpened) {
-                kicDebugMsg(`Should reroll value check. isPaidChest: ${isPaidChest()}, dontReroll: ${dontReroll}, rerollPriceChecked.checked: ${rerollPriceChecked?.checked}, rerollPriceChecked.reroll: ${rerollPriceChecked?.reroll}, canReroll: ${canReroll}, rerolled: ${rerolled}, chestOpened: ${chestOpened}`);
+                kicDebugMsg(`Should reroll value check. isPaidChest: ${isPaidChest()}, dontReroll: ${dontReroll}, rerollPriceChecked.checked: ${rerollPriceChecked?.checked}, rerollPriceChecked.reroll: ${rerollPriceChecked?.reroll}, canReroll: ${canReroll}, rerolled: ${rerolled}, chestOpened: ${chestOpened}, TotalProfit: ${totalProfit}, AutoBuyMinProfit: ${parseShorthandNumber(Settings.kuudraAutoBuyMinProfit)}`);
                 if (Settings.kuudraAutoReroll && shouldReroll()) {
                     if (Settings.kuudraAutoBuy) {
                         delay(() => click(31), 500);
                         delay(() => click(50), 750);
-                        ChatLib.chat(`${kicPrefix} &aAuto rerolled & auto bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
+                        ChatLib.chat(`${kicPrefix} &aAuto-rerolled & auto-bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
                     } else {
                         delay(() => click(50), 500);
                         ChatLib.chat(`${kicPrefix} &aAuto rerolled the paid chest!`);
                     }
-                } else if (Settings.kuudraAutoBuy && shouldBuy && !rerolled) {
-                    delay(() => click(31), 500);
-                    chestOpened = true;
-                    ChatLib.chat(`${kicPrefix} &aAuto bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
-                    updateProfitTracker();
+                } else if (Settings.kuudraAutoBuy && !rerolled) {
+                    if (shouldBuy) {
+                        delay(() => click(31), 500);
+                        ChatLib.chat(`${kicPrefix} &aAuto-bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
+                        updateProfitTracker();
+                    } else {
+                        ChatLib.chat(`${kicPrefix} &aChest not auto-bought as total profit (${fixNumber(totalProfit)}) was below the threshold (${fixNumber(parseShorthandNumber(Settings.kuudraAutoBuyMinProfit))}).`);
+                    }
                 }
             }
         });
@@ -667,16 +698,16 @@ function updateAttributeItemPrices(item, itemData) {
     item.price = itemData.price || 0;
     item.priceAttribute1 = itemData.priceAttribute1 || 0;
     item.priceAttribute2 = itemData.priceAttribute2 || 0;
-    item.displayPrice = `${itemData.price ? "&a" : "&c"}Price: ${fixNumber(itemData.price) || 0}`;
+    item.displayPrice = `${itemData.price ? "&a" : "&c"}${fixNumber(itemData.price) || 0}`;
 
     const attributeDisplayPrices = [];
     if (itemData.attribute1) {
         const price = itemData.priceAttribute1 !== null ? itemData.priceAttribute1 : 0;
-        attributeDisplayPrices.push(`${price ? "&a" : "&c"}${capitalizeEachWord(itemData.attribute1.replaceAll("_", " "))} ${itemData.attributeLvl1}: ${fixNumber(price)}`);
+        attributeDisplayPrices.push(`&b${capitalizeEachWord(itemData.attribute1.replaceAll("_", " "))} ${itemData.attributeLvl1}&7: ${price ? "&a" : "&c"}${fixNumber(price)}`);
     }
     if (itemData.attribute2) {
         const price = itemData.priceAttribute2 !== null ? itemData.priceAttribute2 : 0;
-        attributeDisplayPrices.push(`${price ? "&a" : "&c"}${capitalizeEachWord(itemData.attribute2.replaceAll("_", " "))} ${itemData.attributeLvl2}: ${fixNumber(price)}`);
+        attributeDisplayPrices.push(`&b${capitalizeEachWord(itemData.attribute2.replaceAll("_", " "))} ${itemData.attributeLvl2}&7: ${price ? "&a" : "&c"}${fixNumber(price)}`);
     }
     item.attributeDisplayPrices = attributeDisplayPrices;
 }
@@ -685,12 +716,12 @@ function updateBazaarItemPrices(item, itemData) {
     const multiplier = item.count || 1;
     item.buyPrice = itemData.buyPrice * multiplier || 0;
     item.sellPrice = itemData.sellPrice * multiplier || 0;
-    item.displayPrice = `${itemData.buyPrice ? "&a" : "&c"}Sell order: ${fixNumber(item.buyPrice) || 0}\n${itemData.sellPrice ? "&a" : "&c"}Insta sell: ${fixNumber(item.sellPrice) || 0}`;
+    item.displayPrice = `&f- &bSell order&7: ${itemData.buyPrice ? "&a" : "&c"}${fixNumber(item.buyPrice) || 0}\n&f- &bInsta sell&7: ${itemData.sellPrice ? "&a" : "&c"}${fixNumber(item.sellPrice) || 0}`;
 }
 
 function updateAuctionItemPrices(item, itemData) {
     item.price = itemData.price || 0;
-    item.displayPrice = `${itemData.price ? "&a" : "&c"}Price: ${fixNumber(itemData.price) || 0}`;
+    item.displayPrice = `${itemData.price ? "&a" : "&c"}${fixNumber(itemData.price) || 0}`;
 }
 
 function calculateTotalProfit(uuids, forceIgnore = false) {
@@ -707,8 +738,8 @@ function calculateTotalProfit(uuids, forceIgnore = false) {
             if (uuid === "KUUDRA_TEETH" && (Settings.ignoreTeeth || forceIgnore)) return totalProfit;
             const item = bazaarItems[uuid];
             if (item.calcIgnore) return totalProfit;
-            const price = Settings.sellOrderPrice 
-                ? (item.buyPrice !== 0 ? item.buyPrice : item.sellPrice) 
+            const price = Settings.sellOrderPrice
+                ? (item.buyPrice !== 0 ? item.buyPrice : item.sellPrice)
                 : (item.sellPrice !== 0 ? item.sellPrice : item.buyPrice);
 
             return totalProfit + price;
@@ -724,9 +755,9 @@ function calculateTotalProfit(uuids, forceIgnore = false) {
 function updateOverlay(uuids, tier) {
     let rerollCheckProfit = calculateTotalProfit(uuids, true);
     const kismet = bazaarItems["KISMET_FEATHER"];
-    
+
     const kismetPrice = kismet ? kismet.sellPrice !== 0 ? kismet.sellPrice : kismet.buyPrice : 0;
-    
+
     rerollPriceChecked.checked = true;
 
     if (kismetPrice > rerollCheckProfit) rerollPriceChecked.reroll = true;
@@ -739,19 +770,20 @@ function updateOverlay(uuids, tier) {
         const key = getKey();
         if (key) {
             totalProfit -= key.price;
-            keyMessage = `\n${key.name} &7x1 &f= &c-${fixNumber(key.price)}\n${Settings.kuudraProfitCompact ? "" : "\n"}`;
+            keyMessage = `\n&c-${fixNumber(key.price)} &7|&r ${key.name}`;
         }
     }
 
     if (rerolled) {
         totalProfit -= kismetPrice;
-        kismetMessage = `\n${kismet.name} &7x1 &f= &c-${fixNumber(kismetPrice)}\n${Settings.kuudraProfitCompact ? "" : "\n"}`;
+        kismetMessage = `\n${kismet.name} &7x1 &f= &c-${fixNumber(kismetPrice)}`;
+        kismetMessage = `\n&c-${fixNumber(kismetPrice)} &7|&r ${kismet.name}`;
     }
 
-    shouldBuy = totalProfit > 0;
+    shouldBuy = totalProfit >= parseShorthandNumber(Settings.kuudraAutoBuyMinProfit);
 
     const profitColor = totalProfit > 0 ? "&a" : "&c";
-    const msg = `${kicPrefix} &a&lChest profit\n\n${profitColor}${totalProfit > 25000000 ? "&l" : ""}Total: ${totalProfit < 0 ? "-" : "+"}${fixNumber(totalProfit)}\n${keyMessage}${kismetMessage}`;
+    const msg = `${kicPrefix} &a&lChest profit\n\n&e${totalProfit > Settings.minGodroll * 1000000 ? "&l" : ""}Total: ${profitColor}${totalProfit > Settings.minGodroll * 1000000 ? "&l" : ""}${totalProfit < 0 ? "-" : "+"}${fixNumber(totalProfit)}\n${keyMessage}${kismetMessage}\n${Settings.kuudraProfitCompact ? "" : "\n"}`;
 
     const itemMessages = uuids.map(uuid =>
         Settings.kuudraProfitCompact ? getOverlayTextCompact(uuid) : getOverlayText(uuid)
@@ -768,7 +800,7 @@ function getKey() {
 
     const price = (Settings.sellOrderPrice ? item.buyPrice || item.sellPrice : item.sellPrice || item.buyPrice) + (item.basePrice || 0) + (Settings.sellOrderPrice ? star.buyPrice || star.sellPrice : star.sellPrice || star.buyPrice);
 
-    return { name: item.name, price };
+    return {name: item.name, price};
 }
 
 function getOverlayText(uuid) {
@@ -778,9 +810,19 @@ function getOverlayText(uuid) {
     const item = attributesItems[uuid] || bazaarItems[uuid] || auctionItems[uuid];
     if (!item || item.calcIgnore) return;
 
-    let text = `${item.name} &r&7x${item.count || 1}\n${item.displayPrice || ""}`;
-    if (item.attributeDisplayPrices && item.attributeDisplayPrices.length) {
-        text += `\n${item.attributeDisplayPrices.join("\n")}`;
+    let countMsg = "";
+    if (item.count) {
+        countMsg = ` &ex${item.count}`;
+    }
+
+    let text;
+    if (bazaarItems[uuid]) {
+        text = `${item.name}${countMsg}\n${item.displayPrice || ""}`;
+    } else {
+        text = `${item.displayPrice || ""} &7|&r ${item.name}${countMsg}`;
+        if (item.attributeDisplayPrices && item.attributeDisplayPrices.length) {
+            text += `\n&f- ${item.attributeDisplayPrices.join("\n&f- ")}`;
+        }
     }
     return text;
 }
@@ -806,7 +848,19 @@ function getOverlayTextCompact(uuid) {
         price = auctionItems[uuid].price;
     }
 
-    return `${item.name} &r&7x${item.count || 1} &f= ${price > 0 ? "&a+" : "&c"}${fixNumber(price)}`;
+    let countMsg = "";
+    if (item.count) {
+        countMsg = ` &ex${item.count}`;
+    }
+
+    let nameMsg = item.name;
+    if (item.attributes) {
+        Object.keys(item.attributes).forEach(key => {
+            nameMsg += ` &7[&b${capitalizeEachWord(key.replaceAll("_", " "))} ${item.attributes[key]}&7]`;
+        });
+    }
+
+    return `${price > 0 ? "&a+" : "&c"}${fixNumber(price)} &7|&r ${nameMsg}${countMsg}`;
 }
 
 function generateFailsafeList() {

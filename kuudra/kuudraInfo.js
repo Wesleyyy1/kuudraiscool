@@ -1,18 +1,19 @@
-import Settings from "../settings/config.js";
 import axios from "axios";
+import Settings from "../settings/config.js";
 import {
+    calculateMagicalPower,
+    capitalizeEachWord,
     decompress,
+    errorHandler,
     fixNumber,
     getColorData,
-    isKeyValid,
     getRoles,
-    errorHandler,
+    isKeyValid,
+    kicPrefix,
     showInvalidReasonMsg,
     showMissingRolesMsg,
-    capitalizeEachWord,
-    kicPrefix, calculateMagicalPower,
 } from "../utils/generalUtils.js";
-import { getLevel } from "../utils/petLevelUtils.js";
+import {getLevel} from "../utils/petLevelUtils.js";
 import Party from "../utils/Party.js";
 import autoKick from "./autoKick.js";
 
@@ -35,10 +36,10 @@ const ITEM_IDS = {
 };
 
 const equipmentTypes = [
-    { type: "NECKLACE", key: "necklace" },
-    { type: "CLOAK", key: "cloak" },
-    { type: "BELT", key: "belt" },
-    { type: ["GLOVES", "BRACELET", "GAUNTLET"], key: "bracelet" }
+    {type: "NECKLACE", key: "necklace"},
+    {type: "CLOAK", key: "cloak"},
+    {type: "BELT", key: "belt"},
+    {type: ["GLOVES", "BRACELET", "GAUNTLET"], key: "bracelet"}
 ];
 
 let comps = {};
@@ -65,7 +66,8 @@ let items = {
     deployable: {}
 }
 
-let extraHamRadio, extraFireveil, reaperPieces, hyperion, hyperionLore, duplex, duplexLore, extraReaper, extraTerminator, reputation, goldenDragon, goldenDragonLore, oneBilBank;
+let extraHamRadio, extraFireveil, reaperPieces, hyperion, hyperionLore, duplex, duplexLore, extraReaper,
+    extraTerminator, reputation, goldenDragon, goldenDragonLore, oneBilBank;
 
 function setDefaults() {
     reaperPieces = reputation = 0;
@@ -217,7 +219,7 @@ function showKuudraInfo(playername, manually) {
 }
 
 function processKuudraData(response, manually) {
-    const { name, uuid, members } = response;
+    const {name, uuid, members} = response;
     const memberData = members[uuid];
     const netherData = memberData.nether_island_player_data;
     const inventory = memberData.inventory;
@@ -503,7 +505,7 @@ function getDrillPriority(id) {
 
 function checkEquipment(id, attributes, name) {
     if (attributes) {
-        equipmentTypes.forEach(({ type, key }) => {
+        equipmentTypes.forEach(({type, key}) => {
             if (Array.isArray(type)) {
                 if (type.some(t => id.includes(t))) {
                     checkAndUpdateEquipment(key, attributes, name);
@@ -699,7 +701,7 @@ function processGoldenDragon(pets) {
             petDetails.name = `&7[Lvl ${getLevel(pet.exp, null, true)}] &6Golden Dragon`;
 
             gdrags.push(petDetails);
-        };
+        }
     });
 
     if (gdrags.length !== 0) {
@@ -748,7 +750,7 @@ function generateLLMPLore(type) {
     let total = 0;
     let lore = `&a&l${type === "ll" ? "Lifeline" : "Mana Pool"} Breakdown:\n\n`;
 
-    const items = { ...equipment, ...armor };
+    const items = {...equipment, ...armor};
 
     Object.keys(items).forEach(key => {
         const item = items[key];
@@ -762,10 +764,10 @@ function generateLLMPLore(type) {
         }
     });
 
-    return { total, lore };
+    return {total, lore};
 }
 
-function getColor(type, value){
+function getColor(type, value) {
     switch (type) {
         case "lifeline":
             return value < 42 ? "&4" : value < 58 ? "&e" : value < 70 ? "&2" : value === 70 ? "&3" : "&f";
@@ -776,7 +778,7 @@ function getColor(type, value){
         case "mp":
             return value < 1350 ? "&4" : value < 1600 ? "&e" : value < 1701 ? "&2" : "&3";
         default:
-          return "&f"
+            return "&f"
     }
 }
 
@@ -786,22 +788,22 @@ function displayMessage(name, manually) {
         .setClick("run_command", `/pv ${name}`);
 
     const lifeline = generateLLMPLore("ll");
-    const lifelineMessage = new TextComponent(`&aLifeline: &f`+getColor("lifeline", lifeline.total)+`${lifeline.total} &f(+&c${(lifeline.total * 2.5).toFixed(1)}%&f)\n`)
+    const lifelineMessage = new TextComponent(`&aLifeline: &f` + getColor("lifeline", lifeline.total) + `${lifeline.total} &f(+&c${(lifeline.total * 2.5).toFixed(1)}%&f)\n`)
         .setHoverValue(lifeline.lore)
         .setClick("run_command", `/ct copy Lifeline: ${lifeline.total}`);
 
     const manaPool = generateLLMPLore("mp");
-    const manaPoolMessage = new TextComponent(`&aMana Pool: &f`+getColor("manapool", manaPool.total)+`${manaPool.total} &f(+&b${(manaPool.total * 20).toFixed(1)} intel&f)\n`)
+    const manaPoolMessage = new TextComponent(`&aMana Pool: &f` + getColor("manapool", manaPool.total) + `${manaPool.total} &f(+&b${(manaPool.total * 20).toFixed(1)} intel&f)\n`)
         .setHoverValue(manaPool.lore)
         .setClick("run_command", `/ct copy Mana pool: ${manaPool.total}`);
 
     const runsLore = `&2&lCompletions: &r\n\n&6Basic: &f${comps.basic}\n&6Hot: &f${comps.hot}\n&6Burning: &f${comps.burning}\n&6Fiery: &f${comps.fiery}\n&6Infernal: &f${comps.infernal}`;
-    const runsMessage = new TextComponent(`&aRuns: &f`+getColor("runs", comps.infernal)+`${comps.infernal} &f(${comps.total})\n`)
+    const runsMessage = new TextComponent(`&aRuns: &f` + getColor("runs", comps.infernal) + `${comps.infernal} &f(${comps.total})\n`)
         .setHoverValue(runsLore)
         .setClick("run_command", `/ct copy Infernal runs: ${comps.infernal}`);
 
     const mpLore = `&a&lMP Breakdown:\n\n&aSelected Power: &f&l${mp.selectedPower}\n&aTuning: ${mp.tuningPoints}`;
-    const mpMessage = new TextComponent(`&aMagical Power: &f`+getColor("mp", mp.magicalPower)+`${mp.magicalPower}\n`)
+    const mpMessage = new TextComponent(`&aMagical Power: &f` + getColor("mp", mp.magicalPower) + `${mp.magicalPower}\n`)
         .setHoverValue(mpLore)
         .setClick("run_command", `/ct copy Magical Power: ${mp.magicalPower}`);
 

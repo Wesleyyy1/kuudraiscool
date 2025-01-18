@@ -1,17 +1,20 @@
 import axios from "axios";
 import Settings from "./settings/config.js";
 import {
+    calculateMagicalPower,
     decompress,
+    delay,
     errorHandler,
-    isKeyValid,
-    getRoles,
-    showInvalidReasonMsg,
-    showMissingRolesMsg,
+    extractUsernameFromMsg,
     fixNumber,
-    calculateMagicalPower, delay, getDiscord, extractUsernameFromMsg
+    getDiscord,
+    getRoles,
+    isKeyValid,
+    showInvalidReasonMsg,
+    showMissingRolesMsg
 } from "./utils/generalUtils.js";
-import {apChatCommand} from "./kuudra/attributePrices";
-import Party from "./utils/Party";
+import {apChatCommand} from "./kuudra/attributePrices.js";
+import Party from "./utils/Party.js";
 
 const TOTAL_XP = 569809640;
 const SEL_CLASS_XP = 360000;
@@ -164,7 +167,7 @@ function calculateClassXP(memberData) {
 }
 
 function calculateRuns(classXP) {
-    const runs = { healer: 0, mage: 0, berserk: 0, archer: 0, tank: 0 };
+    const runs = {healer: 0, mage: 0, berserk: 0, archer: 0, tank: 0};
 
     while (Object.values(classXP).some((xp) => xp > 0)) {
         const highestXPClass = Object.keys(classXP).reduce((a, b) => (classXP[a] >= classXP[b] ? a : b));
@@ -184,7 +187,7 @@ const parseCommand = (message) => {
     const command = parts[0];
     const args = parts.slice(1).filter(arg => arg);
 
-    return { command, args };
+    return {command, args};
 };
 
 const handleCommand = (context, commandInfo, msg) => {
@@ -196,31 +199,58 @@ const handleCommand = (context, commandInfo, msg) => {
         let lvl = args[1] || null;
         apChatCommand(attribute, lvl, context);
     } else if (command === ".kic") {
-        delay(() => {ChatLib.command(`${context} [KIC] > ${getDiscord()}`);}, 500);
-    } else if (command === ".kick" && Party.amILeader()){
+        delay(() => {
+            ChatLib.command(`${context} [KIC] > ${getDiscord()}`);
+        }, 500);
+    } else if (command === ".kick" && Party.amILeader()) {
         const p = args[0] || "51fe055890e7463383a8feac3a7d3708";
-        delay(() => {ChatLib.command(`p kick ${p}`);}, 500);
+        delay(() => {
+            ChatLib.command(`p kick ${p}`);
+        }, 500);
     } else {
         let ign = args[0] || extractUsernameFromMsg(msg);
         getCommand(context, ign, command.substring(1));
     }
 };
 
+function getPartyCmdsList() {
+    const cmds = [];
+    cmds.push(".kic");
+    if (Settings.partyCommandRuns) cmds.push(".runs");
+    if (Settings.partyCommandStats) cmds.push(".stats");
+    if (Settings.partyCommandRtca) cmds.push(".rtca");
+    if (Settings.partyCommandAp) cmds.push(".ap");
+    if (Settings.partyCommandKick) cmds.push(".kick");
+    if (Settings.partyCommandCata) cmds.push(".cata");
+    return cmds;
+}
+
+function getDmCmdsList() {
+    const cmds = [];
+    cmds.push(".kic");
+    if (Settings.dmCommandRuns) cmds.push(".runs");
+    if (Settings.dmCommandStats) cmds.push(".stats");
+    if (Settings.dmCommandRtca) cmds.push(".rtca");
+    if (Settings.dmCommandAp) cmds.push(".ap");
+    if (Settings.dmCommandCata) cmds.push(".cata");
+    return cmds;
+}
+
 register("chat", (msg) => {
-    if (!Settings.chatcommands) return;
+    if (!Settings.partyCommands && !Settings.dmCommands) return;
 
     if (msg.startsWith("Party >")) {
-        if (!Settings.partycommands) return;
+        if (!Settings.partyCommands) return;
 
-        const commands = [".runs", ".stats", ".rtca", ".kic", ".ap", ".attributeprice", ".kick", ".cata"];
+        const commands = getPartyCmdsList();
         const commandInfo = parseCommand(msg);
         if (commands.includes(commandInfo.command)) {
             handleCommand("pc", commandInfo, msg);
         }
     } else if (msg.startsWith("From ")) {
-        if (!Settings.dmcommands) return;
+        if (!Settings.dmCommands) return;
 
-        const commands = [".runs", ".stats", ".rtca", ".kic", ".ap", ".attributeprice", ".cata"];
+        const commands = getDmCmdsList();
         const commandInfo = parseCommand(msg);
         if (commands.includes(commandInfo.command)) {
             handleCommand("r", commandInfo, msg);

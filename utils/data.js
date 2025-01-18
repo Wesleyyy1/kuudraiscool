@@ -26,6 +26,12 @@ export const kicData = new PogObject("kuudraiscool", {
         y: 50,
         scale: 1
     },
-    faction: "MAGE"
+    testGui: {
+        x: 50,
+        y: 50,
+        scale: 1
+    },
+    faction: "MAGE",
+    firstChecks: true
 }, "data/data.json");
 kicData.autosave(5);

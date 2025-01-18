@@ -1,4 +1,4 @@
-import { fixNumber, errorHandler, formatTimeShort } from "../utils/generalUtils.js";
+import {errorHandler, fixNumber, formatTimeShort} from "../utils/generalUtils.js";
 import Settings from "../settings/config.js";
 
 let inOverview = false;
@@ -25,7 +25,7 @@ function startRunOverview(callback) {
         mainHandler = register("chat", (msg) => {
             if (msg.startsWith("[NPC] Elle: Okay adventurers, I will go and fish up Kuudra!")) {
                 startTime = Date.now();
-            } else if (msg.trim().startsWith("KUUDRA DOWN!")) {
+            } else if (msg.includes("KUUDRA DOWN!") || msg.includes("DEFEAT")) {
                 endTime = Date.now();
                 if (endTime && timerStart) {
                     dps = fixNumber(300000000 / ((endTime / 1000) - timerStart));
@@ -38,7 +38,7 @@ function startRunOverview(callback) {
                 }
                 const playername = msg.split(" ")[0];
                 if (!party.some(entry => entry.player === playername)) {
-                    party.push({ player: playername, deaths: 0, supplies: 0, supplytimes: `&r` });
+                    party.push({player: playername, deaths: 0, supplies: 0, supplytimes: `&r`});
                 }
             } else if (msg.startsWith(" ☠")) {
                 let playername = msg.replace(" ☠ ", "").split(" ")[0].trim();
@@ -49,7 +49,7 @@ function startRunOverview(callback) {
                 let player = party.find(entry => entry.player === playername);
 
                 if (!player) {
-                    player = { player: playername, deaths: 0, supplies: 0, supplytimes: `&r` };
+                    player = {player: playername, deaths: 0, supplies: 0, supplytimes: `&r`};
                     party.push(player);
                 }
 
@@ -71,7 +71,7 @@ function startRunOverview(callback) {
                 let player = party.find(entry => entry.player === playername);
 
                 if (!player) {
-                    player = { player: playername, deaths: 0, supplies: 0, supplytimes: `&r` };
+                    player = {player: playername, deaths: 0, supplies: 0, supplytimes: `&r`};
                     party.push(player);
                 }
 
@@ -188,10 +188,10 @@ register("chat", (msg) => {
 
 register("command", () => {
     const party = [
-        { player: "SuuerSindre", deaths: 4, supplies: 0, supplytimes: "" },
-        { player: "Xaned", deaths: 0, supplies: 2, supplytimes: "&8#1 &a1:30.22\n&8#4 &a1:50.43\n" },
-        { player: "Wesleygame", deaths: 1, supplies: 2, supplytimes: "&8#2 &a1:35.54\n&8#5 &a2:05.12\n" },
-        { player: "catgirlrain", deaths: 0, supplies: 2, supplytimes: "&8#3 &a1:40.31\n&8#6 &a2:10.49\n"}
+        {player: "SuuerSindre", deaths: 4, supplies: 0, supplytimes: ""},
+        {player: "Xaned", deaths: 0, supplies: 2, supplytimes: "&8#1 &a1:30.22\n&8#4 &a1:50.43\n"},
+        {player: "Wesleygame", deaths: 1, supplies: 2, supplytimes: "&8#2 &a1:35.54\n&8#5 &a2:05.12\n"},
+        {player: "catgirlrain", deaths: 0, supplies: 2, supplytimes: "&8#3 &a1:40.31\n&8#6 &a2:10.49\n"}
     ];
 
     const rawTimeformattedTime = "3:52.13";

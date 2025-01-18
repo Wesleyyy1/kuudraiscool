@@ -1,5 +1,5 @@
-import { HypixelModAPI } from "../../HypixelModAPI/index";
-import { delay } from "./generalUtils";
+import {HypixelModAPI} from "../../HypixelModAPI/index.js";
+import {delay} from "./generalUtils.js";
 
 export default new class Party {
     constructor() {
@@ -16,11 +16,10 @@ export default new class Party {
         ];
 
         this.updateMsgs = [
-            /^You have joined (.+)'s* party!$/,
+            /^You have joined (.+)'s party!$/,
             /^The party was transferred to (.+) by .+$/,
             /^(.+) has promoted (.+) to Party Leader$/,
             /^(.+) joined the party.$/,
-            /^You have joined (.+)'s? party!$/,
             /^(.+) has been removed from the party.$/,
             /^(.+) has left the party.$/,
             /^(.+) was removed from your party because they disconnected.$/,
@@ -37,6 +36,10 @@ export default new class Party {
                     this.leader = key;
                 }
             });
+        });
+
+        register("serverConnect", () => {
+            delay(() => this.updatePartyData());
         });
 
         register("chat", (event) => {

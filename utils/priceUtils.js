@@ -2,11 +2,11 @@ import axios from "axios";
 import Settings from "../settings/config.js";
 import {
     errorHandler,
-    isKeyValid,
     getRoles,
+    isKeyValid,
+    kicPrefix,
     showInvalidReasonMsg,
-    showMissingRolesMsg,
-    kicPrefix
+    showMissingRolesMsg
 } from "./generalUtils.js";
 
 export function getPriceData(arg1, arg2, arg3, arg4, cmd, callback) {
@@ -82,7 +82,7 @@ export function getPriceData(arg1, arg2, arg3, arg4, cmd, callback) {
                 ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
             } else {
                 ChatLib.chat(`${kicPrefix} &cSomething went wrong while getting price data!\n&cPlease report this in the discord server!`);
-                errorHandler("Error while getting prices", error.message, "attributePrices.js", `Arg1: ${arg1} | Arg2: ${arg2} | Arg3: ${arg3} | Arg4: ${arg4}`);
+                errorHandler("Error while getting prices", error.message, "priceUtils.js", `Arg1: ${arg1} | Arg2: ${arg2} | Arg3: ${arg3} | Arg4: ${arg4}`);
             }
         });
 }

@@ -1,18 +1,18 @@
 import axios from "axios";
 import Settings from "./settings/config.js";
 import {
+    arraysEqual,
+    capitalizeEachWord,
     decompress,
     errorHandler,
-    isKeyValid,
-    getRoles,
-    showInvalidReasonMsg,
-    showMissingRolesMsg,
     getColorData,
-    capitalizeEachWord,
+    getRoles,
+    isKeyValid,
     kicPrefix,
-    arraysEqual
+    showInvalidReasonMsg,
+    showMissingRolesMsg
 } from "./utils/generalUtils.js";
-import { getLevel } from "./utils/petLevelUtils.js";
+import {getLevel} from "./utils/petLevelUtils.js";
 
 function searchItem(playername, search) {
     if (!isKeyValid()) return showInvalidReasonMsg();
@@ -70,25 +70,25 @@ function generateItemList(memberData) {
             if (existingIndex !== -1) {
                 itemList[existingIndex].count += count;
             } else {
-                itemList.push({ count, name, source, lore });
+                itemList.push({count, name, source, lore});
             }
         }
     };
 
     const inventorySources = [
-        { data: memberData.inventory?.equipment_contents?.data, source: "Equipment" },
-        { data: memberData.inventory?.bag_contents?.talisman_bag?.data, source: "Accessory Bag" },
-        { data: memberData.inventory?.wardrobe_contents?.data, source: "Wardrobe" },
-        { data: memberData.inventory?.inv_armor?.data, source: "Armor" },
-        { data: memberData.inventory?.inv_contents?.data, source: "Inventory" },
-        { data: memberData.inventory?.ender_chest_contents?.data, source: "Enderchest" },
-        { data: memberData.inventory?.personal_vault_contents?.data, source: "Personal Vault" },
+        {data: memberData.inventory?.equipment_contents?.data, source: "Equipment"},
+        {data: memberData.inventory?.bag_contents?.talisman_bag?.data, source: "Accessory Bag"},
+        {data: memberData.inventory?.wardrobe_contents?.data, source: "Wardrobe"},
+        {data: memberData.inventory?.inv_armor?.data, source: "Armor"},
+        {data: memberData.inventory?.inv_contents?.data, source: "Inventory"},
+        {data: memberData.inventory?.ender_chest_contents?.data, source: "Enderchest"},
+        {data: memberData.inventory?.personal_vault_contents?.data, source: "Personal Vault"},
     ];
 
     for (let i = 0; i < inventorySources.length; i++) {
-        const { data, source } = inventorySources[i];
+        const {data, source} = inventorySources[i];
         if (!data) {
-            return { API: false, items: [] };
+            return {API: false, items: []};
         }
         const decompressedData = decompress(data);
         processItems(decompressedData, source);
@@ -107,7 +107,7 @@ function generateItemList(memberData) {
 
     if (pets) {
         pets.forEach((pet) => {
-            const { type, heldItem, skin, tier, candyUsed, exp } = pet;
+            const {type, heldItem, skin, tier, candyUsed, exp} = pet;
 
             const lvl = type === "GOLDEN_DRAGON" ? getLevel(exp, tier, true) : getLevel(exp, tier, false);
 
@@ -140,7 +140,7 @@ function generateItemList(memberData) {
         });
     }
 
-    return { API: true, items: itemList };
+    return {API: true, items: itemList};
 }
 
 function displaySearchResults(list, search, name) {

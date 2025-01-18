@@ -1,6 +1,6 @@
 import Settings from "../settings/config.js";
-import { kicPrefix, registerWhen } from "./generalUtils.js";
-import { kicData } from "./data.js";
+import {kicPrefix, registerWhen} from "./generalUtils.js";
+import {kicData} from "./data.js";
 import World from "./World.js";
 
 const instruct = "Use scroll to scale, click the button to reset, and drag to move the overlay.";
@@ -139,7 +139,7 @@ export default class ScalableGui {
             maxWidth = Math.max(maxWidth, stringWidth * scale);
         });
 
-        return { width: maxWidth, height: height };
+        return {width: maxWidth, height: height};
     }
 
     setCommand(commandName) {

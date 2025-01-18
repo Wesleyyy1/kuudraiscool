@@ -1,11 +1,8 @@
 import Settings from "../settings/config.js";
-import SkullTextures from "./skullTextures";
-import {capitalizeEachWord, delay, errorHandler, kicPrefix} from "../utils/generalUtils";
-import {attributes, getPriceData} from "../utils/priceUtils";
-
-const InventoryBasic = Java.type("net.minecraft.inventory.InventoryBasic");
-const GuiChest = Java.type("net.minecraft.client.gui.inventory.GuiChest");
-const ItemsMC = Java.type("net.minecraft.init.Items");
+import SkullTextures from "./skullTextures.js";
+import {capitalizeEachWord, delay, errorHandler, kicPrefix} from "../utils/generalUtils.js";
+import {attributes, getPriceData} from "../utils/priceUtils.js";
+import {GuiChest, InventoryBasic, ItemsMC} from "../utils/constants.js";
 
 const pane = new Item('minecraft:stained_glass_pane').setDamage(14).setName("").itemStack;
 const whitePane = new Item('minecraft:stained_glass_pane').setDamage(0).setName("").itemStack;
@@ -107,7 +104,7 @@ function makeInfoItem() {
 
     lore.push("");
     lore.push("&6> Search");
-    let attribute1Text = `&7- &b${priceData.attribute1}`;
+    let attribute1Text = `&7- &b${priceData.attribute1.replace("Mending", "Vitality")}`;
 
     if (priceData.attributeLvl1 !== null) {
         attribute1Text += ` ${priceData.attributeLvl1}`;
@@ -115,7 +112,7 @@ function makeInfoItem() {
     lore.push(attribute1Text);
 
     if (priceData.attribute2 != null) {
-        let attribute2Text = `&7- &b${priceData.attribute2}`;
+        let attribute2Text = `&7- &b${priceData.attribute2.replace("Mending", "Vitality")}`;
         if (priceData.attributeLvl2 !== null) {
             attribute2Text += ` ${priceData.attributeLvl2}`;
         }
@@ -153,7 +150,7 @@ function KICAH() {
     if (priceData === null) return;
 
     const items = Array(54).fill(pane);
-    
+
     items[8] = makeInfoItem();
     items[19] = kicAuctionItems.armor;
     items[21] = kicAuctionItems.equipment;
@@ -318,7 +315,7 @@ function ShardAH() {
     lastSection = "shard";
     const items = Array(54).fill(pane);
     items[8] = makeInfoItem();
-    
+
     let priceFilterLore = createLore(filterCheapest ? "Cheapest to expensive" : "Expensive to cheapest", ["Cheapest to expensive", "Expensive to cheapest"]);
     items[47] = goldIngot.setLore(priceFilterLore).itemStack;
 
@@ -346,7 +343,7 @@ function ShardAH() {
 function createCustomItem(item, itemName, itemLore, mcId) {
     const tag = new NBTTagCompound(new net.minecraft.nbt.NBTTagCompound());
     const customItem = new Item(mcId);
-    
+
     tag.set("uuid", item.uuid);
     tag.set("item-price", item.price.toString());
     tag.set("item-id", item.itemId);
@@ -355,7 +352,7 @@ function createCustomItem(item, itemName, itemLore, mcId) {
 
     customItem.setName(itemName);
     customItem.setLore(itemLore);
-      
+
     return customItem.itemStack;
 }
 
@@ -405,7 +402,7 @@ function createName(item) {
         }
 
         if (safeCheck(item.extra.extraAttributes)) {
-            const { modifier, upgrade_level } = item.extra.extraAttributes;
+            const {modifier, upgrade_level} = item.extra.extraAttributes;
             if (modifier) {
                 reforge = capitalizeEachWord(modifier) + " ";
             }
@@ -553,24 +550,36 @@ register('guiMouseClick', (x, y, button, gui, event) => {
         cancel(event);
 
         const slot = gui.getSlotUnderMouse();
-        if(!slot) return;
+        if (!slot) return;
 
         const position = slot.field_75222_d;
         const inventoryName = Player.getContainer().getName();
 
         if (inventoryName === "§aKIC-Auction") {
             switch (position) {
-                case 19: ArmorAH(); break;
-                case 21: EquipmentAH(); break;
-                case 23: FishingAH(); break;
-                case 25: if (priceData.shards.length > 0) {ShardAH()}; break;
-                case 49: 
+                case 19:
+                    ArmorAH();
+                    break;
+                case 21:
+                    EquipmentAH();
+                    break;
+                case 23:
+                    FishingAH();
+                    break;
+                case 25:
+                    if (priceData.shards.length > 0) {
+                        ShardAH()
+                    }
+                    ;
+                    break;
+                case 49:
                     Client.currentGui.close();
                     currentItem = null;
                     currentItemPrice = null;
                     currentItemUuid = null;
                     break;
-                default: break;
+                default:
+                    break;
             }
         } else {
             if (position === 49) {

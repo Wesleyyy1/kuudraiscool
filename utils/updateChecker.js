@@ -1,13 +1,15 @@
 import axios from "axios";
-import { errorHandler, setVersion, kicPrefix, setDiscord, getDiscord } from "./generalUtils.js";
+import Settings from "../settings/config.js";
+import DevSettings from "../settings/devConfig.js";
+import {errorHandler, getDiscord, kicPrefix, setDiscord, setVersion} from "./generalUtils.js";
 
 export function checkUpdate() {
     const currentVers = JSON.parse(FileLib.read("kuudraiscool", "metadata.json")).version;
     setVersion(currentVers);
 
-    if (currentVers.includes("pre")) {
+    if (currentVers.includes("pre") && !Settings.disablePreReleaseMSG) {
         ChatLib.chat(`${kicPrefix} &6You are currently using a pre-release version of kuudraiscool. Please be aware that this version may contain bugs or unfinished features.\n&6If you encounter any issues, report them in our Discord server: ${getDiscord()}\n&6Your feedback helps us improve!`);
-    } else if (currentVers.includes("dev")) {
+    } else if (currentVers.includes("dev") && !DevSettings.disableDevMSG) {
         ChatLib.chat(`${kicPrefix} &6You are currently using a development build of kuudraiscool. This build is intended for testing and may have experimental features or critical bugs.\n&6We strongly recommend reporting any issues you encounter in our Discord server: ${getDiscord()}\n&6Your testing and feedback are crucial to making the final release better!`);
     }
 

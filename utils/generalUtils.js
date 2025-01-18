@@ -1,11 +1,7 @@
 import axios from "axios";
 import Settings from "../settings/config.js";
-import { COLORS } from "./constants.js";
-
-const ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
-const Base64 = Java.type("java.util.Base64");
-const CompressedStreamTools = Java.type("net.minecraft.nbt.CompressedStreamTools");
-const Threading = Java.type("gg.essential.api.utils.Multithreading");
+import DevSettings from "../settings/devConfig.js";
+import {Base64, ByteArrayInputStream, COLORS, CompressedStreamTools, Threading} from "./constants.js";
 
 let currentVersion = "";
 let keyValid = false;
@@ -18,13 +14,35 @@ let registers = [];
 let worldJoin = [];
 let worldLeave = [];
 
+function parseShorthandNumber(input) {
+    if (!input) return 0;
+
+    const sanitizedInput = input.replace(/,/g, '.').toLowerCase();
+
+    const match = sanitizedInput.match(/(\d+(\.\d+)?)([kmb])?/);
+
+    if (!match) return 0;
+
+    const numberPart = parseFloat(match[1]);
+    const suffix = match[3] || '';
+
+    const multipliers = {
+        k: 1000,
+        m: 1000000,
+        b: 1000000000,
+        '': 1
+    };
+
+    return Math.round(numberPart * multipliers[suffix]);
+}
+
 function arraysEqual(arr1, arr2) {
     if (arr1.length !== arr2.length) return false;
     return arr1.every((value, index) => value === arr2[index]);
 }
 
 function kicDebugMsg(msg) {
-    if (Settings.kicDebug) {
+    if (DevSettings.kicDebug) {
         console.log(`[KIC-DEBUG] ${msg}`);
         ChatLib.chat(`${kicDebugPrefix} &c${msg}`);
     }
@@ -51,28 +69,28 @@ function formatTimeMain(seconds, fixed = 0, units = 4) {
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = (seconds % 60).toFixed(fixed);
-  
+
     const timeParts = [];
-  
+
     if (days > 0 && units > 0) {
-      timeParts.push(`${days}d`);
-      units--;
+        timeParts.push(`${days}d`);
+        units--;
     }
-  
+
     if ((hours > 0 || days > 0) && units > 0) {
-      timeParts.push(`${hours.toString().padStart(days > 0 ? 2 : 1, "0")}h`);
-      units--;
+        timeParts.push(`${hours.toString().padStart(days > 0 ? 2 : 1, "0")}h`);
+        units--;
     }
-  
+
     if ((minutes > 0 || hours > 0 || days > 0) && units > 0) {
-      timeParts.push(`${minutes.toString().padStart(hours > 0 || days > 0 ? 2 : 1, "0")}m`);
-      units--;
+        timeParts.push(`${minutes.toString().padStart(hours > 0 || days > 0 ? 2 : 1, "0")}m`);
+        units--;
     }
-  
+
     if (units > 0) {
-      timeParts.push(`${remainingSeconds.toString().padStart(minutes > 0 || hours > 0 || days > 0 ? 2 : 1, "0")}s`);
+        timeParts.push(`${remainingSeconds.toString().padStart(minutes > 0 || hours > 0 || days > 0 ? 2 : 1, "0")}s`);
     }
-  
+
     return timeParts.join("");
 }
 
@@ -243,7 +261,8 @@ function checkApiKey(apiKey, manual = false) {
         .catch(error => {
             if (error.response && (error.response.status === 502 || error.response.status === 503)) {
                 ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
-            } if (error.response && error.response.status === 429) {
+            }
+            if (error.response && error.response.status === 429) {
                 ChatLib.chat(`${kicPrefix} &cYou cannot make anymore request to the api at this time please try again later.`);
             } else {
                 handleApiError(error);
@@ -303,9 +322,13 @@ function showMissingRolesMsg() {
 
 function delay(func, time) {
     if (time) {
-        Threading.schedule(() => { func() }, time, java.util.concurrent.TimeUnit.MILLISECONDS);
+        Threading.schedule(() => {
+            func()
+        }, time, java.util.concurrent.TimeUnit.MILLISECONDS);
     } else {
-        Threading.runAsync(() => { func() });
+        Threading.runAsync(() => {
+            func()
+        });
     }
 }
 
@@ -325,9 +348,13 @@ function setRegisters() {
     });
 }
 
-function onWorldJoin(func) { worldJoin.push(func); }
+function onWorldJoin(func) {
+    worldJoin.push(func);
+}
 
-function onWorldLeave(func) { worldLeave.push(func); }
+function onWorldLeave(func) {
+    worldLeave.push(func);
+}
 
 register("worldLoad", () => {
     let i = worldJoin.length;
@@ -350,7 +377,7 @@ register("serverDisconnect", () => {
     }
 })
 
-const removeUnicode = (string) => typeof(string) !== "string" ? "" : string.replace(/[^\u0000-\u007F]/g, "");
+const removeUnicode = (string) => typeof (string) !== "string" ? "" : string.replace(/[^\u0000-\u007F]/g, "");
 
 const getMatchFromLines = (regex, list, type) => {
     const match = list.find(line => regex.test(line))?.match(regex);
@@ -448,6 +475,13 @@ const extractUsernameFromMsg = (context) => {
     return usernameMatch ? usernameMatch[1] : Player.getName();
 };
 
+function removeFromArray(array, value) {
+    const index = array.indexOf(value);
+    if (index !== -1) {
+        array.splice(index, 1);
+    }
+}
+
 export {
     getColorCode,
     fixNumber,
@@ -477,5 +511,7 @@ export {
     removeUnicode,
     getMatchFromLines,
     calculateMagicalPower,
-    extractUsernameFromMsg
+    extractUsernameFromMsg,
+    removeFromArray,
+    parseShorthandNumber
 };

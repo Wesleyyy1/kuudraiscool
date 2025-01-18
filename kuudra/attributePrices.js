@@ -1,15 +1,15 @@
 import axios from "axios";
 import Settings from "../settings/config.js";
 import {
-    fixNumber,
     capitalizeEachWord,
-    formatTime,
     errorHandler,
-    isKeyValid,
+    fixNumber,
+    formatTime,
     getRoles,
+    isKeyValid,
     kicPrefix
 } from "../utils/generalUtils.js";
-import { getPriceData, attributes } from "../utils/priceUtils.js";
+import {attributes, getPriceData} from "../utils/priceUtils.js";
 
 const categories = ["armor", "equipment", "fishing_armor", "shard"];
 
@@ -169,7 +169,7 @@ function showPrices(messageId) {
                 const itemText = new TextComponent(`&6- &9Attribute Shard &6for &e${fixNumber(item.price)} &7(${currentItemIndex + 1}/${totalItems})`)
                     .setClick("run_command", `/apviewauction ${item.uuid} attribute_shard ${item.price} ${totalItems} ${lineId}`);
                 message.addTextComponent(itemText);
-    
+
                 const prevButton = new TextComponent(` &a[<] `).setClick("run_command", `/apnavigate prev ${"shard"} ${totalItems} ${lineId}`);
                 const nextButton = new TextComponent(` &a[>]\n`).setClick("run_command", `/apnavigate next ${"shard"} ${totalItems} ${lineId}`);
                 message.addTextComponent(prevButton);
@@ -181,7 +181,7 @@ function showPrices(messageId) {
                         const items = types.reduce((acc, type) => {
                             if (dataSource[itemType][type]) {
                                 dataSource[itemType][type].forEach(item => {
-                                    const newItem = { ...item, type };
+                                    const newItem = {...item, type};
                                     acc.push(newItem);
                                 });
                             }
@@ -202,7 +202,7 @@ function showPrices(messageId) {
                                 const itemText = new TextComponent(`&6- &9${capitalizeEachWord(type.replaceAll("_", " "))} &6for &e${fixNumber(item.price)} &7(${currentItemIndex + 1}/${totalItems})`)
                                     .setClick("run_command", `/apviewauction ${item.uuid} ${type} ${item.price} ${totalItems} ${lineId}`);
                                 message.addTextComponent(itemText);
-        
+
                                 const prevButton = new TextComponent(` &a[<] `).setClick("run_command", `/apnavigate prev ${type} ${totalItems} ${lineId}`);
                                 const nextButton = new TextComponent(` &a[>]\n`).setClick("run_command", `/apnavigate next ${type} ${totalItems} ${lineId}`);
                                 message.addTextComponent(prevButton);
@@ -269,7 +269,7 @@ register("chat", function (item, price, event) {
 export function apChatCommand(attribute, lvl, chat) {
     if (!isKeyValid() || !getRoles().includes("KUUDRA") || !isNaN(attribute)) return;
 
-    if ((Date.now() - apPartyLastRan) < 2000 ) {
+    if ((Date.now() - apPartyLastRan) < 2000) {
         ChatLib.command("pc Command on cooldown!");
         return;
     }
@@ -290,54 +290,54 @@ export function apChatCommand(attribute, lvl, chat) {
         body: requestBody,
         parseBody: true
     })
-    .then(response => {
-        let prices = {
-            helmets: 0,
-            chestplates: 0,
-            leggings: 0,
-            boots: 0,
-            necklaces: 0,
-            cloaks: 0,
-            belts: 0,
-            bracelets: 0,
-        };
+        .then(response => {
+            let prices = {
+                helmets: 0,
+                chestplates: 0,
+                leggings: 0,
+                boots: 0,
+                necklaces: 0,
+                cloaks: 0,
+                belts: 0,
+                bracelets: 0,
+            };
 
-        let data = response.data;
-        let armorData = data.armor;
-        let equipmentData = data.equipment;
+            let data = response.data;
+            let armorData = data.armor;
+            let equipmentData = data.equipment;
 
-        Object.entries(apPartyTypes.armor).forEach(([itemType, types]) => {
-            let items = [];
-            types.forEach(type => {
-                if (armorData[itemType] && armorData[itemType][type]) {
-                    items = items.concat(armorData[itemType][type]);
+            Object.entries(apPartyTypes.armor).forEach(([itemType, types]) => {
+                let items = [];
+                types.forEach(type => {
+                    if (armorData[itemType] && armorData[itemType][type]) {
+                        items = items.concat(armorData[itemType][type]);
+                    }
+                });
+                if (items.length > 0) {
+                    items.sort((a, b) => a.price - b.price);
+                    prices[itemType] = items[0].price || 0;
                 }
             });
-            if (items.length > 0) {
-                items.sort((a, b) => a.price - b.price);
-                prices[itemType] = items[0].price || 0;
-            }
-        });
 
-        Object.entries(apPartyTypes.equipment).forEach(([itemType, types]) => {
-            let items = [];
-            types.forEach(type => {
-                if (equipmentData[itemType] && equipmentData[itemType][type]) {
-                    items = items.concat(equipmentData[itemType][type]);
+            Object.entries(apPartyTypes.equipment).forEach(([itemType, types]) => {
+                let items = [];
+                types.forEach(type => {
+                    if (equipmentData[itemType] && equipmentData[itemType][type]) {
+                        items = items.concat(equipmentData[itemType][type]);
+                    }
+                });
+                if (items.length > 0) {
+                    items.sort((a, b) => a.price - b.price);
+                    prices[itemType] = items[0].price || 0;
                 }
             });
-            if (items.length > 0) {
-                items.sort((a, b) => a.price - b.price);
-                prices[itemType] = items[0].price || 0;
+
+            let attributeText = `${data.attribute1} ${data.attributeLvl1 != null ? data.attributeLvl1 : ""}`;
+            ChatLib.command(`${chat} ${attributeText.replace("Mending", "Vitality")} > Helmet: ${fixNumber(prices.helmets)} - Cp: ${fixNumber(prices.chestplates)} - Legs: ${fixNumber(prices.leggings)} - Boots: ${fixNumber(prices.boots)} - Neck: ${fixNumber(prices.necklaces)} - Cloak: ${fixNumber(prices.cloaks)} - Belt: ${fixNumber(prices.belts)} - Brace: ${fixNumber(prices.bracelets)}`);
+        })
+        .catch(error => {
+            if (!error.isAxiosError || error.code === 500) {
+                errorHandler("Error while getting prices for party command", error.message, "attributePrices.js", `Attribute: ${attribute} | Lvl: ${lvl}`);
             }
         });
-
-        let attributeText = `${data.attribute1} ${data.attributeLvl1 != null ? data.attributeLvl1 : ""}`;
-        ChatLib.command(`${chat} ${attributeText.replace("Mending", "Vitality")} > Helmet: ${fixNumber(prices.helmets)} - Cp: ${fixNumber(prices.chestplates)} - Legs: ${fixNumber(prices.leggings)} - Boots: ${fixNumber(prices.boots)} - Neck: ${fixNumber(prices.necklaces)} - Cloak: ${fixNumber(prices.cloaks)} - Belt: ${fixNumber(prices.belts)} - Brace: ${fixNumber(prices.bracelets)}`);
-    })
-    .catch(error => {
-        if (!error.isAxiosError || error.code === 500) {
-            errorHandler("Error while getting prices for party command", error.message, "attributePrices.js", `Attribute: ${attribute} | Lvl: ${lvl}`);
-        }
-    });
 }

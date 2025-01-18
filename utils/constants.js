@@ -16,3 +16,12 @@ export const COLORS = {
     YELLOW: "§e",
     WHITE: "§f",
 };
+
+export const InventoryBasic = Java.type("net.minecraft.inventory.InventoryBasic");
+export const GuiChest = Java.type("net.minecraft.client.gui.inventory.GuiChest");
+export const ItemsMC = Java.type("net.minecraft.init.Items");
+
+export const ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
+export const Base64 = Java.type("java.util.Base64");
+export const CompressedStreamTools = Java.type("net.minecraft.nbt.CompressedStreamTools");
+export const Threading = Java.type("gg.essential.api.utils.Multithreading");

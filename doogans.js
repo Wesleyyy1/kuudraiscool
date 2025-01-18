@@ -67,7 +67,7 @@ function fetchPlayerData(player, callback) {
 }
 
 function processPlayerData(data) {
-    const { name, uuid, members } = data;
+    const {name, uuid, members} = data;
     const memberData = members[uuid];
 
     const quiverData = memberData.inventory?.bag_contents?.quiver?.data;
