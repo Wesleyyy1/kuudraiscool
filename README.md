@@ -42,12 +42,12 @@ Welcome to **kuudraiscool**, a CT module built mainly for Kuudra, but with addit
 </details>
 
 - <details>
-    <summary>Chest Profit Calculation</summary>
+    <summary>Chest Profit Calculator</summary>
     <b>Commands:</b> <br>  
     <code>/kuudraprofit edit</code><br>  
     <code>/kuudraprofit reset</code><br>  
     Calculates and displays profits of a paid chest.<br>  
-    <img src="./screenshots/placeholder.png" alt="Chest profit calculation screenshot 1" width="400"/><br>  
+    <img src="./screenshots/ProfitCalculator1.png" alt="Chest profit calculator screenshot 1" width="400"/><br>  
 </details>
 
 - <details>
@@ -57,7 +57,7 @@ Welcome to **kuudraiscool**, a CT module built mainly for Kuudra, but with addit
     <code>/kuudraprofittracker reset</code><br>  
     <code>/kicresetprofittracker</code><br>  
     Tracks overall profits from your runs.<br>  
-    <img src="./screenshots/placeholder.png" alt="Profit tracker screenshot 1" width="400"/><br>  
+    <img src="./screenshots/ProfitTracker1.png" alt="Profit tracker screenshot 1" width="400"/><br>  
 </details>
 
 - <details>
@@ -66,25 +66,25 @@ Welcome to **kuudraiscool**, a CT module built mainly for Kuudra, but with addit
     <code>/kuudrarerollnotifier edit</code><br>  
     <code>/kuudrarerollnotifier reset</code><br>  
     Notifies you when you should reroll a paid chest.<br>  
-    <img src="./screenshots/placeholder.png" alt="Reroll notifier screenshot 1" width="400"/><br>  
+    <img src="./screenshots/RerollNotifier1.png" alt="Reroll notifier screenshot 1" width="400"/><br>  
 </details>
 
 - <details>
     <summary>Auto Kick</summary>
     Automatically kicks players based on specific criteria set in the settings.<br>  
-    <img src="./screenshots/placeholder.png" alt="Auto kick screenshot 1" width="400"/><br>  
+    <img src="./screenshots/AutoKick1.png" alt="Auto kick screenshot 1" width="400"/><br>  
 </details>
 
 - <details>
     <summary>Auto Open Paid Chest</summary>
     Automatically opens paid chests.<br>  
-    <img src="./screenshots/placeholder.png" alt="Auto open paid chest screenshot 1" width="400"/><br>  
+    <img src="./screenshots/AutoOpen1.gif" alt="Auto open paid chest gif 1" width="400"/><br>  
 </details>
 
 - <details>
     <summary>Auto Reroll Paid Chest</summary>
     Automatically rerolls paid chests.<br>  
-    <img src="./screenshots/placeholder.png" alt="Auto reroll paid chest screenshot 1" width="400"/><br>  
+    <img src="./screenshots/AutoRerollAutoBuy1.gif" alt="Auto reroll paid chest gif 1" width="400"/><br>  
 </details>
 
 
@@ -102,39 +102,39 @@ Welcome to **kuudraiscool**, a CT module built mainly for Kuudra, but with addit
     <details>
         <summary>Party Chat</summary>
         - <code>.runs [player]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Party .runs screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Party.runs1.png" alt="Party .runs screenshot 1" width="400"/><br>  
         - <code>.stats [player]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Party .stats screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Party.stats1.png" alt="Party .stats screenshot 1" width="400"/><br>  
         - <code>.rtca [player]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Party .rtca screenshot 1" width="450"/><br>
+          <img src="./screenshots/Party.rtca1.png" alt="Party .rtca screenshot 1" width="400"/><br>
         - <code>.ap &lt;attribute&gt; [level]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Party .ap screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Party.ap1.png" alt="Party .ap screenshot 1" width="400"/><br>  
         - <code>.kick &lt;player&gt;</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Party .kick screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Party.kick1.png" alt="Party .kick screenshot 1" width="400"/><br>  
         - <code>.cata [player]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Party .cata screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Party.cata1.png" alt="Party .cata screenshot 1" width="400"/><br>  
         - <code>.kic</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Party .kic screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Party.kic1.png" alt="Party .kic screenshot 1" width="400"/><br>  
     </details>
     <details>
         <summary>Direct Messages</summary>
         - <code>.runs [player]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Dm .runs screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Dm.runs1.png" alt="Dm .runs screenshot 1" width="400"/><br>  
         - <code>.stats [player]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Dm .stats screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Dm.stats1.png" alt="Dm .stats screenshot 1" width="400"/><br>  
         - <code>.rtca [player]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Dm .rtca screenshot 1" width="450"/><br>
+          <img src="./screenshots/Dm.rtca1.png" alt="Dm .rtca screenshot 1" width="400"/><br>
         - <code>.ap &lt;attribute&gt; [level]</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Dm .ap screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Dm.ap1.png" alt="Dm .ap screenshot 1" width="400"/><br>  
         - <code>.kic</code><br>  
-          <img src="./screenshots/placeholder.png" alt="Dm .kic screenshot 1" width="450"/><br>  
+          <img src="./screenshots/Dm.kic1.png" alt="Dm .kic screenshot 1" width="400"/><br>  
     </details>
 </details>
 
 - <details>
     <summary>MVP++ Emojis</summary>
     Allows usage of MVP++ emojis in chat.<br>  
-    <img src="./screenshots/placeholder.png" alt="MVP++ emojis screenshot 1" width="400"/><br>  
+    <img src="screenshots/Emojis.png" alt="MVP++ emojis screenshot 1" width="400"/><br>  
 </details>
 
 - **`[ ]` = optional**
