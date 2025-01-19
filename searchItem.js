@@ -1,17 +1,18 @@
 import axios from "axios";
 import Settings from "./settings/config.js";
 import {
+    arraysEqual,
+    capitalizeEachWord,
     decompress,
     errorHandler,
-    isKeyValid,
-    getRoles,
-    showInvalidReasonMsg,
-    showMissingRolesMsg,
     getColorData,
-    capitalizeEachWord,
-    kicPrefix
+    getRoles,
+    isKeyValid,
+    kicPrefix,
+    showInvalidReasonMsg,
+    showMissingRolesMsg
 } from "./utils/generalUtils.js";
-import { getLevel } from "./utils/petLevelUtils.js";
+import {getLevel} from "./utils/petLevelUtils.js";
 
 function searchItem(playername, search) {
     if (!isKeyValid()) return showInvalidReasonMsg();
@@ -36,7 +37,7 @@ function searchItem(playername, search) {
         .catch(error => {
             if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
                 ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
-            } else if (error.isAxiosError && error.code != 500) {
+            } else if (error.isAxiosError && error.code !== 500) {
                 ChatLib.chat(`${kicPrefix} &c${error.response.data}`);
             } else {
                 ChatLib.chat(`${kicPrefix} &cSomething went wrong while gathering ${playername}'s data!\n&cPlease report this in the discord server!`);
@@ -65,29 +66,29 @@ function generateItemList(memberData) {
             let name = display.getString("Name");
             let lore = display.toObject()["Lore"] || [];
 
-            const existingIndex = itemList.findIndex(item => item.name.includes(name));
+            const existingIndex = itemList.findIndex(item => (item.name === name && arraysEqual(item.lore, lore)));
             if (existingIndex !== -1) {
                 itemList[existingIndex].count += count;
             } else {
-                itemList.push({ count, name, source, lore });
+                itemList.push({count, name, source, lore});
             }
         }
     };
 
     const inventorySources = [
-        { data: memberData.inventory?.equipment_contents?.data, source: "Equipment" },
-        { data: memberData.inventory?.bag_contents?.talisman_bag?.data, source: "Accessory Bag" },
-        { data: memberData.inventory?.wardrobe_contents?.data, source: "Wardrobe" },
-        { data: memberData.inventory?.inv_armor?.data, source: "Armor" },
-        { data: memberData.inventory?.inv_contents?.data, source: "Inventory" },
-        { data: memberData.inventory?.ender_chest_contents?.data, source: "Enderchest" },
-        { data: memberData.inventory?.personal_vault_contents?.data, source: "Personal Vault" },
+        {data: memberData.inventory?.equipment_contents?.data, source: "Equipment"},
+        {data: memberData.inventory?.bag_contents?.talisman_bag?.data, source: "Accessory Bag"},
+        {data: memberData.inventory?.wardrobe_contents?.data, source: "Wardrobe"},
+        {data: memberData.inventory?.inv_armor?.data, source: "Armor"},
+        {data: memberData.inventory?.inv_contents?.data, source: "Inventory"},
+        {data: memberData.inventory?.ender_chest_contents?.data, source: "Enderchest"},
+        {data: memberData.inventory?.personal_vault_contents?.data, source: "Personal Vault"},
     ];
 
     for (let i = 0; i < inventorySources.length; i++) {
-        const { data, source } = inventorySources[i];
+        const {data, source} = inventorySources[i];
         if (!data) {
-            return { API: false, items: [] };
+            return {API: false, items: []};
         }
         const decompressedData = decompress(data);
         processItems(decompressedData, source);
@@ -106,7 +107,7 @@ function generateItemList(memberData) {
 
     if (pets) {
         pets.forEach((pet) => {
-            const { type, heldItem, skin, tier, candyUsed, exp } = pet;
+            const {type, heldItem, skin, tier, candyUsed, exp} = pet;
 
             const lvl = type === "GOLDEN_DRAGON" ? getLevel(exp, tier, true) : getLevel(exp, tier, false);
 
@@ -139,7 +140,7 @@ function generateItemList(memberData) {
         });
     }
 
-    return { API: true, items: itemList };
+    return {API: true, items: itemList};
 }
 
 function displaySearchResults(list, search, name) {
@@ -174,4 +175,11 @@ function displaySearchResults(list, search, name) {
     ChatLib.chat(message);
 }
 
-export default searchItem;
+register("command", (...args) => {
+    if (args[0] && args[1]) {
+        const query = args.slice(1).join(" ");
+        searchItem(args[0], query);
+    } else {
+        ChatLib.chat(`${kicPrefix} &cUse /lf <player> <query> to search a player for an item!`);
+    }
+}).setName("lf", true);
