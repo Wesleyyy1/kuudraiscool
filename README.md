@@ -1,66 +1,170 @@
-# KUUDRAISCOOL
+# kuudraiscool
 
-Welcome to **kuudraiscool**, a CT module built mainly for kuudra, but also has other features.
-- [] = optional
-- <> = required
+Welcome to **kuudraiscool**, a CT module built mainly for Kuudra, but with additional features to enhance your gameplay experience.
 
-## Kuudra info (Stats & Items)
+---
 
-- `/kuudra <PLAYER>`
-- `Party finder information` 
-<br><br>
-<img src="./screenshots/kuudracommand.png" alt="screenshot" width="500"/><br>
-<img src="./screenshots/kuudracommandhover.png" alt="screenshot" width="500"/><br>
-<img src="./screenshots/kuudracommandextra.png" alt="screenshot" width="500"/><br>
-<br><br>
+## Features
 
-## Item finder
-- `/lf <PLAYER> <ITEM_NAME>`
-- `/lf <PLAYER> lore:<ITEM_LORE>`
-<br><br>
-<img src="./screenshots/lf.png" alt="screenshot" height="390" width="500"/><br>
-<img src="./screenshots/lflore.png" alt="screenshot" height="390" width="500"/><br>
-<br><br>
+### Kuudra-Related Features
 
-## Attribute price checker (Similar to KG bot)
+- <details>
+    <summary>Kuudra Info (Stats & Items)</summary>
+    <b>Command:</b> <code>/kuudra &lt;PLAYER&gt;</code><br>  
+    Displays party finder information for a specified player.<br>  
+    <img src="./screenshots/KuudraInfo1.png" alt="Kuudra info screenshot 1" width="400"/><br>  
+    <img src="./screenshots/KuudraInfo2.png" alt="Kuudra info screenshot 2" width="400"/><br>  
+    <img src="./screenshots/KuudraInfo3.png" alt="Kuudra info screenshot 3" width="400"/><br>  
+</details>
 
-- `/attributeprice <ATTRIBUTE> [LEVEL] <ATTRIBUTE> [LEVEL]`
-- `/ap <ATTRIBUTE> [LEVEL] <ATTRIBUTE> [LEVEL]`
-<br><br>
-<img src="./screenshots/attribute.png" alt="screenshot" width="500"/><br>
-<br><br>
+- <details>
+    <summary>Attribute Price Checker</summary>
+    <b>Command:</b> <code>/ap &lt;ATTRIBUTE&gt; [LEVEL] [ATTRIBUTE] [LEVEL]</code><br>  
+    Checks the price of specified attributes (similar to KG bot).<br>  
+    <img src="./screenshots/AttributePriceChecker1.png" alt="Attribute price checker screenshot 1" width="400"/><br>  
+</details>
 
-## Run overview
+- <details>
+    <summary>Attribute Price Auction</summary>
+    <b>Command:</b> <code>/ka &lt;ATTRIBUTE&gt; [LEVEL] [ATTRIBUTE] [LEVEL]</code><br>  
+    Displays a custom auction house of items for specific attributes.<br>
+    <img src="./screenshots/AttributePriceAuction1.png" alt="Attribute price auction screenshot 1" width="400"/><br>  
+    <img src="./screenshots/AttributePriceAuction2.png" alt="Attribute price auction screenshot 2" width="400"/><br>  
+    <img src="./screenshots/AttributePriceAuction3.png" alt="Attribute price auction screenshot 3" width="400"/><br>  
+    <img src="./screenshots/AttributePriceAuction4.png" alt="Attribute price auction screenshot 4" width="400"/><br>  
+    <img src="./screenshots/AttributePriceAuction5.png" alt="Attribute price auction screenshot 5" width="400"/><br>  
+</details>
 
-- `An overview of the kuudra run`
-<br><br>
-<img src="./screenshots/runoverview.png" alt="screenshot"/><br>
-<br><br>
+- <details>
+    <summary>Run Overview</summary>
+    A detailed overview of your kuudra run.<br>  
+    <img src="./screenshots/RunOverview1.png" alt="Run overview screenshot 1" width="400"/><br>  
+</details>
 
-## Chat commands
+- <details>
+    <summary>Chest Profit Calculation</summary>
+    <b>Commands:</b> <br>  
+    <code>/kuudraprofit edit</code><br>  
+    <code>/kuudraprofit reset</code><br>  
+    Calculates and displays profits of a paid chest.<br>  
+    <img src="./screenshots/placeholder.png" alt="Chest profit calculation screenshot 1" width="400"/><br>  
+</details>
 
-- `.stats [PLAYER]`
-<br><br>
-<img src="./screenshots/pccommandstats.png" alt="screenshot" width="500"/><br>
-<br><br>
-- `.runs [PLAYER]`
-<br><br>
-<img src="./screenshots/pccommandruns.png" alt="screenshot" width="500"/><br>
-<br><br>
-- `.rtca [PLAYER]`
-<br><br>
-<img src="./screenshots/pccommandrtca.png" alt="screenshot" width="500"/><br>
-<br><br>
+- <details>
+    <summary>Profit Tracker</summary>
+    <b>Commands:</b> <br>  
+    <code>/kuudraprofittracker edit</code><br>  
+    <code>/kuudraprofittracker reset</code><br>  
+    <code>/kicresetprofittracker</code><br>  
+    Tracks overall profits from your runs.<br>  
+    <img src="./screenshots/placeholder.png" alt="Profit tracker screenshot 1" width="400"/><br>  
+</details>
 
-## Other
+- <details>
+    <summary>Reroll Notifier</summary>
+    <b>Commands:</b> <br>  
+    <code>/kuudrarerollnotifier edit</code><br>  
+    <code>/kuudrarerollnotifier reset</code><br>  
+    Notifies you when you should reroll a paid chest.<br>  
+    <img src="./screenshots/placeholder.png" alt="Reroll notifier screenshot 1" width="400"/><br>  
+</details>
 
-- ### `/apikey <KEY>`
-    >Sets the API key for the mod to use our custom API. Note: This is not Hypixel's API key.
+- <details>
+    <summary>Auto Kick</summary>
+    Automatically kicks players based on specific criteria set in the settings.<br>  
+    <img src="./screenshots/placeholder.png" alt="Auto kick screenshot 1" width="400"/><br>  
+</details>
 
-- ### `/kuudraiscool` (`/kic`)
-    >The main command to open the GUI where you can toggle features and set the API key.
+- <details>
+    <summary>Auto Open Paid Chest</summary>
+    Automatically opens paid chests.<br>  
+    <img src="./screenshots/placeholder.png" alt="Auto open paid chest screenshot 1" width="400"/><br>  
+</details>
 
-- ### `/t1 - /t5`
-    >Join Kuudra tiers easily. `/t1` represents tier 1 Kuudra, and `/t5` represents tier 5 Kuudra.
+- <details>
+    <summary>Auto Reroll Paid Chest</summary>
+    Automatically rerolls paid chests.<br>  
+    <img src="./screenshots/placeholder.png" alt="Auto reroll paid chest screenshot 1" width="400"/><br>  
+</details>
 
 
+### Other Features
+
+- <details>
+    <summary>Item Finder</summary>
+    Finds specific items in your inventory or elsewhere.<br>  
+    <img src="./screenshots/ItemFinder1.png" alt="Item finder screenshot 1" width="400"/><br>  
+    <img src="./screenshots/ItemFinder2.png" alt="Item finder screenshot 2" width="400"/><br>  
+</details>
+
+- <details>
+    <summary>Chat Commands</summary>
+    <details>
+        <summary>Party Chat</summary>
+        - <code>.runs [player]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Party .runs screenshot 1" width="450"/><br>  
+        - <code>.stats [player]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Party .stats screenshot 1" width="450"/><br>  
+        - <code>.rtca [player]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Party .rtca screenshot 1" width="450"/><br>
+        - <code>.ap &lt;attribute&gt; [level]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Party .ap screenshot 1" width="450"/><br>  
+        - <code>.kick &lt;player&gt;</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Party .kick screenshot 1" width="450"/><br>  
+        - <code>.cata [player]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Party .cata screenshot 1" width="450"/><br>  
+        - <code>.kic</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Party .kic screenshot 1" width="450"/><br>  
+    </details>
+    <details>
+        <summary>Direct Messages</summary>
+        - <code>.runs [player]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Dm .runs screenshot 1" width="450"/><br>  
+        - <code>.stats [player]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Dm .stats screenshot 1" width="450"/><br>  
+        - <code>.rtca [player]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Dm .rtca screenshot 1" width="450"/><br>
+        - <code>.ap &lt;attribute&gt; [level]</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Dm .ap screenshot 1" width="450"/><br>  
+        - <code>.kic</code><br>  
+          <img src="./screenshots/placeholder.png" alt="Dm .kic screenshot 1" width="450"/><br>  
+    </details>
+</details>
+
+- <details>
+    <summary>MVP++ Emojis</summary>
+    Allows usage of MVP++ emojis in chat.<br>  
+    <img src="./screenshots/placeholder.png" alt="MVP++ emojis screenshot 1" width="400"/><br>  
+</details>
+
+- **`[ ]` = optional**
+- **`< >` = required**
+
+---
+
+## Commands
+
+### General Commands
+
+- `/cancelrunoverview`
+- `/runoverviewpreview`
+- `/kicresetprofittracker`
+- `/addprofit <profit>`
+- `/doogans`
+- `/apikey <key>`
+- `/t1 - /t2 - /t3 - /t4 - /t5`
+- `/lf <player> <query>`
+- `/lf <player> lore:<query>`
+- `/attributeprice <attribute> [level] [attribute] [level]` (Alias: `/ap`)
+- `/kicauction <attribute> [level] [attribute] [level]` (Alias: `/ka`)
+- `/kuudra [player]`
+
+### KIC Commands
+
+- `/kic`
+- `/kic help`
+- `/kic apikey <key>`
+- `/kic checkapikey`
+- `/kic t1 - t2 - t3 - t4 - t5`
+- `/kic settings`
+- `/kic customize`

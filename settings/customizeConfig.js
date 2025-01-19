@@ -1,10 +1,10 @@
-import {@Vigilant, @SwitchProperty, @SelectorProperty} from "Vigilance";
+import {@Vigilant, @SwitchProperty, @SelectorProperty} from "../../Vigilance/index.js";
 import {COLORS} from "../utils/constants.js";
 
 const currentVers = JSON.parse(FileLib.read("kuudraiscool", "metadata.json")).version;
 const colorKeys = Object.keys(COLORS);
 
-@Vigilant("kuudraiscool/data", "Customize Settings")
+@Vigilant("kuudraiscool/data/customize", "Customize Settings")
 class CustomizeSettings {
     // Colors
 
@@ -167,7 +167,7 @@ class CustomizeSettings {
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    dominance = false;
+    dominance = true;
 
     @SwitchProperty({
         name: "Ender Resistance",
@@ -202,35 +202,35 @@ class CustomizeSettings {
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    lifeline = false;
+    lifeline = true;
 
     @SwitchProperty({
         name: "Magic Find",
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    magicFind = false;
+    magicFind = true;
 
     @SwitchProperty({
         name: "Mana Pool",
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    manaPool = false;
+    manaPool = true;
 
     @SwitchProperty({
         name: "Mana Regeneration",
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    manaRegeneration = false;
+    manaRegeneration = true;
 
     @SwitchProperty({
         name: "Vitality",
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    vitality = false;
+    vitality = true;
 
     @SwitchProperty({
         name: "Speed",
@@ -251,21 +251,21 @@ class CustomizeSettings {
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    veteran = false;
+    veteran = true;
 
     @SwitchProperty({
         name: "Blazing Fortune",
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    blazingFortune = false;
+    blazingFortune = true;
 
     @SwitchProperty({
         name: "Fishing Experience",
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    fishingExperience = false;
+    fishingExperience = true;
 
     @SwitchProperty({
         name: "Infection",
@@ -279,7 +279,7 @@ class CustomizeSettings {
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    doubleHook = false;
+    doubleHook = true;
 
     @SwitchProperty({
         name: "Fisherman",
@@ -293,7 +293,7 @@ class CustomizeSettings {
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    fishingSpeed = false;
+    fishingSpeed = true;
 
     @SwitchProperty({
         name: "Hunter",
@@ -307,7 +307,7 @@ class CustomizeSettings {
         category: "Failsafes",
         subcategory: "Attributes"
     })
-    trophyHunter = false;
+    trophyHunter = true;
 
     constructor() {
         this.initialize(this);

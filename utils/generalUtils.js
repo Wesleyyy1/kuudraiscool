@@ -14,6 +14,23 @@ let registers = [];
 let worldJoin = [];
 let worldLeave = [];
 
+function checkApiPing() {
+    const start = Date.now();
+    axios.get("https://api.sm0kez.com/ping", {
+        headers: {
+            "User-Agent": "Mozilla/5.0 (ChatTriggers)",
+            "API-Key": Settings.apikey
+        }
+    })
+        .then(() => {
+            kicDebugMsg(`&aAPI Ping: ${Date.now() - start} ms`);
+        })
+        .catch(error => {
+            kicDebugMsg(`&cAPI Ping Failed: ${Date.now() - start} ms`);
+            kicDebugMsg(`&cError: ${error}`);
+        });
+}
+
 function parseShorthandNumber(input) {
     if (!input) return 0;
 
@@ -513,5 +530,6 @@ export {
     calculateMagicalPower,
     extractUsernameFromMsg,
     removeFromArray,
-    parseShorthandNumber
+    parseShorthandNumber,
+    checkApiPing
 };

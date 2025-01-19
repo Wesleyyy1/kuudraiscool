@@ -1,4 +1,4 @@
-import {@Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, @SliderProperty, @SelectorProperty} from "Vigilance";
+import {@Vigilant, @ButtonProperty, @TextProperty, @SwitchProperty, @SliderProperty, @SelectorProperty} from "../../Vigilance/index.js";
 
 const currentVers = JSON.parse(FileLib.read("kuudraiscool", "metadata.json")).version;
 const playername = Player.getName();
@@ -62,7 +62,7 @@ class Settings {
         subcategory: "1. Kuudra",
         category: "Kuudra",
     })
-    runoverview = true;
+    runoverview = false;
 
     // Kuudra - 2. Autokick
 
@@ -82,7 +82,7 @@ class Settings {
         min: 0,
         max: 70
     })
-    minLifelineLevel = 0;
+    minLifelineLevel = 50;
 
     @SliderProperty({
         name: "Minimum Mana pool level",
@@ -92,7 +92,7 @@ class Settings {
         min: 0,
         max: 70
     })
-    minManapoolLevel = 0;
+    minManapoolLevel = 40;
 
     @TextProperty({
         name: "Minimum T5 Completions",
@@ -101,7 +101,7 @@ class Settings {
         subcategory: "2. AutoKick",
         placeholder: "0",
     })
-    minT5Completions = "0";
+    minT5Completions = "900";
 
     @TextProperty({
         name: "Minimum Magical Power",
@@ -110,7 +110,7 @@ class Settings {
         subcategory: "2. AutoKick",
         placeholder: "0",
     })
-    minMagicalPower = "0";
+    minMagicalPower = "1250";
 
     @SliderProperty({
         name: "Minimum Chimera level",
@@ -120,7 +120,7 @@ class Settings {
         min: 0,
         max: 5
     })
-    minChimeraLevel = 0;
+    minChimeraLevel = 2;
 
     @SelectorProperty({
         name: "Minimum Terror tier",
@@ -129,7 +129,7 @@ class Settings {
         subcategory: "2. AutoKick",
         options: ["Infernal", "Fiery", "Burning", "Hot", "Basic"]
     })
-    minTerrorTier = 4;
+    minTerrorTier = 1;
 
     @SwitchProperty({
         name: "AutoKick Trimonu users",
@@ -139,7 +139,7 @@ class Settings {
     })
     kuudraAutoKickTrimonu = false;
 
-    // Kuudra - 3. AP and KA
+    // Kuudra - 3. AP&KA
 
     @SliderProperty({
         name: "Auctions per item in /ap and /ka",
@@ -342,12 +342,20 @@ class Settings {
 
     @TextProperty({
         name: "Minimum Total Profit for auto buy",
-        description: "Set the minimum total profit required to auto buy the chest.",
+        description: "Set the minimum total profit required to auto buy the chest. (Set to 0 to turn off)",
         category: "Kuudra",
         subcategory: "7. Auto Paid Chest",
         placeholder: "1",
     })
-    kuudraAutoBuyMinProfit = "1";
+    kuudraAutoBuyMinProfit = "0";
+
+    @SwitchProperty({
+        name: "Always auto buy",
+        description: "Ignore profit and always buy the chest.",
+        category: "Kuudra",
+        subcategory: "7. Auto Paid Chest"
+    })
+    kuudraAlwaysAutoBuy = false;
 
     // Chat commands
 
@@ -499,7 +507,7 @@ class Settings {
     anthony() { };
 
     @ButtonProperty({
-        name: "&d&lrain",
+        name: "&d&lRain",
         description: "Special",
         category: "Credits",
         placeholder: " "
@@ -556,6 +564,7 @@ class Settings {
         this.addDependency("Only auto reroll in T5", "Auto reroll Paid Chest");
         this.addDependency("Auto buy Paid Chest", "Enable Super Secret Settings");
         this.addDependency("Minimum Total Profit for auto buy", "Auto buy Paid Chest");
+        this.addDependency("Always auto buy", "Auto buy Paid Chest");
 
         this.addDependency("Party > .runs", "Party Commands");
         this.addDependency("Party > .stats", "Party Commands");

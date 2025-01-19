@@ -85,7 +85,7 @@ let runStartTime = 0;
 let runEndTime = 0;
 let kuudraTier = "UNKNOWN";
 
-const click = (slot) => {
+const click = (slot, skipUpdate = false) => {
     const container = Player.getContainer();
     if (!container) return;
     const containerSize = container.getSize();
@@ -94,6 +94,9 @@ const click = (slot) => {
     kicDebugMsg(`Slot: ${slot} is a valid slot!`);
     if (slot === 31) {
         chestOpened = true;
+        if (!skipUpdate) {
+            updateProfitTracker();
+        }
     }
     container.click(slot);
 }
@@ -346,7 +349,8 @@ register("packetReceived", (packet, event) => {
         shouldBuy = false;
         totalProfit = 0;
         generateFailsafeList();
-        profitGui.setMessage("&aChecking prices...");
+        profitGui.setMessage("&aChecking items...");
+        kicDebugMsg("&aChecking items...");
 
         itemsList.forEach(itemStack => {
             if (!itemStack) return;
@@ -621,6 +625,8 @@ register("packetReceived", (packet, event) => {
 
         if (itemsToUpdateFiltered.length < 0 && itemsWithoutUpdateFiltered.length < 0) return;
 
+        profitGui.setMessage("&aChecking prices...");
+        kicDebugMsg("&aChecking prices...");
         fetchItemPrices(itemsToUpdateFiltered, function () {
             updateOverlay(itemsToUpdateFiltered.concat(itemsWithoutUpdateFiltered), kuudraTier);
             kicDebugMsg(`Total profit: ${fixNumber(totalProfit)}, Chest Opened: ${chestOpened}, Should Buy: ${shouldBuy}`);
@@ -628,7 +634,7 @@ register("packetReceived", (packet, event) => {
                 kicDebugMsg(`Should reroll value check. isPaidChest: ${isPaidChest()}, dontReroll: ${dontReroll}, rerollPriceChecked.checked: ${rerollPriceChecked?.checked}, rerollPriceChecked.reroll: ${rerollPriceChecked?.reroll}, canReroll: ${canReroll}, rerolled: ${rerolled}, chestOpened: ${chestOpened}, TotalProfit: ${totalProfit}, AutoBuyMinProfit: ${parseShorthandNumber(Settings.kuudraAutoBuyMinProfit)}`);
                 if (Settings.kuudraAutoReroll && shouldReroll()) {
                     if (Settings.kuudraAutoBuy) {
-                        delay(() => click(31), 500);
+                        delay(() => click(31, true), 500);
                         delay(() => click(50), 750);
                         ChatLib.chat(`${kicPrefix} &aAuto-rerolled & auto-bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
                     } else {
@@ -639,7 +645,6 @@ register("packetReceived", (packet, event) => {
                     if (shouldBuy) {
                         delay(() => click(31), 500);
                         ChatLib.chat(`${kicPrefix} &aAuto-bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
-                        updateProfitTracker();
                     } else {
                         ChatLib.chat(`${kicPrefix} &aChest not auto-bought as total profit (${fixNumber(totalProfit)}) was below the threshold (${fixNumber(parseShorthandNumber(Settings.kuudraAutoBuyMinProfit))}).`);
                     }
@@ -675,6 +680,9 @@ function fetchItemPrices(uuidsToUpdate, callback) {
         return callback();
     }
 
+    kicDebugMsg(`&aUpdating prices for ${uuidsToUpdate.length} items`);
+    const itemNames = [];
+
     const itemsToFetch = uuidsToUpdate.map(uuid => {
         let requestBody = {
             type: null,
@@ -683,6 +691,7 @@ function fetchItemPrices(uuidsToUpdate, callback) {
 
         if (attributesItems[uuid]) {
             const item = attributesItems[uuid];
+            itemNames.push(item.name);
             requestBody.type = "ATTRIBUTES";
             requestBody.itemId = item.itemId;
 
@@ -693,10 +702,12 @@ function fetchItemPrices(uuidsToUpdate, callback) {
             });
         } else if (bazaarItems[uuid]) {
             const item = bazaarItems[uuid];
+            itemNames.push(item.name);
             requestBody.type = "BAZAAR";
             requestBody.itemId = item.itemId;
         } else if (auctionItems[uuid]) {
             const item = auctionItems[uuid];
+            itemNames.push(item.name);
             requestBody.type = "AUCTION";
             requestBody.itemId = item.itemId;
         }
@@ -706,6 +717,10 @@ function fetchItemPrices(uuidsToUpdate, callback) {
 
     if (itemsToFetch.length === 0) return callback();
 
+    kicDebugMsg(`&aFetching prices from api for ${itemsToFetch.length} items`);
+    kicDebugMsg(`&aItems: ${itemNames.join(", ")}`);
+
+    const start = Date.now();
     axios.post("https://api.sm0kez.com/crimson/prices", {
         headers: {
             "User-Agent": "Mozilla/5.0 (ChatTriggers)",
@@ -715,11 +730,13 @@ function fetchItemPrices(uuidsToUpdate, callback) {
         parseBody: true
     })
         .then(response => {
+            kicDebugMsg(`&aAPI Ping: ${Date.now() - start} ms`);
             const data = response.data;
             data.forEach(itemData => updateItemPrices(itemData));
             callback();
         })
         .catch(error => {
+            kicDebugMsg(`&cAPI Ping Failed: ${Date.now() - start} ms`);
             if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
                 ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
             } else if (!error.isAxiosError || error.code === 500) {
@@ -826,10 +843,14 @@ function updateOverlay(uuids, tier) {
         kismetMessage = `\n&c-${fixNumber(kismetPrice)} &7|&r ${kismet.name}`;
     }
 
-    shouldBuy = totalProfit >= parseShorthandNumber(Settings.kuudraAutoBuyMinProfit);
+    if (Settings.kuudraAlwaysAutoBuy) {
+        shouldBuy = true;
+    } else {
+        shouldBuy = totalProfit >= parseShorthandNumber(Settings.kuudraAutoBuyMinProfit);
+    }
 
     const profitColor = totalProfit > 0 ? "&a" : "&c";
-    const msg = `${kicPrefix} &a&lChest profit\n\n&e${totalProfit > Settings.minGodroll * 1000000 ? "&l" : ""}Total: ${profitColor}${totalProfit > Settings.minGodroll * 1000000 ? "&l" : ""}${totalProfit < 0 ? "-" : "+"}${fixNumber(totalProfit)}\n${keyMessage}${kismetMessage}\n${Settings.kuudraProfitCompact ? "" : "\n"}`;
+    const msg = `${kicPrefix} &a&lChest profit\n\n&e${totalProfit > Settings.minGodroll * 1000000 ? "&l" : ""}Total: ${profitColor}${totalProfit > Settings.minGodroll * 1000000 ? "&l" : ""}${totalProfit < 0 ? "" : "+"}${fixNumber(totalProfit)}\n${keyMessage}${kismetMessage}\n${Settings.kuudraProfitCompact ? "" : "\n"}`;
 
     const itemMessages = uuids.map(uuid =>
         Settings.kuudraProfitCompact ? getOverlayTextCompact(uuid) : getOverlayText(uuid)

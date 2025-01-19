@@ -2,7 +2,7 @@ import Settings from "./settings/config.js";
 import DevConfig from "./settings/devConfig.js";
 import CustomizeSettings from "./settings/customizeConfig.js";
 import {checkUpdate} from "./utils/updateChecker.js";
-import {checkApiKey, delay, getRoles, kicPrefix, setRegisters} from "./utils/generalUtils.js";
+import {checkApiKey, checkApiPing, delay, getRoles, kicPrefix, setRegisters} from "./utils/generalUtils.js";
 import {kicData} from "./utils/data.js";
 import "./kuudra/runOverview.js";
 import "./mvpEmoji.js";
@@ -22,9 +22,9 @@ register("gameLoad", () => {
 const firstChecksReg = register("worldLoad", () => {
     firstChecksReg.unregister();
     if (kicData.firstChecks) {
-        checkApiKey(null, false);
         setRegisters();
         delay(() => {
+            checkApiKey(null, false);
             checkUpdate();
         }, 1000);
         kicData.firstChecks = false;
@@ -59,6 +59,15 @@ register("command", () => {
         ChatLib.chat(`${kicPrefix} &4&lYou are not allowed to use this!`);
     }
 }).setName("kic-dev");
+
+register("command", () => {
+    const roles = getRoles();
+    if (roles.includes("DEV") || roles.includes("TESTER")) {
+        checkApiPing();
+    } else {
+        ChatLib.chat(`${kicPrefix} &4&lYou are not allowed to use this!`);
+    }
+}).setName("kic-dev-ping");
 
 // Create the help message
 const kicCommandsMsg = new Message();

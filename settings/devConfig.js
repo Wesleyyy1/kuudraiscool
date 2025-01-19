@@ -1,8 +1,8 @@
-import {@Vigilant, @SwitchProperty} from "Vigilance";
+import {@Vigilant, @SwitchProperty} from "../../Vigilance/index.js";
 
 const currentVers = JSON.parse(FileLib.read("kuudraiscool", "metadata.json")).version;
 
-@Vigilant("kuudraiscool/data", "Developer Settings")
+@Vigilant("kuudraiscool/data/dev", "Developer Settings")
 class DeveloperSettings {
     @SwitchProperty({
         name: "Enable KIC debug messages",
