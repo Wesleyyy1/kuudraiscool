@@ -84,6 +84,7 @@ let totalProfit = 0;
 let runStartTime = 0;
 let runEndTime = 0;
 let kuudraTier = "UNKNOWN";
+let gr = false;
 
 const click = (slot, skipUpdate = false) => {
     const container = Player.getContainer();
@@ -116,7 +117,8 @@ function shouldReroll() {
         rerollPriceChecked?.reroll &&
         canReroll &&
         !rerolled &&
-        !chestOpened
+        !chestOpened &&
+        !gr
     );
 }
 
@@ -348,6 +350,7 @@ register("packetReceived", (packet, event) => {
         dontReroll = false;
         shouldBuy = false;
         totalProfit = 0;
+        gr = false;
         generateFailsafeList();
         profitGui.setMessage("&aChecking items...");
         kicDebugMsg("&aChecking items...");
@@ -536,7 +539,8 @@ register("packetReceived", (packet, event) => {
                         itemId: itemId,
                         attributes: parsedAttributes,
                         price: "Loading...",
-                        time: Date.now()
+                        time: Date.now(),
+                        gr: false
                     };
                     itemsToUpdate.push(uuid);
                 } else {
@@ -636,7 +640,7 @@ register("packetReceived", (packet, event) => {
                     if (Settings.kuudraAutoBuy) {
                         delay(() => click(31, true), 500);
                         delay(() => click(50), 750);
-                        ChatLib.chat(`${kicPrefix} &aAuto-rerolled & auto-bought the paid chest! (Profit: ${fixNumber(totalProfit)})`);
+                        ChatLib.chat(`${kicPrefix} &aAuto-rerolled & auto-bought the paid chest!`);
                     } else {
                         delay(() => click(50), 500);
                         ChatLib.chat(`${kicPrefix} &aAuto rerolled the paid chest!`);
@@ -730,13 +734,13 @@ function fetchItemPrices(uuidsToUpdate, callback) {
         parseBody: true
     })
         .then(response => {
-            kicDebugMsg(`&aAPI Ping: ${Date.now() - start} ms`);
+            kicDebugMsg(`&aAPI Ping (/prices): ${Date.now() - start} ms`);
             const data = response.data;
             data.forEach(itemData => updateItemPrices(itemData));
             callback();
         })
         .catch(error => {
-            kicDebugMsg(`&cAPI Ping Failed: ${Date.now() - start} ms`);
+            kicDebugMsg(`&cAPI Ping Failed (/prices): ${Date.now() - start} ms`);
             if (error.isAxiosError && (error.response.status === 502 || error.response.status === 503)) {
                 ChatLib.chat(`${kicPrefix} &cThe API is currently offline.`);
             } else if (!error.isAxiosError || error.code === 500) {
@@ -758,10 +762,12 @@ function updateItemPrices(itemData) {
 }
 
 function updateAttributeItemPrices(item, itemData) {
-    item.price = itemData.price || 0;
+    item.price = itemData.godRoll ? itemData.godRollPrice : (itemData.price || 0);
     item.priceAttribute1 = itemData.priceAttribute1 || 0;
     item.priceAttribute2 = itemData.priceAttribute2 || 0;
     item.displayPrice = `${itemData.price ? "&a" : "&c"}${fixNumber(itemData.price) || 0}`;
+    item.gr = itemData.godRoll;
+    kicDebugMsg(`&6Item: ${itemData.itemId} | godroll: ${itemData.godRoll} | price: ${item.price} (API | itemPrice: ${itemData.price || 0} | grPrice: ${itemData.godRollPrice || 0})`);
 
     const attributeDisplayPrices = [];
     if (itemData.attribute1) {
@@ -795,7 +801,7 @@ function calculateTotalProfit(uuids, forceIgnore = false) {
             if (item.itemId === "ATTRIBUTE_SHARD") {
                 return totalProfit + item.price;
             }
-            return totalProfit + (item.price > Settings.minGodroll * 1000000 ? item.price : Math.max(item.priceAttribute1 || 0, item.priceAttribute2 || 0));
+            return totalProfit + (item.gr ? item.price : Math.max(item.priceAttribute1 || 0, item.priceAttribute2 || 0));
         } else if (bazaarItems[uuid]) {
             if (uuid === "ESSENCE_CRIMSON" && (Settings.ignoreEssence || forceIgnore)) return totalProfit;
             if (uuid === "KUUDRA_TEETH" && (Settings.ignoreTeeth || forceIgnore)) return totalProfit;
@@ -815,6 +821,15 @@ function calculateTotalProfit(uuids, forceIgnore = false) {
     }, 0);
 }
 
+function checkIfGodRollPresent(uuids) {
+    for (const uuid of uuids) {
+        if (attributesItems[uuid] && attributesItems[uuid].gr) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function updateOverlay(uuids, tier) {
     let rerollCheckProfit = calculateTotalProfit(uuids, true);
     const kismet = bazaarItems["KISMET_FEATHER"];
@@ -824,6 +839,8 @@ function updateOverlay(uuids, tier) {
     rerollPriceChecked.checked = true;
 
     if (kismetPrice > rerollCheckProfit) rerollPriceChecked.reroll = true;
+
+    gr = checkIfGodRollPresent(uuids);
 
     totalProfit = calculateTotalProfit(uuids, false);
     let keyMessage = "";
@@ -850,7 +867,7 @@ function updateOverlay(uuids, tier) {
     }
 
     const profitColor = totalProfit > 0 ? "&a" : "&c";
-    const msg = `${kicPrefix} &a&lChest profit\n\n&e${totalProfit > Settings.minGodroll * 1000000 ? "&l" : ""}Total: ${profitColor}${totalProfit > Settings.minGodroll * 1000000 ? "&l" : ""}${totalProfit < 0 ? "" : "+"}${fixNumber(totalProfit)}\n${keyMessage}${kismetMessage}\n${Settings.kuudraProfitCompact ? "" : "\n"}`;
+    const msg = `${kicPrefix} &a&lChest profit\n\n&e${totalProfit > 15000000 ? "&l" : ""}Total: ${profitColor}${totalProfit > 15000000 ? "&l" : ""}${totalProfit < 0 ? "" : "+"}${fixNumber(totalProfit)}\n${keyMessage}${kismetMessage}\n${Settings.kuudraProfitCompact ? "" : "\n"}`;
 
     const itemMessages = uuids.map(uuid =>
         Settings.kuudraProfitCompact ? getOverlayTextCompact(uuid) : getOverlayText(uuid)
@@ -906,7 +923,7 @@ function getOverlayTextCompact(uuid) {
     if (attributesItems[uuid]) {
         price = item.itemId === "ATTRIBUTE_SHARD"
             ? item.price
-            : Math.max(item.price > Settings.minGodroll * 1000000 ? item.price : Math.max(item.priceAttribute1 || 0, item.priceAttribute2 || 0));
+            : Math.max(item.gr ? item.price : Math.max(item.priceAttribute1 || 0, item.priceAttribute2 || 0));
     } else if (bazaarItems[uuid]) {
         price = Settings.sellOrderPrice
             ? item.buyPrice || item.sellPrice

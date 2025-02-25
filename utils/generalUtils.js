@@ -296,7 +296,7 @@ function handleActiveApiKey(data, apiKey, manual) {
         Settings.apikey = apiKey;
         ChatLib.chat(`${kicPrefix} &aYour API key has been set!`);
     } else if (manual) {
-        ChatLib.chat(`${kicPrefix} &aYou're API key has been verified and is working.`);
+        ChatLib.chat(`${kicPrefix} &aYour API key has been verified and is working.`);
     }
 }
 

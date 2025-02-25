@@ -20,16 +20,16 @@ register("gameLoad", () => {
 });
 
 const firstChecksReg = register("worldLoad", () => {
-    firstChecksReg.unregister();
     if (kicData.firstChecks) {
         setRegisters();
         delay(() => {
             checkApiKey(null, false);
             checkUpdate();
-        }, 1000);
+        }, 2000);
         kicData.firstChecks = false;
         kicData.save();
     }
+    firstChecksReg.unregister();
 });
 
 register("command", (...args) => {
@@ -126,8 +126,8 @@ const commands = [
         hover: `&a&lKick a player\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .kick SuuerSindre\n&9&m-----------------------------------------------------\n&b[MVP&r&c+&r&b] SuuerSindre &r&ehas been removed from the party.\n&9&m-----------------------------------------------------`
     },
     {
-        text: "&8* &a .cata [player]\n\n",
-        hover: `&a&lCata Info\n\n&9Party &8> &b[MVP&0+&b] ${playername}&f: .cata Wesleygame\n&9Party &8> &b[MVP&0+&b] ${playername}&f: Wesleygame's Cata: 48.77 - PB: 05:37:20 - MP: 1404 - Secrets: 28.51K&r`
+        text: "&8* &a .cata [player]\n",
+        hover: `&a&lCata Info\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .cata Wesleygame\n&9Party &8> &b[MVP&c+&b] ${playername}&f: Wesleygame's Cata: 48.77 - PB: 05:37:20 - MP: 1404 - Secrets: 28.51K&r`
     },
     {text: "&8* &a .kic\n\n", hover: "&a&lSends kuudraiscool discord server link."},
     {text: "&2[] = optional &7| &2<> = required\n"},
