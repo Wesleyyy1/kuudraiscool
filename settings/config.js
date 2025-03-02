@@ -40,6 +40,13 @@ class Settings {
     emojis = false;
 
     @SwitchProperty({
+        name: "Doogans",
+        description: "Show missing arrows + soulflow for all users in party after dungeon run ends.",
+        category: "General",
+    })
+    doogans = false;
+
+    @SwitchProperty({
         name: "Disable Pre-Release message",
         description: "Disable the pre-release message sent on login.",
         category: "General",
@@ -206,16 +213,6 @@ class Settings {
     })
     kuudraProfitCompact = true;
 
-    @SliderProperty({
-        name: "Minimum God Roll",
-        description: "Set the minimum value for an attribute combination to be tracked as a godroll (in millions).",
-        category: "Kuudra",
-        subcategory: "4. Chest Profit",
-        min: 0,
-        max: 350
-    })
-    minGodroll = 50;
-
     @SwitchProperty({
         name: "Ignore essence value",
         description: "Exclude the value of essence from profit calculations.",
@@ -369,7 +366,7 @@ class Settings {
 
     @SwitchProperty({
         name: "Party > .runs",
-        description: `&a&lKuudra Stats\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .stats rainbode\n&r&9Party &8> &b[MVP&c+&b] ${playername}&f: Lifeline: 70 | Mana pool: 70 | Magical power: 1682`,
+        description: `&a&lT5 Runs\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .runs rainbode\n&9Party &8> &b[MVP&c+&b] ${playername}&f: 10673 runs`,
         category: "Chat Commands",
         subcategory: "1. Party Commands",
     })
@@ -377,7 +374,7 @@ class Settings {
 
     @SwitchProperty({
         name: "Party > .stats",
-        description: `&a&lT5 Runs\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .runs rainbode\n&9Party &8> &b[MVP&c+&b] ${playername}&f: 10673 runs`,
+        description: `&a&lKuudra Stats\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .stats rainbode\n&r&9Party &8> &b[MVP&c+&b] ${playername}&f: Lifeline: 70 | Mana pool: 70 | Magical power: 1682`,
         category: "Chat Commands",
         subcategory: "1. Party Commands",
     })
@@ -409,7 +406,7 @@ class Settings {
 
     @SwitchProperty({
         name: "Party > .cata",
-        description: `&a&lCata Info\n\n&9Party &8> &b[MVP&0+&b] ${playername}&f: .cata Wesleygame\n&9Party &8> &b[MVP&0+&b] ${playername}&f: Wesleygame's Cata: 48.77 - PB: 05:37:20 - MP: 1404 - Secrets: 28.51K&r`,
+        description: `&a&lCata Info\n\n&9Party &8> &b[MVP&c+&b] ${playername}&f: .cata Wesleygame\n&9Party &8> &b[MVP&c+&b] ${playername}&f: Wesleygame's Cata: 48.77 - PB: 05:37:20 - MP: 1404 - Secrets: 28.51K&r`,
         category: "Chat Commands",
         subcategory: "1. Party Commands",
     })
@@ -533,7 +530,6 @@ class Settings {
 
         this.addDependency("Kuudra Profit Compact", "Kuudra Profit");
         this.addDependency("Move Kuudra Profit GUI", "Kuudra Profit");
-        this.addDependency("Minimum God Roll", "Kuudra Profit");
         this.addDependency("Ignore essence value", "Kuudra Profit");
         this.addDependency("Ignore teeth value", "Kuudra Profit");
         this.addDependency("Use sell order price", "Kuudra Profit");

@@ -123,6 +123,7 @@ function displayResults() {
 }
 
 register("chat", (msg) => {
+    if (!Settings.doogans) return;
     const unformatted = ChatLib.removeFormatting(msg).trim();
     if (unformatted.startsWith("Team Score:")) {
         checkParty();

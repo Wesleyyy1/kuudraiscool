@@ -28,11 +28,14 @@ export default function autoKick(lifeline, manapool, runs, magicalpower, ragnaro
         }
     ];
 
-    const failedCriteria = criteria.find(({condition}) => condition);
+    const failedCriteria = criteria
+        .filter(({ condition }) => condition)
+        .map(({ reason }) => reason);
 
-    if (failedCriteria) {
-        ChatLib.chat(`${kicPrefix} &c${player} &2has been autokicked for: &c${failedCriteria.reason}`);
-        ChatLib.command(`pc ${player} kicked for: ${failedCriteria.reason}`);
+    if (failedCriteria.length > 0) {
+        const reasons = failedCriteria.join(", ");
+        ChatLib.chat(`${kicPrefix} &c${player} &2has been autokicked for: &c${reasons}`);
+        ChatLib.command(`pc [KIC] ${player} kicked for: ${reasons}`);
         delay(() => ChatLib.command(`p kick ${player}`), 500);
     }
 }
