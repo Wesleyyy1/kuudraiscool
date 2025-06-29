@@ -1,3 +1,6 @@
+> ⚠️ **Notice:** This module has moved to [https://github.com/SomeoneOKxD/kuudraiscool](https://github.com/SomeoneOKxD/kuudraiscool).  
+> **Do not use the ChatTriggers version anymore** — it is deprecated and no longer supported.
+
 # kuudraiscool
 
 Welcome to **kuudraiscool**, a CT module built mainly for Kuudra, but with additional features to enhance your gameplay experience.
